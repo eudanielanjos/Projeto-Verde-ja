@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 
-class PerfilPage extends StatefulWidget {
-  const PerfilPage({super.key});
+
+
+class Perfil extends StatefulWidget {
+  const Perfil({super.key});
 
   @override
-  State<PerfilPage> createState() => _PerfilPageState();
+  State<Perfil> createState() => _PerfilState();
 }
 
-class _PerfilPageState extends State<PerfilPage> {
-  int _selectedIndex = 3;
+class _PerfilState extends State<Perfil> {
+  int _selectedIndex = 0;
 
- @override
+@override
 Widget build(BuildContext context) {
   return Scaffold(
     body: _buildBody(),
@@ -132,15 +134,71 @@ Widget build(BuildContext context) {
 
             // 📋 Botões
             _buildButton(Icons.person, "Meus dados"),
-            _buildButton(Icons.lock, "Privacidade"),
             _buildButton(Icons.chat_bubble, "Fale conosco"),
             _buildButton(Icons.search, "Histórico de denúncia"),
             _buildButton(Icons.menu_book, "Regulamento"),
-          ],
+             const SizedBox(height: 7),
+            _buildLogoutButton(),
+            _buildDeleteAccountButton(),
+            
+          ], 
         ),
       ),
     );
   }
+  
+
+   Widget _buildDeleteAccountButton() {
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+    child: GestureDetector(
+      onTap: () {
+        print("Deletar conta pressionado");
+      },
+      child: Container(
+        height: 30,
+        alignment: Alignment.center,
+        child: const Text(
+          "Deletar conta",
+          style: TextStyle(
+            color: Color(0xFF1F5C3A),
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+            decoration: TextDecoration.underline,
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+
+   Widget _buildLogoutButton() {
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+    child: GestureDetector(
+      onTap: () {
+        print("Sair da conta pressionado");
+      },
+      child: Container(
+        height: 40,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(15),
+        ),
+        alignment: Alignment.center,
+        child: const Text(
+          "Sair da conta",
+          style: TextStyle(
+            color: Color(0xFF1F5C3A), // verde escuro
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+            decoration: TextDecoration.underline,
+          ),
+        ),
+      ),
+    ),
+  );
+}
 
   // 🔘 Widget padrão dos botões
   Widget _buildButton(IconData icon, String text) {

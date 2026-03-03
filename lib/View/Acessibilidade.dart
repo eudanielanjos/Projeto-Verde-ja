@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-class ConfiguracaoPage extends StatefulWidget {
-  const ConfiguracaoPage({super.key});
+class AcessibilidadeView extends StatefulWidget {
+  const AcessibilidadeView({super.key});
 
   @override
-  State<ConfiguracaoPage> createState() => _ConfiguracaoPageState();
+  State<AcessibilidadeView> createState() => _AcessibilidadeViewState();
 }
 
-class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
+class _AcessibilidadeViewState extends State<AcessibilidadeView> {
   int _selectedIndex = 3;
 
    @override
@@ -43,7 +43,7 @@ class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
               const SizedBox(height: 35),
 
               const Text(
-                "CONFIGURAÇÕES",
+                "ACESSIBILIDADE",
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -51,14 +51,13 @@ class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
                 ),
               ),
 
-               const SizedBox(height: 40),
+               const SizedBox(height: 45),
 
               // 📋 Botões
-              _buildButton(Icons.help, "Ajuda"),
-              _buildButton(Icons.lock, "Privacidade"),
-              _buildButton(Icons.accessibility, "Acessibilidade"),
-              _buildButton(Icons.language, "Idiomas e Traducão"),
-              _buildButton(Icons.info, "Sobre"),
+              _buildButton(Icons.location_on, "Informações de localização"),
+              _buildButton(Icons.remove_red_eye, "Modo Daltonismo"),
+              _buildButton(Icons.record_voice_over, "Leitor de Tela"),
+              _buildButton(Icons.text_fields, "Tamanho da Fonte"),
             ],
           ),
         ),
