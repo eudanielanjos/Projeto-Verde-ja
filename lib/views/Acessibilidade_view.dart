@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
-import 'acessibilidade_view.dart'; // ✅ import da tela
 
-class ConfiguracaoPage extends StatefulWidget {
-  const ConfiguracaoPage({super.key});
+class AcessibilidadeView extends StatefulWidget {
+  const AcessibilidadeView({super.key});
 
   @override
-  State<ConfiguracaoPage> createState() => _ConfiguracaoPageState();
+  State<AcessibilidadeView> createState() => _AcessibilidadeViewState();
 }
 
-class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
+class _AcessibilidadeViewState extends State<AcessibilidadeView> {
   int _selectedIndex = 3;
 
-  @override
+   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
@@ -21,7 +20,7 @@ class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
             end: Alignment.bottomCenter,
             colors: [
               Color(0xFF5E7F6B),
-              Color(0xFFEAEAEA),
+               Color(0xFFEAEAEA),
               Color(0xFFEAEAEA),
             ],
           ),
@@ -34,21 +33,17 @@ class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    InkWell(
-                      onTap: () {
-                        Navigator.pop(context);
-                      },
-                      child: const Icon(Icons.arrow_back, color: Colors.black54),
-                    ),
+                  children: const [
+                    Icon(Icons.arrow_back, color: Colors.black54),
+                    // Icon(Icons.menu, color: Colors.black54),
                   ],
                 ),
               ),
-
+ 
               const SizedBox(height: 35),
 
               const Text(
-                "CONFIGURAÇÕES",
+                "ACESSIBILIDADE",
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -56,22 +51,21 @@ class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
                 ),
               ),
 
-              const SizedBox(height: 40),
+               const SizedBox(height: 45),
 
-              _buildButton(Icons.help, "Ajuda"),
-              _buildButton(Icons.lock, "Privacidade"),
-              _buildButton(Icons.accessibility, "Acessibilidade"),
-              _buildButton(Icons.language, "Idiomas e Tradução"),
-              _buildButton(Icons.info, "Sobre"),
+              // 📋 Botões
+              _buildButton(Icons.location_on, "Informações de localização"),
+              _buildButton(Icons.remove_red_eye, "Modo Daltonismo"),
+              _buildButton(Icons.record_voice_over, "Leitor de Tela"),
+              _buildButton(Icons.text_fields, "Tamanho da Fonte"),
             ],
           ),
         ),
       ),
-
       // 🔻 Barra inferior
       bottomNavigationBar: NavigationBarTheme(
         data: NavigationBarThemeData(
-          labelTextStyle: MaterialStateProperty.all(
+          labelTextStyle: WidgetStateProperty.all(
             const TextStyle(color: Colors.white),
           ),
         ),
@@ -112,7 +106,6 @@ class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
     );
   }
 
-  // ✅ MÉTODO ORIGINAL (layout não alterado)
   Widget _buildButton(IconData icon, String label) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -120,7 +113,7 @@ class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
         height: 60,
         decoration: BoxDecoration(
           color: const Color.fromARGB(255, 88, 133, 105),
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.1),
@@ -133,17 +126,7 @@ class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
           leading: Icon(icon, color: const Color.fromARGB(255, 247, 247, 247)),
           title: Text(label, style: const TextStyle(color: Colors.white)),
           trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.white),
-          onTap: () {
-            // ✅ Apenas adicionamos a navegação aqui
-            if (label == "Acessibilidade") {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const AcessibilidadeView(),
-                ),
-              );
-            }
-          },
+          onTap: () {},
         ),
       ),
     );

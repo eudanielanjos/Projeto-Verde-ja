@@ -125,7 +125,7 @@ class _CadastroViewState extends State<CadastroView> {
                           'Faça login',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            color: Colors.black,
+                            color: Color.fromRGBO(48, 93, 60, 1),
                           ),
                         ),
                       ),
@@ -165,7 +165,7 @@ class _CadastroViewState extends State<CadastroView> {
         fillColor: const Color(0xFF5F826C),
         hintStyle: const TextStyle(color: Color(0xECFFFFFF)),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
         ),
       ),

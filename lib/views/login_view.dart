@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'home_view.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -63,98 +64,154 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: true,
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF5E7F6B),
-              Color(0xFFEAEAEA),
-              Color(0xFFEAEAEA),
-            ],
+      body: Stack(
+        children: [
+
+          // 🔹 FUNDO IGUAL À TELA INICIAL
+          Container(
+            width: double.infinity,
+            height: double.infinity,
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Color.fromRGBO(99, 134, 108, 1),
+                  Colors.white,
+                  Colors.white,
+                ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+            ),
           ),
-        ),
-        child: Center(
-          child: SingleChildScrollView(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 400),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 30),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 40),
-                    Image.asset('assets/images/logo.png', height: 120),
-                    const SizedBox(height: 12),
-                    const Text(
-                      'Viva verde, viva melhor!',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 17,
-                        fontStyle: FontStyle.italic,
-                        color: Color(0xFF1F5C3A),
-                      ),
-                    ),
-                    const SizedBox(height: 50),
-                    _buildEmailField(),
-                    const SizedBox(height: 12),
-                    _buildSenhaField(),
-                    const SizedBox(height: 24),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF1F5C3A),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+
+          // 🔹 CONTEÚDO
+          Padding(
+            padding: const EdgeInsets.only(bottom: 120),
+            child: Center(
+              child: SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 400),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 30),
+                    child: Column(
+                      children: [
+
+                        const SizedBox(height: 60),
+
+                        // 🔹 BOTÃO VOLTAR
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: IconButton(
+                            icon: const Icon(
+                              Icons.arrow_back,
+                              color: Colors.white,
+                              size: 28,
+                            ),
+                            onPressed: () {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const HomeView(),
+                                ),
+                              );
+                            },
                           ),
                         ),
-                        onPressed: _isLoading ? null : _login,
-                        child: _isLoading
-                            ? const CircularProgressIndicator(color: Colors.white)
-                            : const Text(
-                                'Acessar',
+
+                        const SizedBox(height: 20),
+
+                        Image.asset(
+                          'assets/images/logo.png',
+                          height: 120,
+                        ),
+
+                        const SizedBox(height: 12),
+
+                        const Text(
+                          'Viva verde, viva melhor!',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 17,
+                            fontStyle: FontStyle.italic,
+                            color: Color.fromRGBO(48, 93, 60, 1),
+                          ),
+                        ),
+
+                        const SizedBox(height: 50),
+
+                        _buildEmailField(),
+                        const SizedBox(height: 12),
+                        _buildSenhaField(),
+                        const SizedBox(height: 24),
+
+                        SizedBox(
+                          width: double.infinity,
+                          height: 50,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor:
+                                  const Color.fromRGBO(99, 134, 108, 1),
+                              shape: RoundedRectangleBorder(
+                                borderRadius:
+                                    BorderRadius.circular(12),
+                              ),
+                            ),
+                            onPressed:
+                                _isLoading ? null : _login,
+                            child: _isLoading
+                                ? const CircularProgressIndicator(
+                                    color: Colors.white,
+                                  )
+                                : const Text(
+                                    'Acessar',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight:
+                                          FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 30),
+
+                        Row(
+                          mainAxisAlignment:
+                              MainAxisAlignment.center,
+                          children: [
+                            const Text(
+                              'Ainda não possui conta? ',
+                              style: TextStyle(
+                                  color: Colors.black87),
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.pushNamed(
+                                    context, '/cadastro');
+                              },
+                              child: const Text(
+                                'Cadastre-se',
                                 style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
+                                  fontWeight:
+                                      FontWeight.bold,
+                                  color: Color.fromRGBO(
+                                      48, 93, 60, 1),
                                 ),
                               ),
-                      ),
-                    ),
-                    const SizedBox(height: 30),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text(
-                          'Ainda não possui conta? ',
-                          style: TextStyle(color: Colors.black87),
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.pushNamed(context, '/cadastro');
-                          },
-                          child: const Text(
-                            'Cadastre-se',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF1F5C3A),
                             ),
-                          ),
+                          ],
                         ),
                       ],
                     ),
-                    const SizedBox(height: 40),
-                  ],
+                  ),
                 ),
               ),
             ),
           ),
-        ),
+
+        ],
       ),
     );
   }
@@ -163,7 +220,7 @@ class _LoginPageState extends State<LoginPage> {
     return Container(
       height: 55,
       decoration: BoxDecoration(
-        color: const Color(0xFF5E7F6B),
+        color: const Color.fromRGBO(99, 134, 108, 1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: TextField(
@@ -173,7 +230,8 @@ class _LoginPageState extends State<LoginPage> {
           border: InputBorder.none,
           hintText: "Email",
           hintStyle: TextStyle(color: Colors.white70),
-          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+          contentPadding:
+              EdgeInsets.symmetric(horizontal: 16, vertical: 18),
         ),
       ),
     );
@@ -183,7 +241,7 @@ class _LoginPageState extends State<LoginPage> {
     return Container(
       height: 55,
       decoration: BoxDecoration(
-        color: const Color(0xFF5E7F6B),
+        color: const Color.fromRGBO(99, 134, 108, 1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: TextField(
@@ -193,11 +251,15 @@ class _LoginPageState extends State<LoginPage> {
         decoration: InputDecoration(
           border: InputBorder.none,
           hintText: "Senha",
-          hintStyle: const TextStyle(color: Colors.white70),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+          hintStyle:
+              const TextStyle(color: Colors.white70),
+          contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16, vertical: 18),
           suffixIcon: IconButton(
             icon: Icon(
-              _senhaVisivel ? Icons.visibility : Icons.visibility_off,
+              _senhaVisivel
+                  ? Icons.visibility
+                  : Icons.visibility_off,
               color: Colors.white70,
             ),
             onPressed: () {
@@ -206,26 +268,6 @@ class _LoginPageState extends State<LoginPage> {
               });
             },
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class HomePage extends StatelessWidget {
-  const HomePage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Home"),
-        backgroundColor: const Color(0xFF1F5C3A),
-      ),
-      body: const Center(
-        child: Text(
-          "Login realizado com sucesso!",
-          style: TextStyle(fontSize: 20),
         ),
       ),
     );

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'tela_inicial_view.dart'; // 🔥 IMPORTANTE
+import 'tela_inicial_view.dart';
 
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
@@ -78,7 +78,7 @@ class HomeView extends StatelessWidget {
 
                 const SizedBox(height: 25),
 
-                // 🔥 BOTÃO VISITANTE (AGORA FUNCIONAL)
+                // 🔥 BOTÃO VISITANTE
                 SizedBox(
                   width: 310,
                   height: 54,
@@ -178,6 +178,18 @@ class HomeView extends StatelessWidget {
                   ],
                 ),
               ],
+            ),
+          ),
+
+          // 🔥 IMAGEM NA PARTE DE BAIXO (ADICIONADA)
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: Image.asset(
+              'assets/images/base.png',
+              width: double.infinity,
+              fit: BoxFit.cover,
             ),
           ),
         ],
