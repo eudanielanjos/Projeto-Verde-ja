@@ -1,17 +1,5 @@
 import 'package:flutter/material.dart';
-
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: LocalDenunciaPage(),
-    );
-  }
-}
+import 'denuncia2_view.dart'; // 🔹 Import da segunda tela
 
 class LocalDenunciaPage extends StatelessWidget {
   const LocalDenunciaPage({super.key});
@@ -21,11 +9,15 @@ class LocalDenunciaPage extends StatelessWidget {
     return Scaffold(
       extendBodyBehindAppBar: true,
 
-      // 🔹 APPBAR
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: const Icon(Icons.arrow_back, color: Colors.black54),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black54),
+          onPressed: () {
+            Navigator.pop(context); // Volta para a tela anterior
+          },
+        ),
         actions: const [
           Padding(
             padding: EdgeInsets.only(right: 16),
@@ -34,7 +26,6 @@ class LocalDenunciaPage extends StatelessWidget {
         ],
       ),
 
-      // 🔹 FUNDO EM GRADIENTE (IGUAL PERFIL)
       body: Container(
         width: double.infinity,
         height: double.infinity,
@@ -49,14 +40,11 @@ class LocalDenunciaPage extends StatelessWidget {
             ],
           ),
         ),
-
         child: SafeArea(
           child: Column(
             children: [
-
               const SizedBox(height: 60),
 
-              // 🔹 TÍTULO
               const Text(
                 "Defina o local de denúncia:",
                 style: TextStyle(
@@ -69,25 +57,31 @@ class LocalDenunciaPage extends StatelessWidget {
 
               const SizedBox(height: 35),
 
-              // 🔹 BOTÃO 1
               _buildButton(
                 icon: Icons.location_on,
                 text: "Usar Minha Localização",
-                onPressed: () {},
+                onPressed: () {
+                  // Aqui você pode implementar pegar localização
+                },
               ),
 
               const SizedBox(height: 20),
 
-              // 🔹 BOTÃO 2
               _buildButton(
                 icon: Icons.touch_app,
                 text: "Digitar endereço",
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const Denuncias2(),
+                    ),
+                  );
+                },
               ),
 
               const Spacer(),
 
-              // 🔹 LOGO (se quiser manter imagem)
               Image.asset(
                 "assets/images/logo.png",
                 height: 130,
@@ -98,42 +92,9 @@ class LocalDenunciaPage extends StatelessWidget {
           ),
         ),
       ),
-
-      // 🔹 NAVIGATION BAR (IGUAL PERFIL)
-      bottomNavigationBar: NavigationBar(
-        height: 75,
-        backgroundColor: const Color(0xFF1F5C3A),
-        indicatorColor: Colors.white24,
-        labelTextStyle: MaterialStateProperty.all(
-          const TextStyle(color: Colors.white),
-        ),
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined, color: Colors.white),
-            selectedIcon: Icon(Icons.home, color: Colors.white),
-            label: 'Início',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.location_on_outlined, color: Colors.white),
-            selectedIcon: Icon(Icons.location_on, color: Colors.white),
-            label: 'Coleta',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.school_outlined, color: Colors.white),
-            selectedIcon: Icon(Icons.school, color: Colors.white),
-            label: 'Educação',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.person_outline, color: Colors.white),
-            selectedIcon: Icon(Icons.person, color: Colors.white),
-            label: 'Perfil',
-          ),
-        ],
-      ),
     );
   }
 
-  // 🔹 BOTÃO PADRÃO
   Widget _buildButton({
     required IconData icon,
     required String text,

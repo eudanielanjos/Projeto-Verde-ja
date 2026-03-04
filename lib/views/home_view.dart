@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'tela_inicial_view.dart'; // 🔥 IMPORTANTE
 
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
@@ -35,7 +36,7 @@ class HomeView extends StatelessWidget {
 
                 Image.asset(
                   'assets/images/logo.png',
-                  width: 210,
+                  width: 190,
                 ),
 
                 const SizedBox(height: 10),
@@ -43,14 +44,14 @@ class HomeView extends StatelessWidget {
                 const Text(
                   'Seja bem-vindo!',
                   style: TextStyle(
-                    fontSize: 35,
+                    fontSize: 30,
                     fontStyle: FontStyle.italic,
                     fontWeight: FontWeight.w300,
                     color: Color.fromRGBO(48, 93, 60, 1),
                   ),
                 ),
 
-                const SizedBox(height: 20),
+                const SizedBox(height: 50),
 
                 // 🔹 BOTÃO CADASTRAR
                 SizedBox(
@@ -77,17 +78,17 @@ class HomeView extends StatelessWidget {
 
                 const SizedBox(height: 25),
 
-                // 🔹 BOTÃO VISITANTE
+                // 🔥 BOTÃO VISITANTE (AGORA FUNCIONAL)
                 SizedBox(
                   width: 310,
                   height: 54,
                   child: ElevatedButton(
                     onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Acesso como visitante em desenvolvimento',
-                          ),
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              const TelaInicialView(),
                         ),
                       );
                     },
@@ -119,7 +120,6 @@ class HomeView extends StatelessWidget {
 
                 const SizedBox(height: 10),
 
-                // 🔹 BOTÕES SOCIAIS
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -156,7 +156,6 @@ class HomeView extends StatelessWidget {
                   ],
                 ),
 
-                // 🔹 LOGIN
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
