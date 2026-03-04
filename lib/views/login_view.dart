@@ -1,21 +1,5 @@
 import 'package:flutter/material.dart';
 
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: LoginPage(),
-    );
-  }
-}
-
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -28,7 +12,7 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _senhaController = TextEditingController();
 
   bool _isLoading = false;
-  bool _senhaVisivel = false; // 🔥 controla visibilidade da senha
+  bool _senhaVisivel = false;
 
   void _mostrarAviso(String mensagem) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -66,10 +50,7 @@ class _LoginPageState extends State<LoginPage> {
     await Future.delayed(const Duration(seconds: 2));
 
     if (email == "admin@email.com" && senha == "123456") {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const HomePage()),
-      );
+      Navigator.pushReplacementNamed(context, '/home');
     } else {
       _mostrarAviso("Email ou senha incorretos");
     }
@@ -104,17 +85,10 @@ class _LoginPageState extends State<LoginPage> {
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 30),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     const SizedBox(height: 40),
-
-                    Image.asset(
-                      'assets/images/logo.png',
-                      height: 120,
-                    ),
-
+                    Image.asset('assets/images/logo.png', height: 120),
                     const SizedBox(height: 12),
-
                     const Text(
                       'Viva verde, viva melhor!',
                       textAlign: TextAlign.center,
@@ -124,25 +98,11 @@ class _LoginPageState extends State<LoginPage> {
                         color: Color(0xFF1F5C3A),
                       ),
                     ),
-
                     const SizedBox(height: 50),
-
-                    // 🔹 Email
-                    SizedBox(
-                      width: double.infinity,
-                      child: _buildEmailField(),
-                    ),
-
+                    _buildEmailField(),
                     const SizedBox(height: 12),
-
-                    // 🔹 Senha com olhinho
-                    SizedBox(
-                      width: double.infinity,
-                      child: _buildSenhaField(),
-                    ),
-
+                    _buildSenhaField(),
                     const SizedBox(height: 24),
-
                     SizedBox(
                       width: double.infinity,
                       height: 50,
@@ -155,9 +115,7 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                         onPressed: _isLoading ? null : _login,
                         child: _isLoading
-                            ? const CircularProgressIndicator(
-                                color: Colors.white,
-                              )
+                            ? const CircularProgressIndicator(color: Colors.white)
                             : const Text(
                                 'Acessar',
                                 style: TextStyle(
@@ -168,9 +126,7 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                       ),
                     ),
-
                     const SizedBox(height: 30),
-
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -179,7 +135,9 @@ class _LoginPageState extends State<LoginPage> {
                           style: TextStyle(color: Colors.black87),
                         ),
                         GestureDetector(
-                          onTap: () {},
+                          onTap: () {
+                            Navigator.pushNamed(context, '/cadastro');
+                          },
                           child: const Text(
                             'Cadastre-se',
                             style: TextStyle(
@@ -190,7 +148,6 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ],
                     ),
-
                     const SizedBox(height: 40),
                   ],
                 ),
@@ -216,8 +173,7 @@ class _LoginPageState extends State<LoginPage> {
           border: InputBorder.none,
           hintText: "Email",
           hintStyle: TextStyle(color: Colors.white70),
-          contentPadding:
-              EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 18),
         ),
       ),
     );
@@ -238,13 +194,10 @@ class _LoginPageState extends State<LoginPage> {
           border: InputBorder.none,
           hintText: "Senha",
           hintStyle: const TextStyle(color: Colors.white70),
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
           suffixIcon: IconButton(
             icon: Icon(
-              _senhaVisivel
-                  ? Icons.visibility
-                  : Icons.visibility_off,
+              _senhaVisivel ? Icons.visibility : Icons.visibility_off,
               color: Colors.white70,
             ),
             onPressed: () {

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'denuncia_view.dart';
+import 'perfil_view.dart';
 
 
 class TelaInicialView extends StatefulWidget {
@@ -9,6 +11,24 @@ class TelaInicialView extends StatefulWidget {
 }
 
 class _TelaInicialViewState extends State<TelaInicialView> {
+
+  int _selectedIndex = 0;
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+
+    if (index == 3) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const PerfilPage(),
+        ),
+      );
+    }
+  }
+
   int _selectedIndex = 0;
 
   @override
@@ -25,6 +45,7 @@ class _TelaInicialViewState extends State<TelaInicialView> {
               Color.fromRGBO(64, 118, 78, 1),
               Colors.white,
             ],
+            stops: [0.0, 0.5],
             stops: [
               0.0,
               0.5,
@@ -36,6 +57,12 @@ class _TelaInicialViewState extends State<TelaInicialView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+
+              const SizedBox(height: 40),
+
+              Center(
+                child: Image.asset(
+                  'assets/images/logo.png',
               Center(
                 child: Image.asset(
                   'assets/images/logo3.png',
@@ -54,6 +81,7 @@ class _TelaInicialViewState extends State<TelaInicialView> {
                 ),
               ),
 
+              const SizedBox(height: 30),
               const SizedBox(height: 18),
 
               const Text(
@@ -67,6 +95,67 @@ class _TelaInicialViewState extends State<TelaInicialView> {
 
               const SizedBox(height: 15),
 
+              // CARD 1
+              SizedBox(
+                height: 100,
+                width: double.infinity,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(16),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const LocalDenunciaPage(),
+                      ),
+                    );
+                  },
+                  child: Card(
+                    color: const Color.fromARGB(255, 154, 223, 26),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        children: [
+                          Image.asset(
+                            'assets/images/lixo.png',
+                            width: 45,
+                            height: 45,
+                          ),
+                          const SizedBox(width: 16),
+                          const Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  'Denuncie Agora',
+                                  style: TextStyle(
+                                    fontSize: 21,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                SizedBox(height: 4),
+                                Text(
+                                  'Denuncie descarte ilegal',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Icon(
+                            Icons.arrow_forward_ios,
+                            size: 30,
+                            color: Colors.white,
+                          ),
+                        ],
+                      ),
               // ===== PRIMEIRO CARD ALTERADO (COM SVG) =====
               SizedBox(
                 height: 100,
@@ -126,6 +215,7 @@ class _TelaInicialViewState extends State<TelaInicialView> {
 
               const SizedBox(height: 15),
 
+              // CARD 2 (RESTORED)
               // ===== SEGUNDO CARD (mantido original) =====
               SizedBox(
                 height: 100,
@@ -140,6 +230,10 @@ class _TelaInicialViewState extends State<TelaInicialView> {
                     child: Row(
                       children: [
                         Image.asset(
+                          'assets/images/icon1.png',
+                          width: 45,
+                          height: 45,
+                        ),
                             'assets/images/icon1.png',
                             width: 45,
                             height: 45, 
@@ -183,6 +277,7 @@ class _TelaInicialViewState extends State<TelaInicialView> {
 
               const SizedBox(height: 15),
 
+              // CARD 3 (RESTORED)
               // ===== TERCEIRO CARD (mantido original) =====
               SizedBox(
                 height: 100,
@@ -197,6 +292,10 @@ class _TelaInicialViewState extends State<TelaInicialView> {
                     child: Row(
                       children: [
                         Image.asset(
+                          'assets/images/icon2.png',
+                          width: 45,
+                          height: 45,
+                        ),
                             'assets/images/icon2.png',
                             width: 45,
                             height: 45,
@@ -243,6 +342,17 @@ class _TelaInicialViewState extends State<TelaInicialView> {
       ),
 
       bottomNavigationBar: NavigationBar(
+        selectedIndex: _selectedIndex,
+        onDestinationSelected: _onItemTapped,
+        height: 75,
+        backgroundColor: const Color(0xFF1F5C3A),
+        indicatorColor: Colors.white24,
+        labelTextStyle: MaterialStateProperty.all(
+          const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         height: 76,
         backgroundColor: const Color(0xFF1F5C3A),
         selectedIndex: _selectedIndex,
@@ -259,6 +369,8 @@ class _TelaInicialViewState extends State<TelaInicialView> {
             label: 'Início',
           ),
           NavigationDestination(
+            icon: Icon(Icons.location_on_outlined, color: Colors.white),
+            selectedIcon: Icon(Icons.location_on, color: Colors.white),
             icon: Icon(Icons.place_outlined, color: Colors.white),
             selectedIcon: Icon(Icons.place, color: Colors.white),
             label: 'Coleta',
@@ -277,6 +389,7 @@ class _TelaInicialViewState extends State<TelaInicialView> {
       ),
     );
   }
+}
 }
 
 
