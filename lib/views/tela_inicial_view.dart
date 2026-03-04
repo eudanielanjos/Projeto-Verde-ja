@@ -38,10 +38,10 @@ class _TelaInicialViewState extends State<TelaInicialView> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color.fromRGBO(64, 118, 78, 1),
+              Color.fromRGBO(120, 159, 130, 1),
               Colors.white,
             ],
-            stops: [0.0, 0.5],
+            stops: [0.0, 0.2],
           ),
         ),
         child: Padding(
