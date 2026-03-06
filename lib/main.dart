@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
       initialRoute: '/',
       routes: {
         '/': (context) => const SplashView(),
-        '/login': (context) => const LoginPage(),
+        '/login': (context) => const LoginView(),
         '/cadastro': (context) => const CadastroView(),
         '/home': (context) => const TelaInicialView(),
         '/denuncia': (context) => const LocalDenunciaPage(), // 👈 NOVA ROTA
