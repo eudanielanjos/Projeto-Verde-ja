@@ -38,10 +38,10 @@ class _TelaInicialViewState extends State<TelaInicialView> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color.fromRGBO(64, 118, 78, 1),
+              Color.fromRGBO(120, 159, 130, 1),
               Colors.white,
             ],
-            stops: [0.0, 0.5],
+            stops: [0.0, 0.2],
           ),
         ),
         child: Padding(
@@ -91,7 +91,7 @@ class _TelaInicialViewState extends State<TelaInicialView> {
                     );
                   },
                   child: Card(
-                    color: const Color.fromARGB(255, 154, 223, 26),
+                    color: const Color.fromRGBO(137, 186, 21, 1),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
@@ -149,7 +149,7 @@ class _TelaInicialViewState extends State<TelaInicialView> {
                 height: 100,
                 width: double.infinity,
                 child: Card(
-                  color: const Color.fromARGB(255, 154, 223, 26),
+                  color: const Color.fromRGBO(137, 186, 21, 1),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
@@ -206,7 +206,7 @@ class _TelaInicialViewState extends State<TelaInicialView> {
                 height: 100,
                 width: double.infinity,
                 child: Card(
-                  color: const Color.fromARGB(255, 154, 223, 26),
+                  color: const Color.fromRGBO(137, 186, 21, 1),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
