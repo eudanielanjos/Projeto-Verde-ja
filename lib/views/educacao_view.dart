@@ -117,6 +117,57 @@ class _EducacaoViewState extends State<EducacaoView> {
       ),
     );
   }
+  Widget buildVideoCard({
+  required YoutubePlayerController controller,
+  required String titulo,
+}) {
+  return Container(
+    margin: const EdgeInsets.only(bottom: 20),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(18),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.08),
+          blurRadius: 15,
+          offset: const Offset(0, 6),
+        ),
+      ],
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Título do vídeo
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
+          child: Text(
+            titulo,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Color.fromARGB(255, 76, 107, 99),
+            ),
+          ),
+        ),
+
+        // Vídeo sem borda extra
+        ClipRRect(
+          borderRadius: const BorderRadius.vertical(
+            bottom: Radius.circular(18),
+          ),
+          child: AspectRatio(
+            aspectRatio: 16 / 9,
+            child: YoutubePlayer(
+              controller: controller,
+              showVideoProgressIndicator: true,
+              progressIndicatorColor: Colors.green,
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+}
 
   @override
   Widget build(BuildContext context) {
@@ -143,6 +194,7 @@ class _EducacaoViewState extends State<EducacaoView> {
               children: [
                 const SizedBox(height: 40),
 
+                // 🔰 IMAGEM
                 Center(
                   child: Image.asset(
                     'assets/images/logo3.png',
@@ -217,6 +269,23 @@ class _EducacaoViewState extends State<EducacaoView> {
             label: 'Perfil',
           ),
         ],
+      ),
+               buildVideoCard(
+                controller: _controller1,
+                titulo: "Educação Ambiental",
+                  ),
+              buildVideoCard(
+                controller: _controller2,
+                titulo: "Sustentabilidade na Prática",
+                  ),
+              buildVideoCard(
+                controller: _controller3,
+                titulo: "Reciclagem e Meio Ambiente",
+                  ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
