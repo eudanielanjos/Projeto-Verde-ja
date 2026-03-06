@@ -71,16 +71,20 @@ class _MeusDadosViewState extends State<MeusDadosView> {
         body: Container(
           width: double.infinity,
           height: double.infinity,
+
+          /// 🔥 NOVO FUNDO APLICADO
           decoration: const BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                Color(0xFF6F8F7C),
-                Color(0xFFEDEDED),
+                Color(0xFF5E7F6B),
+                Color(0xFFF2F2F2),
+                Color(0xFFF2F2F2),
               ],
             ),
           ),
+
           child: SafeArea(
             child: Column(
               children: [

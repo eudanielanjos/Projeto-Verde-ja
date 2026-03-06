@@ -21,16 +21,15 @@ class _LoginViewState extends State<LoginView> {
         children: [
 
           // 🔹 FUNDO LIMPO (SEM NEBLINA)
-          Container(
-            width: double.infinity,
-            height: double.infinity,
+               Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
                   Color(0xFF5E7F6B),
-                  Color(0xFFE6E6E6),
+                  Color(0xFFF2F2F2),
+                  Color(0xFFF2F2F2),
                 ],
               ),
             ),
