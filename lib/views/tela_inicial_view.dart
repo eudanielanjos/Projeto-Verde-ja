@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'denuncia_view.dart';
 import 'perfil_view.dart';
+import 'educacao_view.dart';
 
 class TelaInicialView extends StatefulWidget {
   const TelaInicialView({super.key});
@@ -16,6 +17,15 @@ class _TelaInicialViewState extends State<TelaInicialView> {
     setState(() {
       _selectedIndex = index;
     });
+
+    if (index == 2) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const EducacaoView(),
+        ),
+      );
+    }
 
     if (index == 3) {
       Navigator.push(

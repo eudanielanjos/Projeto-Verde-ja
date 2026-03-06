@@ -10,7 +10,7 @@ class AcessibilidadeView extends StatefulWidget {
 class _AcessibilidadeViewState extends State<AcessibilidadeView> {
   int _selectedIndex = 3;
 
-   @override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
@@ -20,7 +20,7 @@ class _AcessibilidadeViewState extends State<AcessibilidadeView> {
             end: Alignment.bottomCenter,
             colors: [
               Color(0xFF5E7F6B),
-               Color(0xFFEAEAEA),
+              Color(0xFFEAEAEA),
               Color(0xFFEAEAEA),
             ],
           ),
@@ -33,13 +33,17 @@ class _AcessibilidadeViewState extends State<AcessibilidadeView> {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: const [
-                    Icon(Icons.arrow_back, color: Colors.black54),
-                    // Icon(Icons.menu, color: Colors.black54),
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back, color: Colors.black54),
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                    ),
                   ],
                 ),
               ),
- 
+
               const SizedBox(height: 35),
 
               const Text(
@@ -51,7 +55,7 @@ class _AcessibilidadeViewState extends State<AcessibilidadeView> {
                 ),
               ),
 
-               const SizedBox(height: 45),
+              const SizedBox(height: 45),
 
               // 📋 Botões
               _buildButton(Icons.location_on, "Informações de localização"),
@@ -62,6 +66,7 @@ class _AcessibilidadeViewState extends State<AcessibilidadeView> {
           ),
         ),
       ),
+
       // 🔻 Barra inferior
       bottomNavigationBar: NavigationBarTheme(
         data: NavigationBarThemeData(
@@ -124,8 +129,15 @@ class _AcessibilidadeViewState extends State<AcessibilidadeView> {
         ),
         child: ListTile(
           leading: Icon(icon, color: const Color.fromARGB(255, 247, 247, 247)),
-          title: Text(label, style: const TextStyle(color: Colors.white)),
-          trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.white),
+          title: Text(
+            label,
+            style: const TextStyle(color: Colors.white),
+          ),
+          trailing: const Icon(
+            Icons.arrow_forward_ios,
+            size: 16,
+            color: Colors.white,
+          ),
           onTap: () {},
         ),
       ),
