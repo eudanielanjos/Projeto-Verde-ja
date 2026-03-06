@@ -3,7 +3,8 @@ import 'views/splash_view.dart';
 import 'views/login_view.dart';
 import 'views/cadastro_view.dart';
 import 'views/tela_inicial_view.dart';
-import 'views/denuncia_view.dart'; // 👈 IMPORTE SUA TELA
+import 'views/denuncia_view.dart';
+import 'views/educacao_view.dart';
 
 void main() {
   runApp(const MyApp());
@@ -22,7 +23,8 @@ class MyApp extends StatelessWidget {
         '/login': (context) => const LoginView(),
         '/cadastro': (context) => const CadastroView(),
         '/home': (context) => const TelaInicialView(),
-        '/denuncia': (context) => const LocalDenunciaPage(), // 👈 NOVA ROTA
+        '/denuncia': (context) => const LocalDenunciaPage(),
+        '/educacao': (context) => const EducacaoView(),
       },
     );
   }
