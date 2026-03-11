@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'acessibilidade_view.dart'; // ✅ import da tela
+import 'acessibilidade_view.dart'; 
+import 'privacidade_view.dart';
+import 'idiomas_view.dart'; // ✅ IMPORT NOVO
 
 class ConfiguracaoPage extends StatefulWidget {
   const ConfiguracaoPage({super.key});
@@ -29,6 +31,7 @@ class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
         child: SafeArea(
           child: Column(
             children: [
+
               // 🔙 Barra superior
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -112,7 +115,7 @@ class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
     );
   }
 
-  // ✅ MÉTODO ORIGINAL (layout não alterado)
+  // 🔘 Botões de configuração
   Widget _buildButton(IconData icon, String label) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -134,7 +137,18 @@ class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
           title: Text(label, style: const TextStyle(color: Colors.white)),
           trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.white),
           onTap: () {
-            // ✅ Apenas adicionamos a navegação aqui
+
+            // 🔐 Tela de Privacidade
+            if (label == "Privacidade") {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const PrivacidadeView(),
+                ),
+              );
+            }
+
+            // ♿ Tela de Acessibilidade
             if (label == "Acessibilidade") {
               Navigator.push(
                 context,
@@ -143,6 +157,17 @@ class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
                 ),
               );
             }
+
+            // 🌎 Tela de Idiomas
+            if (label == "Idiomas e Tradução") {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const IdiomasView(),
+                ),
+              );
+            }
+
           },
         ),
       ),

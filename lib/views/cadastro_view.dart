@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'home_view.dart'; // 🔥 IMPORTANTE
+import 'home_view.dart';
 
 class CadastroView extends StatefulWidget {
   const CadastroView({super.key});
@@ -17,13 +17,58 @@ class _CadastroViewState extends State<CadastroView> {
   final TextEditingController _confirmarSenhaController =
       TextEditingController();
 
+  bool _senhaVisivel = false;
+  bool _confirmarSenhaVisivel = false;
+
+  String _forcaSenha = "";
+
+  @override
+  void dispose() {
+    _nomeController.dispose();
+    _emailController.dispose();
+    _senhaController.dispose();
+    _confirmarSenhaController.dispose();
+    super.dispose();
+  }
+
+  void _verificarForcaSenha(String senha) {
+    if (senha.length < 6) {
+      setState(() => _forcaSenha = "Senha fraca");
+    } else if (senha.length < 8) {
+      setState(() => _forcaSenha = "Senha média");
+    } else {
+      setState(() => _forcaSenha = "Senha forte");
+    }
+  }
+
+  void _cadastrar() {
+    if (_formKey.currentState!.validate()) {
+      if (_senhaController.text != _confirmarSenhaController.text) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("As senhas não coincidem"),
+          ),
+        );
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Cadastro realizado com sucesso! 🎉"),
+        ),
+      );
+
+      Navigator.pushReplacementNamed(context, '/home');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
         children: [
 
-          // 🔹 FUNDO GRADIENTE
+          // 🔹 FUNDO
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
@@ -38,7 +83,7 @@ class _CadastroViewState extends State<CadastroView> {
             ),
           ),
 
-          // 🔹 BOTÃO VOLTAR
+          // 🔹 VOLTAR
           Positioned(
             top: 40,
             left: 10,
@@ -66,7 +111,6 @@ class _CadastroViewState extends State<CadastroView> {
               child: Form(
                 key: _formKey,
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
 
                     const SizedBox(height: 80),
@@ -89,23 +133,75 @@ class _CadastroViewState extends State<CadastroView> {
 
                     const SizedBox(height: 30),
 
-                    _buildInput('Nome Completo',
-                        controller: _nomeController),
+                    _buildInput(
+                      'Nome Completo',
+                      controller: _nomeController,
+                    ),
+
                     const SizedBox(height: 10),
 
-                    _buildInput('Email',
-                        controller: _emailController),
+                    _buildInput(
+                      'Email',
+                      controller: _emailController,
+                    ),
+
                     const SizedBox(height: 10),
 
-                    _buildInput('Senha',
-                        controller: _senhaController,
-                        obscure: true),
+                    _buildInput(
+                      'Senha',
+                      controller: _senhaController,
+                      obscure: !_senhaVisivel,
+                      icon: IconButton(
+                        icon: Icon(
+                          _senhaVisivel
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                          color: Colors.white,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _senhaVisivel = !_senhaVisivel;
+                          });
+                        },
+                      ),
+                      onChanged: _verificarForcaSenha,
+                    ),
+
+                    if (_forcaSenha.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 5),
+                        child: Text(
+                          _forcaSenha,
+                          style: TextStyle(
+                            color: _forcaSenha == "Senha forte"
+                                ? Colors.green
+                                : Colors.orange,
+                          ),
+                        ),
+                      ),
+
                     const SizedBox(height: 10),
 
-                    _buildInput('Confirmar Senha',
-                        controller:
-                            _confirmarSenhaController,
-                        obscure: true),
+                    _buildInput(
+                      'Confirmar Senha',
+                      controller: _confirmarSenhaController,
+                      obscure: !_confirmarSenhaVisivel,
+                      icon: IconButton(
+                        icon: Icon(
+                          _confirmarSenhaVisivel
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                          color: Colors.white,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _confirmarSenhaVisivel =
+                                !_confirmarSenhaVisivel;
+                          });
+                        },
+                      ),
+                    ),
+
                     const SizedBox(height: 20),
 
                     SizedBox(
@@ -113,34 +209,12 @@ class _CadastroViewState extends State<CadastroView> {
                       height: 50,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              const Color(0xFF7BB132),
+                          backgroundColor: const Color(0xFF7BB132),
                           shape: RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        onPressed: () {
-                          if (_formKey.currentState!
-                              .validate()) {
-                            if (_senhaController.text !=
-                                _confirmarSenhaController
-                                    .text) {
-                              ScaffoldMessenger.of(context)
-                                  .showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                      "As senhas não coincidem"),
-                                ),
-                              );
-                              return;
-                            }
-
-                            Navigator
-                                .pushReplacementNamed(
-                                    context, '/home');
-                          }
-                        },
+                        onPressed: _cadastrar,
                         child: const Text(
                           'Cadastrar',
                           style: TextStyle(
@@ -154,28 +228,22 @@ class _CadastroViewState extends State<CadastroView> {
                     const SizedBox(height: 15),
 
                     Row(
-                      mainAxisAlignment:
-                          MainAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const Text(
                           'Já possui conta? ',
-                          style: TextStyle(
-                              color: Colors.black),
+                          style: TextStyle(color: Colors.black),
                         ),
                         GestureDetector(
                           onTap: () {
-                            Navigator
-                                .pushReplacementNamed(
-                                    context, '/login');
+                            Navigator.pushReplacementNamed(
+                                context, '/login');
                           },
                           child: const Text(
                             'Faça login',
                             style: TextStyle(
-                              fontWeight:
-                                  FontWeight.bold,
-                              color:
-                                  Color.fromRGBO(
-                                      48, 93, 60, 1),
+                              fontWeight: FontWeight.bold,
+                              color: Color.fromRGBO(48, 93, 60, 1),
                             ),
                           ),
                         ),
@@ -193,33 +261,44 @@ class _CadastroViewState extends State<CadastroView> {
     );
   }
 
-  Widget _buildInput(String hint,
-      {bool obscure = false,
-      required TextEditingController controller}) {
+  Widget _buildInput(
+    String hint, {
+    bool obscure = false,
+    required TextEditingController controller,
+    Widget? icon,
+    Function(String)? onChanged,
+  }) {
     return TextFormField(
       controller: controller,
       obscureText: obscure,
+      onChanged: onChanged,
       validator: (value) {
         if (value == null || value.isEmpty) {
           return "Preencha $hint";
         }
-        if (hint == "Email" && !value.contains("@")) {
-          return "Email inválido";
+
+        if (hint == "Email") {
+          if (!RegExp(r'\S+@\S+\.\S+').hasMatch(value)) {
+            return "Email inválido";
+          }
         }
-        if (hint == "Senha" && value.length < 6) {
-          return "Mínimo 6 caracteres";
+
+        if (hint == "Senha") {
+          if (value.length < 6) {
+            return "Mínimo 6 caracteres";
+          }
         }
+
         return null;
       },
       decoration: InputDecoration(
         hintText: hint,
         filled: true,
         fillColor: const Color(0xFF5F826C),
-        hintStyle:
-            const TextStyle(color: Color(0xECFFFFFF)),
+        suffixIcon: icon,
+        hintStyle: const TextStyle(color: Color(0xECFFFFFF)),
         border: OutlineInputBorder(
-          borderRadius:
-              BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
         ),
       ),

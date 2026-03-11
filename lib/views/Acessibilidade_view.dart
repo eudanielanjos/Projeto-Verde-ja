@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:vibration/vibration.dart';
 
 class AcessibilidadeView extends StatefulWidget {
   const AcessibilidadeView({super.key});
@@ -8,137 +10,249 @@ class AcessibilidadeView extends StatefulWidget {
 }
 
 class _AcessibilidadeViewState extends State<AcessibilidadeView> {
-  int _selectedIndex = 3;
+
+  bool daltonismo = false;
+  bool fonteGrande = false;
+  bool altoContraste = false;
+  bool vibracao = false;
+  bool zoomInterface = false;
+
+  double escalaFonte = 1;
+
+  @override
+  void initState() {
+    super.initState();
+    carregarConfiguracoes();
+  }
+
+  // ===============================
+  // CARREGAR CONFIGURAÇÕES
+  // ===============================
+
+  Future carregarConfiguracoes() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    setState(() {
+      daltonismo = prefs.getBool('daltonismo') ?? false;
+      fonteGrande = prefs.getBool('fonteGrande') ?? false;
+      altoContraste = prefs.getBool('altoContraste') ?? false;
+      vibracao = prefs.getBool('vibracao') ?? false;
+      zoomInterface = prefs.getBool('zoomInterface') ?? false;
+
+      escalaFonte = fonteGrande ? 1.3 : 1;
+    });
+  }
+
+  // ===============================
+  // SALVAR CONFIGURAÇÕES
+  // ===============================
+
+  Future salvar(String chave, bool valor) async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setBool(chave, valor);
+  }
+
+  void vibrar() async {
+    if (vibracao) {
+      if (await Vibration.hasVibrator() ?? false) {
+        Vibration.vibrate(duration: 40);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF5E7F6B),
-              Color(0xFFEAEAEA),
-              Color(0xFFEAEAEA),
-            ],
-          ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              // 🔙 Barra superior
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back, color: Colors.black54),
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                    ),
-                  ],
-                ),
-              ),
 
-              const SizedBox(height: 35),
+    // ===============================
+    // PALETAS DE CORES
+    // ===============================
 
-              const Text(
-                "ACESSIBILIDADE",
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1F5C3A),
-                ),
-              ),
+    Color corTopo;
+    Color corContainer;
+    Color corTitulo;
 
-              const SizedBox(height: 45),
+    if (altoContraste) {
+      corTopo = Colors.black;
+      corContainer = Colors.black87;
+      corTitulo = Colors.white;
+    }
 
-              // 📋 Botões
-              _buildButton(Icons.location_on, "Informações de localização"),
-              _buildButton(Icons.remove_red_eye, "Modo Daltonismo"),
-              _buildButton(Icons.record_voice_over, "Leitor de Tela"),
-              _buildButton(Icons.text_fields, "Tamanho da Fonte"),
-            ],
-          ),
-        ),
+    else if (daltonismo) {
+      corTopo = Colors.blueGrey;
+      corContainer = Colors.indigo;
+      corTitulo = Colors.blue.shade900;
+    }
+
+    else {
+      corTopo = const Color(0xFF5E7F6B);
+      corContainer = const Color.fromARGB(255, 88, 133, 105);
+      corTitulo = const Color(0xFF1F5C3A);
+    }
+
+    return MediaQuery(
+      data: MediaQuery.of(context).copyWith(
+        textScaleFactor: escalaFonte,
       ),
 
-      // 🔻 Barra inferior
-      bottomNavigationBar: NavigationBarTheme(
-        data: NavigationBarThemeData(
-          labelTextStyle: WidgetStateProperty.all(
-            const TextStyle(color: Colors.white),
+      child: Scaffold(
+
+        backgroundColor: Colors.transparent,
+
+        body: Container(
+          width: double.infinity,
+          height: double.infinity,
+
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                corTopo,
+                Colors.grey.shade200,
+                Colors.grey.shade200,
+              ],
+            ),
           ),
-        ),
-        child: NavigationBar(
-          height: 76,
-          backgroundColor: const Color(0xFF1F5C3A),
-          selectedIndex: _selectedIndex,
-          indicatorColor: Colors.white24,
-          onDestinationSelected: (index) {
-            setState(() {
-              _selectedIndex = index;
-            });
-          },
-          destinations: const [
-            NavigationDestination(
-              icon: Icon(Icons.home_outlined, color: Colors.white),
-              selectedIcon: Icon(Icons.home, color: Colors.white),
-              label: 'Início',
+
+          child: SafeArea(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back),
+                        onPressed: () {
+                          vibrar();
+                          Navigator.pop(context);
+                        },
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  Text(
+                    "ACESSIBILIDADE",
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: corTitulo,
+                    ),
+                  ),
+
+                  const SizedBox(height: 30),
+
+                  _tile(
+                    Icons.remove_red_eye,
+                    "Modo Daltonismo",
+                    "Troca a paleta de cores do aplicativo para facilitar visualização para pessoas com daltonismo.",
+                    daltonismo,
+                        (v) {
+                      vibrar();
+                      setState(() => daltonismo = v);
+                      salvar("daltonismo", v);
+                    },
+                    corContainer,
+                  ),
+
+                  _tile(
+                    Icons.text_fields,
+                    "Fonte Ampliada",
+                    "Aumenta o tamanho dos textos para facilitar leitura.",
+                    fonteGrande,
+                        (v) {
+                      vibrar();
+                      setState(() {
+                        fonteGrande = v;
+                        escalaFonte = v ? 1.3 : 1;
+                      });
+                      salvar("fonteGrande", v);
+                    },
+                    corContainer,
+                  ),
+
+                  _tile(
+                    Icons.contrast,
+                    "Alto Contraste",
+                    "Aumenta contraste das cores para melhor visibilidade.",
+                    altoContraste,
+                        (v) {
+                      vibrar();
+                      setState(() => altoContraste = v);
+                      salvar("altoContraste", v);
+                    },
+                    corContainer,
+                  ),
+
+                  _tile(
+                    Icons.vibration,
+                    "Vibração de Feedback",
+                    "O telefone vibra ao pressionar botões.",
+                    vibracao,
+                        (v) {
+                      setState(() => vibracao = v);
+                      salvar("vibracao", v);
+                    },
+                    corContainer,
+                  ),
+
+                  _tile(
+                    Icons.zoom_in,
+                    "Zoom da Interface",
+                    "Amplia elementos visuais para facilitar leitura.",
+                    zoomInterface,
+                        (v) {
+                      vibrar();
+                      setState(() => zoomInterface = v);
+                      salvar("zoomInterface", v);
+                    },
+                    corContainer,
+                  ),
+
+                  const SizedBox(height: 40),
+                ],
+              ),
             ),
-            NavigationDestination(
-              icon: Icon(Icons.place_outlined, color: Colors.white),
-              selectedIcon: Icon(Icons.place, color: Colors.white),
-              label: 'Coleta',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.school_outlined, color: Colors.white),
-              selectedIcon: Icon(Icons.school, color: Colors.white),
-              label: 'Educação',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.person_outline, color: Colors.white),
-              selectedIcon: Icon(Icons.person, color: Colors.white),
-              label: 'Perfil',
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildButton(IconData icon, String label) {
+  // ===============================
+  // COMPONENTE SWITCH
+  // ===============================
+
+  Widget _tile(
+      IconData icon,
+      String title,
+      String description,
+      bool value,
+      Function(bool) onChanged,
+      Color cor,
+      ) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       child: Container(
-        height: 60,
         decoration: BoxDecoration(
-          color: const Color.fromARGB(255, 88, 133, 105),
+          color: cor,
           borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
         ),
-        child: ListTile(
-          leading: Icon(icon, color: const Color.fromARGB(255, 247, 247, 247)),
+        child: SwitchListTile(
+          value: value,
+          onChanged: onChanged,
+          activeColor: Colors.white,
+          secondary: Icon(icon, color: Colors.white),
           title: Text(
-            label,
+            title,
             style: const TextStyle(color: Colors.white),
           ),
-          trailing: const Icon(
-            Icons.arrow_forward_ios,
-            size: 16,
-            color: Colors.white,
+          subtitle: Text(
+            description,
+            style: const TextStyle(color: Colors.white70),
           ),
-          onTap: () {},
         ),
       ),
     );

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MeusDadosView extends StatefulWidget {
   const MeusDadosView({super.key});
@@ -13,6 +14,40 @@ class _MeusDadosViewState extends State<MeusDadosView> {
   String email = "Email:";
   String estado = "Estado:";
 
+  @override
+  void initState() {
+    super.initState();
+    _carregarDados();
+  }
+
+  // 🔹 Carregar dados salvos
+  Future<void> _carregarDados() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      nome = prefs.getString('nome') ?? "Nome:";
+      telefone = prefs.getString('telefone') ?? "Telefone:";
+      email = prefs.getString('email') ?? "Email:";
+      estado = prefs.getString('estado') ?? "Estado:";
+    });
+  }
+
+  // 🔹 Salvar dados no SharedPreferences
+  Future<void> _salvarDadosLocal() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('nome', nome);
+    await prefs.setString('telefone', telefone);
+    await prefs.setString('email', email);
+    await prefs.setString('estado', estado);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("Dados salvos com sucesso!"),
+        backgroundColor: Color(0xFF1F5C3A),
+      ),
+    );
+  }
+
+  // 🔹 Função genérica para editar qualquer campo
   Future<void> editarCampo(
       String titulo, String valorAtual, Function(String) onSalvar) async {
     final controller = TextEditingController(text: valorAtual);
@@ -47,19 +82,6 @@ class _MeusDadosViewState extends State<MeusDadosView> {
     );
   }
 
-  void salvarDados() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Dados salvos com sucesso!"),
-        backgroundColor: Color(0xFF1F5C3A),
-      ),
-    );
-
-    Future.delayed(const Duration(milliseconds: 800), () {
-      Navigator.pop(context);
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -71,8 +93,6 @@ class _MeusDadosViewState extends State<MeusDadosView> {
         body: Container(
           width: double.infinity,
           height: double.infinity,
-
-          /// 🔥 NOVO FUNDO APLICADO
           decoration: const BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topCenter,
@@ -84,12 +104,10 @@ class _MeusDadosViewState extends State<MeusDadosView> {
               ],
             ),
           ),
-
           child: SafeArea(
             child: Column(
               children: [
                 const SizedBox(height: 10),
-
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Row(
@@ -104,9 +122,7 @@ class _MeusDadosViewState extends State<MeusDadosView> {
                     ],
                   ),
                 ),
-
                 const SizedBox(height: 20),
-
                 const CircleAvatar(
                   radius: 60,
                   backgroundColor: Color(0xFF1F5C3A),
@@ -116,9 +132,7 @@ class _MeusDadosViewState extends State<MeusDadosView> {
                     color: Colors.white,
                   ),
                 ),
-
                 const SizedBox(height: 15),
-
                 const Text(
                   "MEUS DADOS",
                   style: TextStyle(
@@ -127,27 +141,24 @@ class _MeusDadosViewState extends State<MeusDadosView> {
                     color: Color(0xFF1F5C3A),
                   ),
                 ),
-
                 const SizedBox(height: 30),
 
+                // 🔹 Campos clicáveis
                 _buildField("Nome", nome, () {
                   editarCampo("Nome", nome, (novoValor) {
                     setState(() => nome = novoValor);
                   });
                 }),
-
                 _buildField("Telefone", telefone, () {
                   editarCampo("Telefone", telefone, (novoValor) {
                     setState(() => telefone = novoValor);
                   });
                 }),
-
                 _buildField("Email", email, () {
                   editarCampo("Email", email, (novoValor) {
                     setState(() => email = novoValor);
                   });
                 }),
-
                 _buildField("Estado", estado, () {
                   editarCampo("Estado", estado, (novoValor) {
                     setState(() => estado = novoValor);
@@ -170,7 +181,10 @@ class _MeusDadosViewState extends State<MeusDadosView> {
                           borderRadius: BorderRadius.circular(15),
                         ),
                       ),
-                      onPressed: salvarDados,
+                      onPressed: () async {
+                        await _salvarDadosLocal();
+                        Navigator.pop(context);
+                      },
                       child: const Text(
                         "Salvar",
                         style: TextStyle(
@@ -190,34 +204,27 @@ class _MeusDadosViewState extends State<MeusDadosView> {
     );
   }
 
+  // 🔹 Campo clicável
   Widget _buildField(String titulo, String valor, VoidCallback onTap) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      child: Container(
-        height: 60,
-        padding: const EdgeInsets.symmetric(horizontal: 18),
-        decoration: BoxDecoration(
-          color: const Color(0xFF5E7F6B),
-          borderRadius: BorderRadius.circular(15),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              valor.isEmpty ? titulo : valor,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-              ),
+      child: GestureDetector(
+        onTap: onTap, // clicando direto no campo
+        child: Container(
+          height: 60,
+          padding: const EdgeInsets.symmetric(horizontal: 18),
+          decoration: BoxDecoration(
+            color: const Color(0xFF5E7F6B),
+            borderRadius: BorderRadius.circular(15),
+          ),
+          alignment: Alignment.centerLeft,
+          child: Text(
+            valor.isEmpty ? titulo : valor,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 16,
             ),
-            GestureDetector(
-              onTap: onTap,
-              child: const Icon(
-                Icons.edit,
-                color: Colors.white,
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
