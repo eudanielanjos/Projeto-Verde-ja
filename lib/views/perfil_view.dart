@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'tela_inicial_view.dart';
 import 'meus_dados_view.dart';
-import 'config_view.dart'; // <-- tela de configuração
+import 'config_view.dart';
 
 class PerfilPage extends StatefulWidget {
   const PerfilPage({super.key});
@@ -105,6 +105,7 @@ class _PerfilPageState extends State<PerfilPage> {
                   ),
                 ),
                 const SizedBox(height: 30),
+
                 _buildButton(
                   Icons.person,
                   "Meus dados",
@@ -117,13 +118,20 @@ class _PerfilPageState extends State<PerfilPage> {
                     );
                   },
                 ),
-                _buildButton(Icons.lock, "Privacidade"),
-                _buildButton(Icons.chat_bubble, "Fale conosco"),
-                _buildButton(Icons.search, "Histórico de denúncia"),
-                _buildButton(Icons.menu_book, "Regulamento"),
+
+                _buildButton(
+                  Icons.chat_bubble,
+                  "Fale conosco",
+                ),
+               
+                _buildButton(
+                  Icons.menu_book,
+                  "Regulamento",
+                ),
               ],
             ),
-            // Botão de configuração no canto superior direito
+
+            /// BOTÃO DE CONFIGURAÇÃO
             Positioned(
               top: 10,
               right: 10,
@@ -139,16 +147,9 @@ class _PerfilPageState extends State<PerfilPage> {
                 borderRadius: BorderRadius.circular(30),
                 child: Container(
                   padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1F5C3A),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF1F5C3A),
                     shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black26,
-                        blurRadius: 4,
-                        offset: Offset(2, 2),
-                      ),
-                    ],
                   ),
                   child: const Icon(
                     Icons.settings,
