@@ -4,78 +4,120 @@ import 'home_view.dart';
 
 class SplashView extends StatefulWidget {
   const SplashView({super.key});
-@override
-  State<SplashView> createState() => _SplashView();
+
+  @override
+  State<SplashView> createState() => _SplashViewState();
 }
 
-class _SplashView extends State<SplashView>
-  with SingleTickerProviderStateMixin{
-    late AnimationController _controller;
+class _SplashViewState extends State<SplashView>
+    with SingleTickerProviderStateMixin {
 
-    @override
-    void initState(){
-      super.initState();
-      _controller = AnimationController(
-        vsync: this,
-        duration: const Duration(seconds: 2),
-        );
-      _controller.forward();
-      Future.delayed(const Duration(seconds: 3), () {
-        Navigator.pushReplacement(
-          context,
-        MaterialPageRoute(builder: (_) => const HomeView()),  
-        );
-      });
-    } 
-    @override
-    void dispose() {
-      _controller.dispose();
-      super.dispose();
-    }
-    @override
-    Widget build(BuildContext context) {
-      return Scaffold(
-        body: Container(
-          width: double.infinity,
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: AlignmentGeometry.topCenter,
-              end: AlignmentGeometry.bottomCenter,
-              colors: [
-                Color.fromARGB(255, 30, 146, 65),
-                Color.fromARGB(255, 247, 247, 247),
-              ]
-              ),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Image.asset(
-                'assets/images/logo3.png',
-                  width: 250,
-              ),
-              SizedBox (height: 40),
-              SizedBox(
-                width: 220,
-                child: AnimatedBuilder(
-                animation: _controller, 
-                builder: (context, child){
-                  return LinearProgressIndicator(
-                    value: _controller.value,
-                    color: Color.fromARGB(255, 46, 148, 104),
-                    backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-                  );
-                }
-                ),
-              )
+  late AnimationController _controller;
+  late Animation<double> _logoAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    );
+
+    _logoAnimation = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeInOut,
+    );
+
+    _controller.forward();
+
+    Future.delayed(const Duration(seconds: 3), () {
+      if (!mounted) return;
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const HomeView()),
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+        width: double.infinity,
+
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color.fromARGB(255, 30, 146, 65),
+              Color.fromARGB(255, 247, 247, 247),
             ],
           ),
-        )
-      );
-    }
-  }
-  
+        ),
 
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+
+            /// LOGO ANIMADA
+            FadeTransition(
+              opacity: _logoAnimation,
+              child: ScaleTransition(
+                scale: _logoAnimation,
+                child: Image.asset(
+                  'assets/images/logo3.png',
+                  width: 230,
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 50),
+
+            /// TEXTO
+            const Text(
+              "Carregando...",
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.black54,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            /// PROGRESS BAR
+            SizedBox(
+              width: 220,
+              child: AnimatedBuilder(
+                animation: _controller,
+                builder: (context, child) {
+                  return ClipRRect(
+                    borderRadius: BorderRadius.circular(50),
+                    child: LinearProgressIndicator(
+                      value: _controller.value,
+                      minHeight: 8,
+                      color: const Color.fromARGB(255, 46, 148, 104),
+                      backgroundColor: Colors.white,
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 /*
 import 'dart:async';
 import 'package:flutter/material.dart';

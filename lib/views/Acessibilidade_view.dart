@@ -25,10 +25,6 @@ class _AcessibilidadeViewState extends State<AcessibilidadeView> {
     carregarConfiguracoes();
   }
 
-  // ===============================
-  // CARREGAR CONFIGURAÇÕES
-  // ===============================
-
   Future carregarConfiguracoes() async {
     final prefs = await SharedPreferences.getInstance();
 
@@ -43,10 +39,6 @@ class _AcessibilidadeViewState extends State<AcessibilidadeView> {
     });
   }
 
-  // ===============================
-  // SALVAR CONFIGURAÇÕES
-  // ===============================
-
   Future salvar(String chave, bool valor) async {
     final prefs = await SharedPreferences.getInstance();
     prefs.setBool(chave, valor);
@@ -54,7 +46,7 @@ class _AcessibilidadeViewState extends State<AcessibilidadeView> {
 
   void vibrar() async {
     if (vibracao) {
-      if (await Vibration.hasVibrator() ?? false) {
+      if (await Vibration.hasVibrator()) {
         Vibration.vibrate(duration: 40);
       }
     }
@@ -62,10 +54,6 @@ class _AcessibilidadeViewState extends State<AcessibilidadeView> {
 
   @override
   Widget build(BuildContext context) {
-
-    // ===============================
-    // PALETAS DE CORES
-    // ===============================
 
     Color corTopo;
     Color corContainer;
@@ -119,19 +107,30 @@ class _AcessibilidadeViewState extends State<AcessibilidadeView> {
               child: Column(
                 children: [
 
-                  Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back),
-                        onPressed: () {
-                          vibrar();
-                          Navigator.pop(context);
-                        },
-                      ),
-                    ],
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    child: Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.arrow_back),
+                          onPressed: () {
+                            vibrar();
+                            Navigator.pop(context);
+                          },
+                        ),
+                      ],
+                    ),
                   ),
 
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 10),
+
+                  const Icon(
+                    Icons.accessibility_new,
+                    size: 40,
+                    color: Color(0xFF1F5C3A),
+                  ),
+
+                  const SizedBox(height: 10),
 
                   Text(
                     "ACESSIBILIDADE",
@@ -142,7 +141,18 @@ class _AcessibilidadeViewState extends State<AcessibilidadeView> {
                     ),
                   ),
 
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 5),
+
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 30),
+                    child: Text(
+                      "Personalize o aplicativo para melhorar sua experiência de uso.",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.black54),
+                    ),
+                  ),
+
+                  const SizedBox(height: 25),
 
                   _tile(
                     Icons.remove_red_eye,
@@ -221,10 +231,6 @@ class _AcessibilidadeViewState extends State<AcessibilidadeView> {
     );
   }
 
-  // ===============================
-  // COMPONENTE SWITCH
-  // ===============================
-
   Widget _tile(
       IconData icon,
       String title,
@@ -235,20 +241,40 @@ class _AcessibilidadeViewState extends State<AcessibilidadeView> {
       ) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      child: Container(
+
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+
         decoration: BoxDecoration(
           color: cor,
           borderRadius: BorderRadius.circular(12),
+
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.12),
+              blurRadius: 6,
+              offset: const Offset(0, 3),
+            ),
+          ],
         ),
+
         child: SwitchListTile(
           value: value,
           onChanged: onChanged,
+
           activeColor: Colors.white,
+          activeTrackColor: Colors.black26,
+
           secondary: Icon(icon, color: Colors.white),
+
           title: Text(
             title,
-            style: const TextStyle(color: Colors.white),
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
           ),
+
           subtitle: Text(
             description,
             style: const TextStyle(color: Colors.white70),
