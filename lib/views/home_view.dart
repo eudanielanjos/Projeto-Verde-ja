@@ -61,11 +61,13 @@ class HomeView extends StatelessWidget {
                     onPressed: () {
                       Navigator.pushNamed(context, '/cadastro');
                     },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          const Color.fromRGBO(99, 134, 108, 1),
+                     style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color.fromRGBO(99, 134, 108, 1),
                       foregroundColor: Colors.white,
-                    ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8), // diminui o arredondamento
+                                           ),
+                        ),
                     child: const Text(
                       'Cadastrar',
                       style: TextStyle(
@@ -93,10 +95,12 @@ class HomeView extends StatelessWidget {
                       );
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          const Color.fromRGBO(99, 134, 108, 1),
+                      backgroundColor: const Color.fromRGBO(99, 134, 108, 1),
                       foregroundColor: Colors.white,
-                    ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8), // diminui o arredondamento
+                                           ),
+                        ),
                     child: const Text(
                       'Acessar como visitante',
                       style: TextStyle(
