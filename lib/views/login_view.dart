@@ -20,8 +20,8 @@ class _LoginViewState extends State<LoginView> {
       body: Stack(
         children: [
 
-          // 🔹 FUNDO LIMPO (SEM NEBLINA)
-               Container(
+          // 🔹 FUNDO
+          Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
@@ -67,7 +67,7 @@ class _LoginViewState extends State<LoginView> {
 
                     const SizedBox(height: 80),
 
-                    // 🔹 LOGO PNG
+                    // 🔹 LOGO
                     Image.asset(
                       "assets/images/logo.png",
                       height: 160,
@@ -84,14 +84,14 @@ class _LoginViewState extends State<LoginView> {
                       textAlign: TextAlign.center,
                     ),
 
-                    const SizedBox(height: 40),
+                    const SizedBox(height: 70),
 
                     _buildInput(
                       'Email',
                       controller: _emailController,
                     ),
 
-                    const SizedBox(height: 15),
+                    const SizedBox(height: 20),
 
                     _buildInput(
                       'Senha',
@@ -99,17 +99,39 @@ class _LoginViewState extends State<LoginView> {
                       obscure: true,
                     ),
 
-                    const SizedBox(height: 25),
+                    /// 🔹 ESQUECI MINHA SENHA
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("Função de recuperação de senha"),
+                            ),
+                          );
+                        },
+                        child: const Text(
+                          "Esqueci minha senha",
+                          style: TextStyle(
+                            color: Color(0xFF305D3C),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 15),
 
                     // 🔹 BOTÃO ENTRAR
                     SizedBox(
-                      width: double.infinity,
+                      width: 180,
                       height: 50,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF7BB132),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(9),
                           ),
                         ),
                         onPressed: () {
@@ -121,23 +143,26 @@ class _LoginViewState extends State<LoginView> {
                         child: const Text(
                           'Entrar',
                           style: TextStyle(
-                            fontSize: 16,
+                            fontSize: 20,
                             color: Colors.white,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
                     ),
 
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 50),
 
-                    // 🔹 IR PARA CADASTRO
+                    // 🔹 CADASTRO
                     Row(
-                      mainAxisAlignment:
-                          MainAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const Text(
                           'Não possui conta? ',
-                          style: TextStyle(color: Colors.black),
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontSize: 18,
+                          ),
                         ),
                         GestureDetector(
                           onTap: () {
@@ -149,6 +174,7 @@ class _LoginViewState extends State<LoginView> {
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Color(0xFF305D3C),
+                              fontSize: 19,
                             ),
                           ),
                         ),
@@ -188,10 +214,9 @@ class _LoginViewState extends State<LoginView> {
         hintText: hint,
         filled: true,
         fillColor: const Color(0xFF5F826C),
-        hintStyle:
-            const TextStyle(color: Colors.white70),
+        hintStyle: const TextStyle(color: Colors.white70),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide.none,
         ),
       ),

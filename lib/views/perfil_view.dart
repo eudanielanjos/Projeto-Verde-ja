@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'tela_inicial_view.dart';
 import 'meus_dados_view.dart';
 import 'config_view.dart';
+import 'historico_denuncias_view.dart';
 
 class PerfilPage extends StatefulWidget {
   const PerfilPage({super.key});
@@ -120,10 +121,24 @@ class _PerfilPageState extends State<PerfilPage> {
                 ),
 
                 _buildButton(
+                  Icons.history,
+                  "Histórico de denúncias",
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            const HistoricoDenunciasView(),
+                      ),
+                    );
+                  },
+                ),
+
+                _buildButton(
                   Icons.chat_bubble,
                   "Fale conosco",
                 ),
-               
+
                 _buildButton(
                   Icons.menu_book,
                   "Regulamento",
