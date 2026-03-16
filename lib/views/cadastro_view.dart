@@ -131,21 +131,21 @@ class _CadastroViewState extends State<CadastroView> {
                       textAlign: TextAlign.center,
                     ),
 
-                    const SizedBox(height: 30),
+                    const SizedBox(height: 50),
 
                     _buildInput(
                       'Nome Completo',
                       controller: _nomeController,
                     ),
 
-                    const SizedBox(height: 10),
+                      const SizedBox(height: 20),
 
                     _buildInput(
                       'Email',
                       controller: _emailController,
                     ),
 
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 20),
 
                     _buildInput(
                       'Senha',
@@ -180,7 +180,7 @@ class _CadastroViewState extends State<CadastroView> {
                         ),
                       ),
 
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 20),
 
                     _buildInput(
                       'Confirmar Senha',
@@ -202,37 +202,41 @@ class _CadastroViewState extends State<CadastroView> {
                       ),
                     ),
 
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 40),
 
                     SizedBox(
-                      width: double.infinity,
+                      width: 180,
                       height: 50,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF7BB132),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(9),
                           ),
                         ),
                         onPressed: _cadastrar,
                         child: const Text(
                           'Cadastrar',
                           style: TextStyle(
-                            fontSize: 16,
+                            fontSize: 20,
                             color: Colors.white,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
                     ),
 
-                    const SizedBox(height: 15),
+                    const SizedBox(height: 35),
 
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const Text(
                           'Já possui conta? ',
-                          style: TextStyle(color: Colors.black),
+                          style: TextStyle(color: Colors.black,
+                            fontSize: 18
+                            
+                          ),
                         ),
                         GestureDetector(
                           onTap: () {
@@ -242,6 +246,7 @@ class _CadastroViewState extends State<CadastroView> {
                           child: const Text(
                             'Faça login',
                             style: TextStyle(
+                              fontSize: 19,
                               fontWeight: FontWeight.bold,
                               color: Color.fromRGBO(48, 93, 60, 1),
                             ),
@@ -298,7 +303,7 @@ class _CadastroViewState extends State<CadastroView> {
         suffixIcon: icon,
         hintStyle: const TextStyle(color: Color(0xECFFFFFF)),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(9),
           borderSide: BorderSide.none,
         ),
       ),

@@ -71,8 +71,9 @@ class HomeView extends StatelessWidget {
                     child: const Text(
                       'Cadastrar',
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: 18,
                         fontWeight: FontWeight.w800,
+                
                       ),
                     ),
                   ),
@@ -104,7 +105,7 @@ class HomeView extends StatelessWidget {
                     child: const Text(
                       'Acessar como visitante',
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: 18,
                         fontWeight: FontWeight.w800,
                       ),
                     ),
@@ -116,7 +117,7 @@ class HomeView extends StatelessWidget {
                 const Text(
                   'Acessar com',
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 18,
                     fontWeight: FontWeight.w800,
                     color: Colors.black,
                   ),
@@ -165,7 +166,7 @@ class HomeView extends StatelessWidget {
                   children: [
                     const Text(
                       'Já possui conta?',
-                      style: TextStyle(fontSize: 16),
+                      style: TextStyle(fontSize: 19),
                     ),
                     TextButton(
                       onPressed: () {
@@ -176,6 +177,7 @@ class HomeView extends StatelessWidget {
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           color: Colors.black,
+                          fontSize: 18,
                         ),
                       ),
                     ),

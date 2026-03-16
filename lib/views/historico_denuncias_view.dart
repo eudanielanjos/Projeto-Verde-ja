@@ -32,15 +32,20 @@ class _HistoricoDenunciasViewState extends State<HistoricoDenunciasView> {
     return Scaffold(
 
       appBar: AppBar(
-        title: const Text("Histórico de denúncias"),
+        title: const Text(
+          "Histórico de denúncias",
+          style: TextStyle(color: Colors.white),
+        ),
         backgroundColor: const Color(0xFF1F5C3A),
+        iconTheme: const IconThemeData(
+          color: Colors.white, // deixa o botão de voltar branco
+        ),
       ),
 
       body: Container(
         width: double.infinity,
         height: double.infinity,
 
-        /// MESMO FUNDO DA TELA INICIAL
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
