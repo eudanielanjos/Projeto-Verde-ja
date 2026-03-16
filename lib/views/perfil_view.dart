@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'tela_inicial_view.dart';
 import 'meus_dados_view.dart';
 import 'config_view.dart';
+import 'educacao_view.dart';
 
 class PerfilPage extends StatefulWidget {
   const PerfilPage({super.key});
@@ -12,6 +13,34 @@ class PerfilPage extends StatefulWidget {
 
 class _PerfilPageState extends State<PerfilPage> {
   int _selectedIndex = 3;
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+
+    if (index == 0) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const TelaInicialView(),
+        ),
+      );
+    }
+
+    if (index == 2) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const EducacaoView(),
+        ),
+      );
+    }
+
+    if (index == 3) {
+      return; // já estamos na tela de perfil
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,16 +57,7 @@ class _PerfilPageState extends State<PerfilPage> {
           backgroundColor: const Color(0xFF1F5C3A),
           selectedIndex: _selectedIndex,
           indicatorColor: Colors.white24,
-          onDestinationSelected: (index) {
-            if (index == 0) {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const TelaInicialView(),
-                ),
-              );
-            }
-          },
+          onDestinationSelected: _onItemTapped,
           destinations: const [
             NavigationDestination(
               icon: Icon(Icons.home_outlined, color: Colors.white),
@@ -123,7 +143,7 @@ class _PerfilPageState extends State<PerfilPage> {
                   Icons.chat_bubble,
                   "Fale conosco",
                 ),
-               
+
                 _buildButton(
                   Icons.menu_book,
                   "Regulamento",

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-
+import 'tela_inicial_view.dart';
+import 'educacao_view.dart';
+import 'perfil_view.dart';
 class Denuncias2 extends StatefulWidget {
   const Denuncias2({super.key});
 
@@ -9,7 +11,38 @@ class Denuncias2 extends StatefulWidget {
 
 class _Denuncias2State extends State<Denuncias2> {
   int _selectedIndex = 0;
+void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
 
+    if (index == 0) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const TelaInicialView(),
+        ),
+      );
+    }
+
+        if (index == 2) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const EducacaoView(),
+        ),
+      );
+    }
+
+    if (index == 3) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const PerfilPage(),
+        ),
+      );
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -146,16 +179,12 @@ class _Denuncias2State extends State<Denuncias2> {
             const TextStyle(color: Colors.white),
           ),
         ),
-        child: NavigationBar(
+       child: NavigationBar(
           height: 76,
           backgroundColor: const Color(0xFF1F5C3A),
           selectedIndex: _selectedIndex,
           indicatorColor: Colors.white24,
-          onDestinationSelected: (index) {
-            setState(() {
-              _selectedIndex = index;
-            });
-          },
+          onDestinationSelected: _onItemTapped,
           destinations: const [
             NavigationDestination(
               icon: Icon(Icons.home_outlined, color: Colors.white),

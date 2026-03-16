@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'acessibilidade_view.dart'; 
 import 'privacidade_view.dart';
 import 'idiomas_view.dart'; // ✅ IMPORT NOVO
-
+import 'tela_inicial_view.dart';
+import 'educacao_view.dart';
+import 'perfil_view.dart';
 class ConfiguracaoPage extends StatefulWidget {
   const ConfiguracaoPage({super.key});
 
@@ -12,6 +14,39 @@ class ConfiguracaoPage extends StatefulWidget {
 
 class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
   int _selectedIndex = 3;
+
+ void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+
+    if (index == 0) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const TelaInicialView(),
+        ),
+      );
+    }
+
+        if (index == 2) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const EducacaoView(),
+        ),
+      );
+    }
+
+    if (index == 3) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const PerfilPage(),
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -83,11 +118,7 @@ class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
           backgroundColor: const Color(0xFF1F5C3A),
           selectedIndex: _selectedIndex,
           indicatorColor: Colors.white24,
-          onDestinationSelected: (index) {
-            setState(() {
-              _selectedIndex = index;
-            });
-          },
+          onDestinationSelected: _onItemTapped,
           destinations: const [
             NavigationDestination(
               icon: Icon(Icons.home_outlined, color: Colors.white),
