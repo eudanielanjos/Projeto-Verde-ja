@@ -14,12 +14,19 @@ class _IdiomasViewState extends State<IdiomasView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-
-      appBar: AppBar(
-        title: const Text("Idiomas e Traduções"),
-        backgroundColor: const Color(0xFF1F5C3A),
+    appBar: AppBar(
+      title: const Text(
+        "Idiomas e Traduções",
+        style: TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+        ),
       ),
+  backgroundColor: const Color(0xFF1F5C3A),
+  foregroundColor: Colors.white,
 
+  
+),
       body: Container(
         width: double.infinity,
         height: double.infinity,
@@ -42,7 +49,37 @@ class _IdiomasViewState extends State<IdiomasView> {
           child: Column(
             children: [
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 10),
+
+              const Icon(
+                Icons.language,
+                size: 40,
+                color: Color(0xFF1F5C3A),
+              ),
+
+              const SizedBox(height: 10),
+
+              const Text(
+                "Escolha o idioma do aplicativo",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1F5C3A),
+                ),
+              ),
+
+              const SizedBox(height: 5),
+
+              const Text(
+                "O idioma selecionado será usado em todo o aplicativo.",
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.black54,
+                ),
+                textAlign: TextAlign.center,
+              ),
+
+              const SizedBox(height: 30),
 
               _buildIdioma("Português", "🇧🇷"),
               _buildIdioma("English", "🇺🇸"),
@@ -56,6 +93,8 @@ class _IdiomasViewState extends State<IdiomasView> {
   }
 
   Widget _buildIdioma(String idioma, String bandeira) {
+    bool selecionado = idiomaSelecionado == idioma;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 15),
 
@@ -68,13 +107,20 @@ class _IdiomasViewState extends State<IdiomasView> {
 
         borderRadius: BorderRadius.circular(15),
 
-        child: Container(
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+
           height: 65,
           padding: const EdgeInsets.symmetric(horizontal: 20),
 
           decoration: BoxDecoration(
             color: const Color(0xFF5E7F6B),
+
             borderRadius: BorderRadius.circular(15),
+
+            border: selecionado
+                ? Border.all(color: const Color(0xFF1F5C3A), width: 3)
+                : null,
           ),
 
           child: Row(
@@ -98,7 +144,7 @@ class _IdiomasViewState extends State<IdiomasView> {
                 ),
               ),
 
-              if (idiomaSelecionado == idioma)
+              if (selecionado)
                 const Icon(
                   Icons.check_circle,
                   color: Colors.white,

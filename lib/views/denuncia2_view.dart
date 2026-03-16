@@ -10,6 +10,18 @@ class Denuncias2 extends StatefulWidget {
 class _Denuncias2State extends State<Denuncias2> {
   int _selectedIndex = 0;
 
+  InputDecoration campo(String texto, IconData icon) {
+    return InputDecoration(
+      labelText: texto,
+      prefixIcon: Icon(icon),
+      filled: true,
+      fillColor: Colors.white,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -29,16 +41,17 @@ class _Denuncias2State extends State<Denuncias2> {
           child: Column(
             children: [
 
-              // Topo
+              /// 🔹 TOPO
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.arrow_back, color: Color(0xFF295822)),
+                      icon: const Icon(Icons.arrow_back,
+                          color: Color(0xFF295822)),
                       onPressed: () {
-                        Navigator.pop(context); // 🔹 Volta para LocalDenunciaPage
+                        Navigator.pop(context);
                       },
                     ),
                     const Icon(Icons.settings, color: Color(0xFF295822)),
@@ -48,88 +61,116 @@ class _Denuncias2State extends State<Denuncias2> {
 
               Expanded(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 45),
+                  padding: const EdgeInsets.symmetric(horizontal: 35),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
 
                       const Text(
-                        "Endereço:",
+                        "Endereço da Denúncia",
                         style: TextStyle(
-                          fontSize: 18,
+                          fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
 
-                      const SizedBox(height: 15),
+                      const SizedBox(height: 20),
 
-                      const TextField(decoration: InputDecoration(labelText: "Cep")),
-                      const TextField(decoration: InputDecoration(labelText: "Rua")),
-                      const TextField(decoration: InputDecoration(labelText: "Número")),
-                      const TextField(decoration: InputDecoration(labelText: "Complemento")),
-                      const TextField(decoration: InputDecoration(labelText: "Bairro")),
+                      TextField(decoration: campo("CEP", Icons.location_on)),
+                      const SizedBox(height: 12),
+
+                      TextField(decoration: campo("Rua", Icons.map)),
+                      const SizedBox(height: 12),
+
+                      TextField(decoration: campo("Número", Icons.pin)),
+                      const SizedBox(height: 12),
+
+                      TextField(decoration: campo("Complemento", Icons.apartment)),
+                      const SizedBox(height: 12),
+
+                      TextField(decoration: campo("Bairro", Icons.place)),
 
                       const SizedBox(height: 20),
 
+                      /// 🔹 DESCRIÇÃO
                       Container(
-                        height: 50,
                         decoration: BoxDecoration(
                           color: const Color(0xFF63866C),
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(12),
                         ),
                         child: const TextField(
+                          maxLines: 4,
                           style: TextStyle(color: Colors.white),
-                          keyboardType: TextInputType.multiline,
                           decoration: InputDecoration(
-                            hintText: "Descrição",
-                            hintStyle: TextStyle(color: Colors.white),
+                            hintText: "Descreva o problema...",
+                            hintStyle: TextStyle(color: Colors.white70),
                             border: InputBorder.none,
-                            contentPadding: EdgeInsets.symmetric(horizontal: 15),
+                            contentPadding: EdgeInsets.all(15),
                           ),
                         ),
                       ),
 
                       const SizedBox(height: 20),
 
+                      /// 🔹 BOTÃO CAMERA
                       ElevatedButton.icon(
                         onPressed: () {},
-                        icon: const Icon(Icons.camera_alt, color: Colors.white),
-                        label: const Text("Nova foto ou vídeo", style: TextStyle(color: Colors.white)),
+                        icon: const Icon(Icons.camera_alt,
+                            color: Colors.white),
+                        label: const Text(
+                          "Nova foto ou vídeo",
+                          style: TextStyle(color: Colors.white),
+                        ),
                         style: ElevatedButton.styleFrom(
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
                           backgroundColor: const Color(0xFF63866C),
                           minimumSize: const Size(double.infinity, 50),
                         ),
                       ),
 
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 12),
 
+                      /// 🔹 GALERIA
                       ElevatedButton.icon(
                         onPressed: () {},
                         icon: const Icon(Icons.photo, color: Colors.white),
-                        label: const Text("Adicionar da Galeria", style: TextStyle(color: Colors.white)),
+                        label: const Text(
+                          "Adicionar da Galeria",
+                          style: TextStyle(color: Colors.white),
+                        ),
                         style: ElevatedButton.styleFrom(
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
                           backgroundColor: const Color(0xFF63866C),
                           minimumSize: const Size(double.infinity, 50),
                         ),
                       ),
 
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 25),
 
+                      /// 🔹 ENVIAR
                       Center(
                         child: ElevatedButton(
                           onPressed: () {},
                           style: ElevatedButton.styleFrom(
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                            backgroundColor:  const Color(0xFF59BA15),
-                            padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 12),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
+                            backgroundColor: const Color(0xFF59BA15),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 60, vertical: 14),
                           ),
-                          child: const Text("enviar", style: TextStyle(color: Colors.white)),
+                          child: const Text(
+                            "ENVIAR DENÚNCIA",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
                       ),
 
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 25),
                     ],
                   ),
                 ),
@@ -139,12 +180,20 @@ class _Denuncias2State extends State<Denuncias2> {
         ),
       ),
 
-      // 🔻 Barra inferior
+      /// 🔻 BARRA INFERIOR
       bottomNavigationBar: NavigationBarTheme(
         data: NavigationBarThemeData(
-          labelTextStyle: MaterialStateProperty.all(
-            const TextStyle(color: Colors.white),
-          ),
+          labelTextStyle: MaterialStateProperty.resolveWith((states) {
+            if (states.contains(MaterialState.selected)) {
+              return const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              );
+            }
+            return const TextStyle(
+              color: Colors.white70,
+            );
+          }),
         ),
         child: NavigationBar(
           height: 76,

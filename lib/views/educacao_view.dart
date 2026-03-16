@@ -82,7 +82,8 @@ class _EducacaoViewState extends State<EducacaoView> {
     required YoutubePlayerController controller,
     required String titulo,
   }) {
-    return Container(
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
       margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -98,17 +99,34 @@ class _EducacaoViewState extends State<EducacaoView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
-            child: Text(
-              titulo,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Color.fromARGB(255, 76, 107, 99),
-              ),
+
+            child: Row(
+              children: [
+
+                const Icon(
+                  Icons.play_circle_fill,
+                  color: Colors.green,
+                ),
+
+                const SizedBox(width: 8),
+
+                Expanded(
+                  child: Text(
+                    titulo,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Color.fromARGB(255, 76, 107, 99),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
+
           ClipRRect(
             borderRadius: const BorderRadius.vertical(
               bottom: Radius.circular(18),
@@ -130,9 +148,12 @@ class _EducacaoViewState extends State<EducacaoView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+
       body: Container(
+
         width: double.infinity,
         height: double.infinity,
+
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
@@ -144,18 +165,34 @@ class _EducacaoViewState extends State<EducacaoView> {
             stops: [0.0, 0.5],
           ),
         ),
+
         child: Padding(
           padding: const EdgeInsets.all(20),
+
           child: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+
                 const SizedBox(height: 40),
 
                 Center(
                   child: Image.asset(
                     'assets/images/logo3.png',
                     width: 170,
+                  ),
+                ),
+
+                const SizedBox(height: 10),
+
+                const Center(
+                  child: Text(
+                    "Educação Ambiental",
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Color.fromARGB(255, 76, 107, 99),
+                    ),
                   ),
                 ),
 
@@ -170,17 +207,33 @@ class _EducacaoViewState extends State<EducacaoView> {
                   ),
                 ),
 
+                const SizedBox(height: 5),
+
+                const Text(
+                  "Assista vídeos curtos para aprender sobre sustentabilidade, reciclagem e cuidado com o meio ambiente.",
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.black54,
+                  ),
+                ),
+
                 const SizedBox(height: 20),
+
+                const Divider(),
 
                 buildVideoCard(
                   controller: _controller1,
                   titulo: "Educação Ambiental",
                 ),
 
+                const Divider(),
+
                 buildVideoCard(
                   controller: _controller2,
                   titulo: "Sustentabilidade na Prática",
                 ),
+
+                const Divider(),
 
                 buildVideoCard(
                   controller: _controller3,
@@ -205,21 +258,25 @@ class _EducacaoViewState extends State<EducacaoView> {
           ),
         ),
         destinations: const [
+
           NavigationDestination(
             icon: Icon(Icons.home_outlined, color: Colors.white),
             selectedIcon: Icon(Icons.home, color: Colors.white),
             label: 'Início',
           ),
+
           NavigationDestination(
             icon: Icon(Icons.place_outlined, color: Colors.white),
             selectedIcon: Icon(Icons.place, color: Colors.white),
             label: 'Coleta',
           ),
+
           NavigationDestination(
             icon: Icon(Icons.school_outlined, color: Colors.white),
             selectedIcon: Icon(Icons.school, color: Colors.white),
             label: 'Educação',
           ),
+
           NavigationDestination(
             icon: Icon(Icons.person_outline, color: Colors.white),
             selectedIcon: Icon(Icons.person, color: Colors.white),

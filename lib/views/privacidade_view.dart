@@ -25,10 +25,6 @@ class _PrivacidadeViewState extends State<PrivacidadeView> {
     carregarConfiguracoes();
   }
 
-  // ===============================
-  // CARREGAR CONFIGURAÇÕES
-  // ===============================
-
   Future carregarConfiguracoes() async {
     final prefs = await SharedPreferences.getInstance();
 
@@ -44,18 +40,10 @@ class _PrivacidadeViewState extends State<PrivacidadeView> {
     });
   }
 
-  // ===============================
-  // SALVAR CONFIGURAÇÕES
-  // ===============================
-
   Future salvar(String chave, bool valor) async {
     final prefs = await SharedPreferences.getInstance();
     prefs.setBool(chave, valor);
   }
-
-  // ===============================
-  // LIMPAR DADOS
-  // ===============================
 
   Future limparDados() async {
     final prefs = await SharedPreferences.getInstance();
@@ -78,7 +66,6 @@ class _PrivacidadeViewState extends State<PrivacidadeView> {
         width: double.infinity,
         height: double.infinity,
 
-        // MESMO FUNDO DA ACESSIBILIDADE
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
@@ -107,7 +94,15 @@ class _PrivacidadeViewState extends State<PrivacidadeView> {
                   ],
                 ),
 
-                const SizedBox(height: 20),
+                const SizedBox(height: 10),
+
+                const Icon(
+                  Icons.privacy_tip,
+                  size: 40,
+                  color: Color(0xFF1F5C3A),
+                ),
+
+                const SizedBox(height: 10),
 
                 const Text(
                   "PRIVACIDADE",
@@ -118,7 +113,18 @@ class _PrivacidadeViewState extends State<PrivacidadeView> {
                   ),
                 ),
 
-                const SizedBox(height: 30),
+                const SizedBox(height: 5),
+
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 30),
+                  child: Text(
+                    "Controle como seus dados são utilizados dentro do aplicativo.",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.black54),
+                  ),
+                ),
+
+                const SizedBox(height: 25),
 
                 _tile(
                   Icons.location_on,
@@ -208,7 +214,7 @@ class _PrivacidadeViewState extends State<PrivacidadeView> {
                   },
                 ),
 
-                const SizedBox(height: 20),
+                const SizedBox(height: 25),
 
                 ElevatedButton.icon(
                   onPressed: limparDados,
@@ -216,6 +222,13 @@ class _PrivacidadeViewState extends State<PrivacidadeView> {
                   label: const Text("Apagar todos os meus dados"),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.red,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 25,
+                      vertical: 14,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
 
@@ -237,20 +250,37 @@ class _PrivacidadeViewState extends State<PrivacidadeView> {
       ) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      child: Container(
+
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+
         decoration: BoxDecoration(
           color: const Color.fromARGB(255, 88, 133, 105),
           borderRadius: BorderRadius.circular(12),
+
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.12),
+              blurRadius: 6,
+              offset: const Offset(0, 3),
+            ),
+          ],
         ),
+
         child: SwitchListTile(
           value: value,
           onChanged: onChanged,
           activeColor: Colors.white,
           secondary: Icon(icon, color: Colors.white),
+
           title: Text(
             title,
-            style: const TextStyle(color: Colors.white),
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
           ),
+
           subtitle: Text(
             description,
             style: const TextStyle(color: Colors.white70),
