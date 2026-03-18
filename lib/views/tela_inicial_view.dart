@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'denuncia_view.dart';
 import 'perfil_view.dart';
 import 'educacao_view.dart';
+import 'config_view.dart';
+import 'historico_denuncias_view.dart';
+import 'home_view.dart';
 
 class TelaInicialView extends StatefulWidget {
   const TelaInicialView({super.key});
@@ -40,6 +43,137 @@ class _TelaInicialViewState extends State<TelaInicialView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+
+      // 🔥 MENU LATERAL
+      drawer: Drawer(
+        child: Column(
+          children: [
+
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.only(top: 50, bottom: 25),
+              decoration: const BoxDecoration(
+                color: Color(0xFF1F5C3A),
+              ),
+              child: Column(
+                children: [
+                  CircleAvatar(
+                    radius: 32,
+                    backgroundColor: Colors.white,
+                    child: Padding(
+                      padding: const EdgeInsets.all(6),
+                      child: Image.asset(
+                        'assets/images/logo.png',
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  const Text(
+                    "Menu",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            ListTile(
+              leading: const Icon(Icons.settings, color: Color(0xFF1F5C3A)),
+              title: const Text("Configurações"),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ConfiguracaoPage(),
+                  ),
+                );
+              },
+            ),
+
+            ListTile(
+              leading: const Icon(Icons.history, color: Color(0xFF1F5C3A)),
+              title: const Text("Histórico de Denúncias"),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        const HistoricoDenunciasView(),
+                  ),
+                );
+              },
+            ),
+
+
+          
+
+          ListTile(
+              leading: const Icon(Icons.calendar_today,  color: Color(0xFF1F5C3A)),
+              title: const Text("Coleta Regular"),
+              onTap: () {},
+            ),
+
+            ListTile(
+              leading: const Icon(Icons.help, color: Color(0xFF1F5C3A)),
+              title: const Text("Ajuda"),
+              onTap: () {},
+            ),
+
+            ListTile(
+              leading: const Icon(Icons.info, color: Color(0xFF1F5C3A)),
+              title: const Text("Sobre"),
+              onTap: () {},
+            ),
+
+            const Spacer(),
+
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(14),
+                onTap: () {
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const HomeView(),
+                    ),
+                    (route) => false,
+                  );
+                },
+                child: Container(
+                  height: 55,
+                  decoration: BoxDecoration(
+                    color: Colors.red,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.logout, color: Colors.white),
+                      SizedBox(width: 10),
+                      Text(
+                        "Sair da conta",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+
+      // 🔥 TELA ORIGINAL (NÃO ALTERADA)
       body: Container(
         width: double.infinity,
         height: double.infinity,
@@ -59,14 +193,28 @@ class _TelaInicialViewState extends State<TelaInicialView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+
               const SizedBox(height: 40),
+
+              // BOTÃO MENU
+              Builder(
+                builder: (context) => IconButton(
+                  icon: const Icon(Icons.menu),
+                  onPressed: () {
+                    Scaffold.of(context).openDrawer();
+                  },
+                ),
+              ),
+
               Center(
                 child: Image.asset(
                   'assets/images/logo3.png',
                   width: 170,
                 ),
               ),
+
               const SizedBox(height: 20),
+
               const Text(
                 'Olá, seja bem-vindo!',
                 style: TextStyle(
@@ -75,7 +223,9 @@ class _TelaInicialViewState extends State<TelaInicialView> {
                   color: Color.fromARGB(255, 68, 104, 93),
                 ),
               ),
+
               const SizedBox(height: 18),
+
               const Text(
                 'Confira o dia da Coleta Seletiva\nna sua Região',
                 style: TextStyle(
@@ -84,9 +234,10 @@ class _TelaInicialViewState extends State<TelaInicialView> {
                   color: Color.fromARGB(255, 76, 107, 99),
                 ),
               ),
+
               const SizedBox(height: 15),
 
-              // ===== CARD 1 =====
+              // CARD 1
               SizedBox(
                 height: 100,
                 width: double.infinity,
@@ -154,7 +305,7 @@ class _TelaInicialViewState extends State<TelaInicialView> {
 
               const SizedBox(height: 15),
 
-              // ===== CARD 2 =====
+              // CARD 2
               SizedBox(
                 height: 100,
                 width: double.infinity,
@@ -211,7 +362,7 @@ class _TelaInicialViewState extends State<TelaInicialView> {
 
               const SizedBox(height: 15),
 
-              // ===== CARD 3 =====
+              // CARD 3
               SizedBox(
                 height: 100,
                 width: double.infinity,
@@ -270,6 +421,7 @@ class _TelaInicialViewState extends State<TelaInicialView> {
         ),
       ),
 
+      // 🔻 MENU INFERIOR
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
         onDestinationSelected: _onItemTapped,

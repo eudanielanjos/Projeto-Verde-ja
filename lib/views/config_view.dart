@@ -66,11 +66,9 @@ class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
 
               const SizedBox(height: 40),
 
-              _buildButton(Icons.help, "Ajuda"),
               _buildButton(Icons.lock, "Privacidade"),
               _buildButton(Icons.accessibility, "Acessibilidade"),
               _buildButton(Icons.language, "Idiomas e Tradução"),
-              _buildButton(Icons.info, "Sobre"),
             ],
           ),
         ),
