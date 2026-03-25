@@ -28,10 +28,10 @@ class _TelaInicialViewState extends State<TelaInicialView> {
               child: Column(
                 children: [
                   CircleAvatar(
-                    radius: 32,
+                    radius: 50,
                     backgroundColor: Colors.white,
                     child: Padding(
-                      padding: const EdgeInsets.all(6),
+                      padding: const EdgeInsets.all(12),
                       child: Image.asset(
                         'assets/images/logo.png',
                         fit: BoxFit.contain,
@@ -43,7 +43,7 @@ class _TelaInicialViewState extends State<TelaInicialView> {
                     "Olá, Usuario",
                     style: TextStyle(
                         color: Colors.white,
-                        fontSize: 18,
+                        fontSize: 20,
                         fontWeight: FontWeight.bold),
                   ),
                 ],
@@ -67,7 +67,7 @@ class _TelaInicialViewState extends State<TelaInicialView> {
                     },
                   ),
                   _buildMenuCard(
-                    icon: Icons.calendar_today,
+                    icon: Icons.calendar_month,
                     title: "Coleta Regular",
                     onTap: () {
                       Navigator.pop(context);
@@ -86,6 +86,21 @@ class _TelaInicialViewState extends State<TelaInicialView> {
                       );
                     },
                   ),
+                    
+                   _buildMenuCard(
+                    icon: Icons.history_edu,
+                    title: "Histórico de Denúncias",
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const HistoricoDenunciasView(),
+                        ),
+                      );
+                    },
+                  ),
+
                   _buildMenuCard(
                     icon: Icons.person,
                     title: "Perfil",
@@ -99,19 +114,7 @@ class _TelaInicialViewState extends State<TelaInicialView> {
                       );
                     },
                   ),
-                  _buildMenuCard(
-                    icon: Icons.history,
-                    title: "Histórico de Denúncias",
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const HistoricoDenunciasView(),
-                        ),
-                      );
-                    },
-                  ),
+              
                   _buildMenuCard(
                     icon: Icons.settings,
                     title: "Configurações",
@@ -202,29 +205,32 @@ class _TelaInicialViewState extends State<TelaInicialView> {
               Center(
                 child: Image.asset(
                   'assets/images/logo3.png',
-                  width: 170,
+                  width: 200,
                 ),
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 15),
 
-              const Text(
-                'Olá, seja bem-vindo!',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Color.fromARGB(255, 68, 104, 93),
+              Center(
+                child: Text(
+                  "Bem-vindo ao VerdeJá 🌿",
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-
-              const SizedBox(height: 18),
+           
+              const SizedBox(height: 10),
 
               const Text(
-                'Confira o dia da Coleta Seletiva\nna sua Região',
-                style: TextStyle(
-                  fontSize: 16,
+                
+                "Explore as funcionalidades do aplicativo, informe-se e faça parte dessa mudança!",
+               style: TextStyle(
+
+                  fontSize: 18,
+                  color: Colors.black54,
                   fontWeight: FontWeight.bold,
-                  color: Color.fromARGB(255, 76, 107, 99),
                 ),
               ),
 
@@ -290,7 +296,7 @@ class _TelaInicialViewState extends State<TelaInicialView> {
                 Expanded(
                   child: Text(
                     title,
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
                   ),
                 ),
                 const Icon(Icons.arrow_forward_ios,
@@ -332,10 +338,17 @@ class _TelaInicialViewState extends State<TelaInicialView> {
                     children: [
                       Text(title,
                           style: const TextStyle(
-                              fontSize: 21,
+                              fontSize: 24,
                               fontWeight: FontWeight.bold,
                               color: Colors.white)),
-                      Text(subtitle, style: const TextStyle(color: Colors.white)),
+                            Text(
+                              subtitle,
+                              style: const TextStyle(
+                                color: Color.fromARGB(255, 248, 248, 248),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                              ),
+                            ),
                     ],
                   ),
                 ),
