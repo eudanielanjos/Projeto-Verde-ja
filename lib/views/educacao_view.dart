@@ -261,8 +261,8 @@ class _EducacaoViewState extends State<EducacaoView> {
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [Color.fromRGBO(64, 118, 78, 1), Colors.white],
-                stops: [0.0, 0.5],
+                colors: [Color.fromRGBO(120, 159, 130, 1), Colors.white],
+                stops: [0.0, 0.2],
               ),
             ),
             child: Padding(
@@ -339,7 +339,7 @@ class _EducacaoViewState extends State<EducacaoView> {
                   constraints: const BoxConstraints(),
                   icon: const Icon(
                     Icons.menu,
-                    color: Colors.white,
+                    
                     size: 30,
                   ),
                   onPressed: () {

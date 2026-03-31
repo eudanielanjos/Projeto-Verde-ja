@@ -11,7 +11,7 @@ class ConfiguracaoPage extends StatefulWidget {
 }
 
 class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
-  int _selectedIndex = 3;
+  // int _selectedIndex = 3;
 
   @override
   Widget build(BuildContext context) {
@@ -71,51 +71,6 @@ class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
               _buildButton(Icons.language, "Idiomas e Tradução"),
             ],
           ),
-        ),
-      ),
-
-      // 🔻 Barra inferior
-      bottomNavigationBar: NavigationBarTheme(
-        data: NavigationBarThemeData(
-          labelTextStyle: MaterialStateProperty.all(
-            const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-        child: NavigationBar(
-          height: 76,
-          backgroundColor: const Color(0xFF1F5C3A),
-          selectedIndex: _selectedIndex,
-          indicatorColor: Colors.white24,
-          onDestinationSelected: (index) {
-            setState(() {
-              _selectedIndex = index;
-            });
-          },
-          destinations: const [
-            NavigationDestination(
-              icon: Icon(Icons.home_outlined, color: Colors.white),
-              selectedIcon: Icon(Icons.home, color: Colors.white),
-              label: 'Início',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.place_outlined, color: Colors.white),
-              selectedIcon: Icon(Icons.place, color: Colors.white),
-              label: 'Coleta',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.school_outlined, color: Colors.white),
-              selectedIcon: Icon(Icons.school, color: Colors.white),
-              label: 'Educação',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.person_outline, color: Colors.white),
-              selectedIcon: Icon(Icons.person, color: Colors.white),
-              label: 'Perfil',
-            ),
-          ],
         ),
       ),
     );

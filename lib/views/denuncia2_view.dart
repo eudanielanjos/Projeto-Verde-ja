@@ -54,7 +54,6 @@ class _Denuncias2State extends State<Denuncias2> {
                         Navigator.pop(context);
                       },
                     ),
-                    const Icon(Icons.settings, color: Color(0xFF295822)),
                   ],
                 ),
               ),

@@ -129,10 +129,10 @@ class _MeusDadosViewState extends State<MeusDadosView> {
 
                     GestureDetector(
                       onTap: () => Navigator.pop(context),
-                      child: const Icon(Icons.arrow_back),
+                      child: const Icon(Icons.arrow_back,),
                     ),
 
-                    const Icon(Icons.settings)
+                    
                   ],
                 ),
               ),
