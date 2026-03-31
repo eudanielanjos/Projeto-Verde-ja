@@ -1,280 +1,226 @@
 import 'package:flutter/material.dart';
+import 'home_view.dart';
 
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class LoginView extends StatefulWidget {
+  const LoginView({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: LoginPage(),
-    );
-  }
+  State<LoginView> createState() => _LoginViewState();
 }
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+class _LoginViewState extends State<LoginView> {
+  final _formKey = GlobalKey<FormState>();
 
-  @override
-  State<LoginPage> createState() => _LoginPageState();
-}
-
-class _LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _senhaController = TextEditingController();
-
-  bool _isLoading = false;
-  bool _senhaVisivel = false; // 🔥 controla visibilidade da senha
-
-  void _mostrarAviso(String mensagem) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(mensagem),
-        backgroundColor: Colors.red,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
-
-  void _login() async {
-    String email = _emailController.text.trim();
-    String senha = _senhaController.text.trim();
-
-    if (email.isEmpty || senha.isEmpty) {
-      _mostrarAviso("Preencha todos os campos");
-      return;
-    }
-
-    if (!email.contains("@")) {
-      _mostrarAviso("Digite um email válido");
-      return;
-    }
-
-    if (senha.length < 6) {
-      _mostrarAviso("A senha deve ter no mínimo 6 caracteres");
-      return;
-    }
-
-    setState(() {
-      _isLoading = true;
-    });
-
-    await Future.delayed(const Duration(seconds: 2));
-
-    if (email == "admin@email.com" && senha == "123456") {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const HomePage()),
-      );
-    } else {
-      _mostrarAviso("Email ou senha incorretos");
-    }
-
-    setState(() {
-      _isLoading = false;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: true,
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF5E7F6B),
-              Color(0xFFEAEAEA),
-              Color(0xFFEAEAEA),
-            ],
-          ),
-        ),
-        child: Center(
-          child: SingleChildScrollView(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 400),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 30),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    const SizedBox(height: 40),
+      body: Stack(
+        children: [
 
+          // 🔹 FUNDO
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Color(0xFF5E7F6B),
+                  Color(0xFFF2F2F2),
+                  Color(0xFFF2F2F2),
+                ],
+              ),
+            ),
+          ),
+
+          // 🔹 BOTÃO VOLTAR
+          Positioned(
+            top: 40,
+            left: 10,
+            child: IconButton(
+              icon: const Icon(
+                Icons.arrow_back,
+                color: Colors.white,
+                size: 28,
+              ),
+              onPressed: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const HomeView(),
+                  ),
+                );
+              },
+            ),
+          ),
+
+          // 🔹 CONTEÚDO
+          Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 30),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+
+                    const SizedBox(height: 80),
+
+                    // 🔹 LOGO
                     Image.asset(
-                      'assets/images/logo.png',
-                      height: 120,
+                      "assets/images/logo.png",
+                      height: 160,
                     ),
 
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 10),
 
                     const Text(
                       'Viva verde, viva melhor!',
-                      textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize: 17,
-                        fontStyle: FontStyle.italic,
-                        color: Color(0xFF1F5C3A),
+                        fontSize: 18,
+                        color: Colors.black54,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+
+                    const SizedBox(height: 70),
+
+                    _buildInput(
+                      'Email',
+                      controller: _emailController,
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    _buildInput(
+                      'Senha',
+                      controller: _senhaController,
+                      obscure: true,
+                    ),
+
+                    /// 🔹 ESQUECI MINHA SENHA
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("Função de recuperação de senha"),
+                            ),
+                          );
+                        },
+                        child: const Text(
+                          "Esqueci minha senha",
+                          style: TextStyle(
+                            color: Color(0xFF305D3C),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 15),
+
+                    // 🔹 BOTÃO ENTRAR
+                    SizedBox(
+                      width: 180,
+                      height: 50,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF7BB132),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(9),
+                          ),
+                        ),
+                        onPressed: () {
+                          if (_formKey.currentState!.validate()) {
+                            Navigator.pushReplacementNamed(
+                                context, '/home');
+                          }
+                        },
+                        child: const Text(
+                          'Entrar',
+                          style: TextStyle(
+                            fontSize: 20,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ),
 
                     const SizedBox(height: 50),
 
-                    // 🔹 Email
-                    SizedBox(
-                      width: double.infinity,
-                      child: _buildEmailField(),
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    // 🔹 Senha com olhinho
-                    SizedBox(
-                      width: double.infinity,
-                      child: _buildSenhaField(),
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF1F5C3A),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        onPressed: _isLoading ? null : _login,
-                        child: _isLoading
-                            ? const CircularProgressIndicator(
-                                color: Colors.white,
-                              )
-                            : const Text(
-                                'Acessar',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 30),
-
+                    // 🔹 CADASTRO
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const Text(
-                          'Ainda não possui conta? ',
-                          style: TextStyle(color: Colors.black87),
+                          'Não possui conta? ',
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontSize: 18,
+                          ),
                         ),
                         GestureDetector(
-                          onTap: () {},
+                          onTap: () {
+                            Navigator.pushReplacementNamed(
+                                context, '/cadastro');
+                          },
                           child: const Text(
                             'Cadastre-se',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF1F5C3A),
+                              color: Color(0xFF305D3C),
+                              fontSize: 19,
                             ),
                           ),
                         ),
                       ],
                     ),
 
-                    const SizedBox(height: 40),
+                    const SizedBox(height: 30),
                   ],
                 ),
               ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }
 
-  Widget _buildEmailField() {
-    return Container(
-      height: 55,
-      decoration: BoxDecoration(
-        color: const Color(0xFF5E7F6B),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: TextField(
-        controller: _emailController,
-        style: const TextStyle(color: Colors.white),
-        decoration: const InputDecoration(
-          border: InputBorder.none,
-          hintText: "Email",
-          hintStyle: TextStyle(color: Colors.white70),
-          contentPadding:
-              EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+  Widget _buildInput(String hint,
+      {bool obscure = false,
+      required TextEditingController controller}) {
+    return TextFormField(
+      controller: controller,
+      obscureText: obscure,
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return "Preencha $hint";
+        }
+        if (hint == "Email" && !value.contains("@")) {
+          return "Email inválido";
+        }
+        if (hint == "Senha" && value.length < 6) {
+          return "Mínimo 6 caracteres";
+        }
+        return null;
+      },
+      decoration: InputDecoration(
+        hintText: hint,
+        filled: true,
+        fillColor: const Color(0xFF5F826C),
+        hintStyle: const TextStyle(color: Colors.white70),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide.none,
         ),
       ),
-    );
-  }
-
-  Widget _buildSenhaField() {
-    return Container(
-      height: 55,
-      decoration: BoxDecoration(
-        color: const Color(0xFF5E7F6B),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: TextField(
-        controller: _senhaController,
-        obscureText: !_senhaVisivel,
-        style: const TextStyle(color: Colors.white),
-        decoration: InputDecoration(
-          border: InputBorder.none,
-          hintText: "Senha",
-          hintStyle: const TextStyle(color: Colors.white70),
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-          suffixIcon: IconButton(
-            icon: Icon(
-              _senhaVisivel
-                  ? Icons.visibility
-                  : Icons.visibility_off,
-              color: Colors.white70,
-            ),
-            onPressed: () {
-              setState(() {
-                _senhaVisivel = !_senhaVisivel;
-              });
-            },
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class HomePage extends StatelessWidget {
-  const HomePage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Home"),
-        backgroundColor: const Color(0xFF1F5C3A),
-      ),
-      body: const Center(
-        child: Text(
-          "Login realizado com sucesso!",
-          style: TextStyle(fontSize: 20),
-        ),
-      ),
+      style: const TextStyle(color: Colors.white),
     );
   }
 }

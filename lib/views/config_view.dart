@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-// <-- import da tela de perfil
+import 'acessibilidade_view.dart'; 
+import 'privacidade_view.dart';
+import 'idiomas_view.dart';
 
 class ConfiguracaoPage extends StatefulWidget {
   const ConfiguracaoPage({super.key});
@@ -29,20 +31,23 @@ class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
         child: SafeArea(
           child: Column(
             children: [
+
               // 🔙 Barra superior
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // Ícone de voltar funcional
                     InkWell(
+                      borderRadius: BorderRadius.circular(30),
                       onTap: () {
-                        Navigator.pop(context); // volta para PerfilPage
+                        Navigator.pop(context);
                       },
-                      child: const Icon(Icons.arrow_back, color: Colors.black54),
+                      child: const Padding(
+                        padding: EdgeInsets.all(6),
+                        child: Icon(Icons.arrow_back, color: Colors.black54),
+                      ),
                     ),
-                    const Icon(Icons.menu, color: Colors.black54),
                   ],
                 ),
               ),
@@ -55,26 +60,28 @@ class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF1F5C3A),
+                  letterSpacing: 1,
                 ),
               ),
 
               const SizedBox(height: 40),
 
-              // 📋 Botões
-              _buildButton(Icons.help, "Ajuda"),
               _buildButton(Icons.lock, "Privacidade"),
               _buildButton(Icons.accessibility, "Acessibilidade"),
               _buildButton(Icons.language, "Idiomas e Tradução"),
-              _buildButton(Icons.info, "Sobre"),
             ],
           ),
         ),
       ),
+
       // 🔻 Barra inferior
       bottomNavigationBar: NavigationBarTheme(
         data: NavigationBarThemeData(
           labelTextStyle: MaterialStateProperty.all(
-            const TextStyle(color: Colors.white),
+            const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
         child: NavigationBar(
@@ -114,14 +121,20 @@ class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
     );
   }
 
+  // 🔘 Botões de configuração
   Widget _buildButton(IconData icon, String label) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
-      child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+
         height: 60,
+
         decoration: BoxDecoration(
           color: const Color.fromARGB(255, 88, 133, 105),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(14),
+
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.1),
@@ -130,11 +143,67 @@ class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
             ),
           ],
         ),
-        child: ListTile(
-          leading: Icon(icon, color: const Color.fromARGB(255, 247, 247, 247)),
-          title: Text(label, style: const TextStyle(color: Colors.white)),
-          trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.white),
-          onTap: () {},
+
+        child: Material(
+          color: Colors.transparent,
+
+          child: InkWell(
+            borderRadius: BorderRadius.circular(14),
+
+            onTap: () {
+
+              // 🔐 Tela de Privacidade
+              if (label == "Privacidade") {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const PrivacidadeView(),
+                  ),
+                );
+              }
+
+              // ♿ Tela de Acessibilidade
+              if (label == "Acessibilidade") {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AcessibilidadeView(),
+                  ),
+                );
+              }
+
+              // 🌎 Tela de Idiomas
+              if (label == "Idiomas e Tradução") {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const IdiomasView(),
+                  ),
+                );
+              }
+            },
+
+            child: ListTile(
+              leading: Icon(
+                icon,
+                color: const Color.fromARGB(255, 247, 247, 247),
+              ),
+
+              title: Text(
+                label,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+
+              trailing: const Icon(
+                Icons.arrow_forward_ios,
+                size: 16,
+                color: Colors.white,
+              ),
+            ),
+          ),
         ),
       ),
     );
