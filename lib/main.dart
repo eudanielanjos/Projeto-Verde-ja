@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_app/views/splash_cadastro_view.dart';
-// import 'package:flutter_app/views/login_views.dart';
-// import 'views/home_view.dart';
-//import 'views/splash_view.dart';
+//import 'package:flutter_app/views/educacao_view.dart';
+import 'package:flutter_app/views/splash_view.dart';
+//import 'package:flutter_app/views/home_view.dart';
+
 
 void main() {
   runApp(const MyApp());
@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return const MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: SplashViewCadastro(), // 👈 usando a tela importada
+      home: SplashView(), // 👈 usando a tela importada
     );
   }
 }

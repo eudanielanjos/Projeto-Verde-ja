@@ -118,7 +118,7 @@ class _SplashViewCadastro extends State<SplashViewCadastro>
     const SizedBox(height: 40),
 
     // 🔥 BOTÃO
-    Column(
+    /*Column(
       children: [
         InkWell(
           onTap: () {
@@ -149,7 +149,7 @@ class _SplashViewCadastro extends State<SplashViewCadastro>
           ),
         )
       ],
-    ),
+    ),*/
 
     const Spacer(),
   ],
