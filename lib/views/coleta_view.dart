@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 // Importações para o menu
-import 'denuncia_view.dart';
 import 'perfil_view.dart';
 import 'educacao_view.dart';
 import 'config_view.dart';
