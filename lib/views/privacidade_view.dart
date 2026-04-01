@@ -9,7 +9,6 @@ class PrivacidadeView extends StatefulWidget {
 }
 
 class _PrivacidadeViewState extends State<PrivacidadeView> {
-
   bool localizacao = false;
   bool compartilhamento = false;
   bool historico = false;
@@ -27,7 +26,6 @@ class _PrivacidadeViewState extends State<PrivacidadeView> {
 
   Future carregarConfiguracoes() async {
     final prefs = await SharedPreferences.getInstance();
-
     setState(() {
       localizacao = prefs.getBool('localizacao') ?? false;
       compartilhamento = prefs.getBool('compartilhamento') ?? false;
@@ -48,243 +46,200 @@ class _PrivacidadeViewState extends State<PrivacidadeView> {
   Future limparDados() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Todos os dados foram apagados.")),
-    );
-
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Todos os dados foram apagados."),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    }
     carregarConfiguracoes();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-
-      backgroundColor: Colors.transparent,
-
       body: Container(
         width: double.infinity,
         height: double.infinity,
-
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              const Color(0xFF5E7F6B),
-              Colors.grey.shade200,
-              Colors.grey.shade200,
+              Color.fromRGBO(120, 159, 130, 1),
+              Colors.white,
             ],
+            stops: [0.0, 0.25],
           ),
         ),
-
         child: SafeArea(
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-
-                Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back),
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 10),
-
-                const Icon(
-                  Icons.privacy_tip,
-                  size: 40,
-                  color: Color(0xFF1F5C3A),
-                ),
-
-                const SizedBox(height: 10),
-
-                const Text(
-                  "PRIVACIDADE",
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1F5C3A),
+          child: Column(
+            children: [
+              // --- BARRA SUPERIOR COM BOTÃO VOLTAR ---
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: IconButton(
+                    icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 22),
+                    onPressed: () => Navigator.pop(context),
                   ),
                 ),
+              ),
 
-                const SizedBox(height: 5),
-
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 30),
-                  child: Text(
-                    "Controle como seus dados são utilizados dentro do aplicativo.",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.black54),
-                  ),
+              // --- CABEÇALHO ---
+              const Icon(Icons.security_outlined, size: 50, color: Color.fromARGB(255, 0, 0, 0)),
+              const SizedBox(height: 10),
+              const Text(
+                "PRIVACIDADE",
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Color.fromARGB(255, 0, 0, 0),
+                  letterSpacing: 1.2,
                 ),
-
-                const SizedBox(height: 25),
-
-                _tile(
-                  Icons.location_on,
-                  "Localização",
-                  "Permite que o aplicativo utilize sua localização.",
-                  localizacao,
-                      (v) {
-                    setState(() => localizacao = v);
-                    salvar("localizacao", v);
-                  },
+              ),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 40, vertical: 8),
+                child: Text(
+                  "Gerencie suas permissões e a segurança dos seus dados.",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Color.fromARGB(179, 0, 0, 0), fontSize: 14),
                 ),
+              ),
 
-                _tile(
-                  Icons.share,
-                  "Compartilhamento de Dados",
-                  "Autoriza compartilhar dados para melhorar serviços.",
-                  compartilhamento,
-                      (v) {
-                    setState(() => compartilhamento = v);
-                    salvar("compartilhamento", v);
-                  },
-                ),
+              const SizedBox(height: 20),
 
-                _tile(
-                  Icons.history,
-                  "Histórico de Atividades",
-                  "Salva ações realizadas dentro do aplicativo.",
-                  historico,
-                      (v) {
-                    setState(() => historico = v);
-                    salvar("historico", v);
-                  },
-                ),
-
-                _tile(
-                  Icons.notifications,
-                  "Notificações",
-                  "Permite receber notificações do aplicativo.",
-                  notificacoes,
-                      (v) {
-                    setState(() => notificacoes = v);
-                    salvar("notificacoes", v);
-                  },
-                ),
-
-                _tile(
-                  Icons.camera_alt,
-                  "Acesso à Câmera",
-                  "Permite usar a câmera dentro do aplicativo.",
-                  camera,
-                      (v) {
-                    setState(() => camera = v);
-                    salvar("camera", v);
-                  },
-                ),
-
-                _tile(
-                  Icons.mic,
-                  "Acesso ao Microfone",
-                  "Permite gravar áudio dentro do aplicativo.",
-                  microfone,
-                      (v) {
-                    setState(() => microfone = v);
-                    salvar("microfone", v);
-                  },
-                ),
-
-                _tile(
-                  Icons.lock,
-                  "Autenticação Segura",
-                  "Ativa uma camada extra de proteção da conta.",
-                  autenticacao,
-                      (v) {
-                    setState(() => autenticacao = v);
-                    salvar("autenticacao", v);
-                  },
-                ),
-
-                _tile(
-                  Icons.analytics,
-                  "Relatórios Anônimos",
-                  "Ajuda a melhorar o aplicativo enviando dados anônimos.",
-                  relatorios,
-                      (v) {
-                    setState(() => relatorios = v);
-                    salvar("relatorios", v);
-                  },
-                ),
-
-                const SizedBox(height: 25),
-
-                ElevatedButton.icon(
-                  onPressed: limparDados,
-                  icon: const Icon(Icons.delete),
-                  label: const Text("Apagar todos os meus dados"),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 25,
-                      vertical: 14,
+              // --- LISTA DE OPÇÕES ---
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.only(top: 20),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(35),
+                      topRight: Radius.circular(35),
                     ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Column(
+                      children: [
+                        _buildSectionTitle("Acessos do Dispositivo"),
+                        _tile(Icons.location_on_outlined, "Localização", "Uso do GPS no app.", localizacao, (v) {
+                          setState(() => localizacao = v);
+                          salvar("localizacao", v);
+                        }),
+                        _tile(Icons.camera_alt_outlined, "Câmera", "Captura de fotos para denúncias.", camera, (v) {
+                          setState(() => camera = v);
+                          salvar("camera", v);
+                        }),
+                        _tile(Icons.mic_none_outlined, "Microfone", "Gravação de áudio integrada.", microfone, (v) {
+                          setState(() => microfone = v);
+                          salvar("microfone", v);
+                        }),
+                        
+                        _buildSectionTitle("Preferências de Dados"),
+                        _tile(Icons.history, "Histórico", "Salvar suas atividades recentes.", historico, (v) {
+                          setState(() => historico = v);
+                          salvar("historico", v);
+                        }),
+                        _tile(Icons.analytics_outlined, "Relatórios", "Envio de dados anônimos.", relatorios, (v) {
+                          setState(() => relatorios = v);
+                          salvar("relatorios", v);
+                        }),
+                        
+                        _buildSectionTitle("Segurança"),
+                        _tile(Icons.verified_user_outlined, "Autenticação Extra", "Camada extra de proteção.", autenticacao, (v) {
+                          setState(() => autenticacao = v);
+                          salvar("autenticacao", v);
+                        }),
+
+                        const SizedBox(height: 30),
+
+                        // --- BOTÃO DE APAGAR DADOS ---
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 30),
+                          child: InkWell(
+                            onTap: limparDados,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              decoration: BoxDecoration(
+                                color: Colors.red.shade50,
+                                borderRadius: BorderRadius.circular(15),
+                                border: Border.all(color: Colors.red.shade100),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.delete_sweep_outlined, color: Colors.red.shade700),
+                                  const SizedBox(width: 10),
+                                  Text(
+                                    "Apagar todos os meus dados",
+                                    style: TextStyle(color: Colors.red.shade700, fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-
-                const SizedBox(height: 40),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget _tile(
-      IconData icon,
-      String title,
-      String description,
-      bool value,
-      Function(bool) onChanged,
-      ) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-
-        decoration: BoxDecoration(
-          color: const Color.fromARGB(255, 88, 133, 105),
-          borderRadius: BorderRadius.circular(12),
-
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.12),
-              blurRadius: 6,
-              offset: const Offset(0, 3),
-            ),
-          ],
+  Widget _buildSectionTitle(String title) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Padding(
+        padding: const EdgeInsets.only(left: 10, top: 20, bottom: 10),
+        child: Text(
+          title.toUpperCase(),
+          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1),
         ),
+      ),
+    );
+  }
 
-        child: SwitchListTile(
-          value: value,
-          onChanged: onChanged,
-          activeColor: Colors.white,
-          secondary: Icon(icon, color: Colors.white),
-
-          title: Text(
-            title,
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
+  Widget _tile(IconData icon, String title, String description, bool value, Function(bool) onChanged) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 4)),
+        ],
+      ),
+      child: SwitchListTile(
+        value: value,
+        onChanged: onChanged,
+        activeColor: const Color(0xFF1F5C3A),
+        secondary: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF1F5F2),
+            borderRadius: BorderRadius.circular(10),
           ),
-
-          subtitle: Text(
-            description,
-            style: const TextStyle(color: Colors.white70),
-          ),
+          child: Icon(icon, color: const Color(0xFF1F5C3A), size: 22),
+        ),
+        title: Text(
+          title,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF1F5C3A)),
+        ),
+        subtitle: Text(
+          description,
+          style: const TextStyle(fontSize: 12, color: Colors.grey),
         ),
       ),
     );

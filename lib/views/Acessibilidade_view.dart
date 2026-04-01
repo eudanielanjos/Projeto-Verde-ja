@@ -10,14 +10,13 @@ class AcessibilidadeView extends StatefulWidget {
 }
 
 class _AcessibilidadeViewState extends State<AcessibilidadeView> {
-
   bool daltonismo = false;
   bool fonteGrande = false;
   bool altoContraste = false;
   bool vibracao = false;
   bool zoomInterface = false;
 
-  double escalaFonte = 1;
+  double escalaFonte = 1.0;
 
   @override
   void initState() {
@@ -27,15 +26,13 @@ class _AcessibilidadeViewState extends State<AcessibilidadeView> {
 
   Future carregarConfiguracoes() async {
     final prefs = await SharedPreferences.getInstance();
-
     setState(() {
       daltonismo = prefs.getBool('daltonismo') ?? false;
       fonteGrande = prefs.getBool('fonteGrande') ?? false;
       altoContraste = prefs.getBool('altoContraste') ?? false;
       vibracao = prefs.getBool('vibracao') ?? false;
       zoomInterface = prefs.getBool('zoomInterface') ?? false;
-
-      escalaFonte = fonteGrande ? 1.3 : 1;
+      escalaFonte = fonteGrande ? 1.25 : 1.0;
     });
   }
 
@@ -54,176 +51,158 @@ class _AcessibilidadeViewState extends State<AcessibilidadeView> {
 
   @override
   Widget build(BuildContext context) {
-
-    Color corTopo;
-    Color corContainer;
-    Color corTitulo;
+    // Lógica de cores baseada nas configurações
+    Color corPrincipal;
 
     if (altoContraste) {
-      corTopo = Colors.black;
-      corContainer = Colors.black87;
-      corTitulo = Colors.white;
-    }
-
-    else if (daltonismo) {
-      corTopo = Colors.blueGrey;
-      corContainer = Colors.indigo;
-      corTitulo = Colors.blue.shade900;
-    }
-
-    else {
-      corTopo = const Color(0xFF5E7F6B);
-      corContainer = const Color.fromARGB(255, 88, 133, 105);
-      corTitulo = const Color(0xFF1F5C3A);
+      corPrincipal = Colors.black;
+    } else if (daltonismo) {
+      corPrincipal = const Color(0xFF455A64); // Azul acinzentado para daltonismo
+    } else {
+      corPrincipal = const Color.fromRGBO(120, 159, 130, 1); // Seu verde padrão
     }
 
     return MediaQuery(
       data: MediaQuery.of(context).copyWith(
-        textScaleFactor: escalaFonte,
+        textScaler: TextScaler.linear(escalaFonte),
       ),
-
       child: Scaffold(
-
-        backgroundColor: Colors.transparent,
-
         body: Container(
           width: double.infinity,
           height: double.infinity,
-
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [
-                corTopo,
-                Colors.grey.shade200,
-                Colors.grey.shade200,
-              ],
+              colors: [corPrincipal, Colors.white],
+              stops: const [0.0, 0.25],
             ),
           ),
-
           child: SafeArea(
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    child: Row(
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.arrow_back),
-                          onPressed: () {
-                            vibrar();
-                            Navigator.pop(context);
-                          },
-                        ),
-                      ],
+            child: Column(
+              children: [
+                // --- BOTÃO VOLTAR ---
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: IconButton(
+                      icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 22),
+                      onPressed: () {
+                        vibrar();
+                        Navigator.pop(context);
+                      },
                     ),
                   ),
+                ),
 
-                  const SizedBox(height: 10),
+                // --- CABEÇALHO ---
+                const Icon(Icons.accessibility_new_rounded, size: 50, color: Color.fromARGB(255, 0, 0, 0)),
+                const SizedBox(height: 10),
+                Text(
+                  "ACESSIBILIDADE",
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: const Color.fromARGB(255, 0, 0, 0),
+                    letterSpacing: 1.2,
 
-                  const Icon(
-                    Icons.accessibility_new,
-                    size: 40,
-                    color: Color(0xFF1F5C3A),
                   ),
+                ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 40, vertical: 8),
+                  child: Text(
+                    "Ajuste a interface para sua melhor comodidade visual e tátil.",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: const Color.fromARGB(179, 0, 0, 0), fontSize: 14),
+                  ),
+                ),
 
-                  const SizedBox(height: 10),
+                const SizedBox(height: 20),
 
-                  Text(
-                    "ACESSIBILIDADE",
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: corTitulo,
+                // --- PAINEL DE OPÇÕES ---
+                Expanded(
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(35),
+                        topRight: Radius.circular(35),
+                      ),
+                    ),
+                    child: SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 25),
+                      child: Column(
+                        children: [
+                          _buildSectionTitle("Visual"),
+                          _tile(
+                            Icons.remove_red_eye_outlined,
+                            "Modo Daltonismo",
+                            "Paleta de cores otimizada.",
+                            daltonismo,
+                            (v) {
+                              vibrar();
+                              setState(() => daltonismo = v);
+                              salvar("daltonismo", v);
+                            },
+                          ),
+                          _tile(
+                            Icons.format_size_rounded,
+                            "Fonte Ampliada",
+                            "Aumenta o tamanho dos textos.",
+                            fonteGrande,
+                            (v) {
+                              vibrar();
+                              setState(() {
+                                fonteGrande = v;
+                                escalaFonte = v ? 1.25 : 1.0;
+                              });
+                              salvar("fonteGrande", v);
+                            },
+                          ),
+                          _tile(
+                            Icons.brightness_medium_outlined,
+                            "Alto Contraste",
+                            "Melhora a definição de bordas e textos.",
+                            altoContraste,
+                            (v) {
+                              vibrar();
+                              setState(() => altoContraste = v);
+                              salvar("altoContraste", v);
+                            },
+                          ),
+                          
+                          _buildSectionTitle("Interação"),
+                          _tile(
+                            Icons.vibration_rounded,
+                            "Resposta Tátil",
+                            "Vibrar ao tocar em botões.",
+                            vibracao,
+                            (v) {
+                              setState(() => vibracao = v);
+                              salvar("vibracao", v);
+                              if (v) vibrar();
+                            },
+                          ),
+                          _tile(
+                            Icons.zoom_in_rounded,
+                            "Zoom da Interface",
+                            "Amplia elementos interativos.",
+                            zoomInterface,
+                            (v) {
+                              vibrar();
+                              setState(() => zoomInterface = v);
+                              salvar("zoomInterface", v);
+                            },
+                          ),
+                          const SizedBox(height: 40),
+                        ],
+                      ),
                     ),
                   ),
-
-                  const SizedBox(height: 5),
-
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 30),
-                    child: Text(
-                      "Personalize o aplicativo para melhorar sua experiência de uso.",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.black54),
-                    ),
-                  ),
-
-                  const SizedBox(height: 25),
-
-                  _tile(
-                    Icons.remove_red_eye,
-                    "Modo Daltonismo",
-                    "Troca a paleta de cores do aplicativo para facilitar visualização para pessoas com daltonismo.",
-                    daltonismo,
-                        (v) {
-                      vibrar();
-                      setState(() => daltonismo = v);
-                      salvar("daltonismo", v);
-                    },
-                    corContainer,
-                  ),
-
-                  _tile(
-                    Icons.text_fields,
-                    "Fonte Ampliada",
-                    "Aumenta o tamanho dos textos para facilitar leitura.",
-                    fonteGrande,
-                        (v) {
-                      vibrar();
-                      setState(() {
-                        fonteGrande = v;
-                        escalaFonte = v ? 1.3 : 1;
-                      });
-                      salvar("fonteGrande", v);
-                    },
-                    corContainer,
-                  ),
-
-                  _tile(
-                    Icons.contrast,
-                    "Alto Contraste",
-                    "Aumenta contraste das cores para melhor visibilidade.",
-                    altoContraste,
-                        (v) {
-                      vibrar();
-                      setState(() => altoContraste = v);
-                      salvar("altoContraste", v);
-                    },
-                    corContainer,
-                  ),
-
-                  _tile(
-                    Icons.vibration,
-                    "Vibração de Feedback",
-                    "O telefone vibra ao pressionar botões.",
-                    vibracao,
-                        (v) {
-                      setState(() => vibracao = v);
-                      salvar("vibracao", v);
-                    },
-                    corContainer,
-                  ),
-
-                  _tile(
-                    Icons.zoom_in,
-                    "Zoom da Interface",
-                    "Amplia elementos visuais para facilitar leitura.",
-                    zoomInterface,
-                        (v) {
-                      vibrar();
-                      setState(() => zoomInterface = v);
-                      salvar("zoomInterface", v);
-                    },
-                    corContainer,
-                  ),
-
-                  const SizedBox(height: 40),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
@@ -231,54 +210,61 @@ class _AcessibilidadeViewState extends State<AcessibilidadeView> {
     );
   }
 
-  Widget _tile(
-      IconData icon,
-      String title,
-      String description,
-      bool value,
-      Function(bool) onChanged,
-      Color cor,
-      ) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-
-        decoration: BoxDecoration(
-          color: cor,
-          borderRadius: BorderRadius.circular(12),
-
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.12),
-              blurRadius: 6,
-              offset: const Offset(0, 3),
-            ),
-          ],
+  Widget _buildSectionTitle(String title) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Padding(
+        padding: const EdgeInsets.only(left: 10, top: 10, bottom: 15),
+        child: Text(
+          title.toUpperCase(),
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+            color: Colors.grey,
+            letterSpacing: 1.5,
+          ),
         ),
+      ),
+    );
+  }
 
-        child: SwitchListTile(
-          value: value,
-          onChanged: onChanged,
-
-          activeColor: Colors.white,
-          activeTrackColor: Colors.black26,
-
-          secondary: Icon(icon, color: Colors.white),
-
-          title: Text(
-            title,
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
+  Widget _tile(IconData icon, String title, String description, bool value, Function(bool) onChanged) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
-
-          subtitle: Text(
-            description,
-            style: const TextStyle(color: Colors.white70),
+        ],
+      ),
+      child: SwitchListTile(
+        value: value,
+        onChanged: onChanged,
+        activeColor: const Color(0xFF1F5C3A),
+        secondary: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF1F5F2),
+            borderRadius: BorderRadius.circular(14),
           ),
+          child: Icon(icon, color: const Color(0xFF1F5C3A), size: 24),
+        ),
+        title: Text(
+          title,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+            color: Color(0xFF1F5C3A),
+          ),
+        ),
+        subtitle: Text(
+          description,
+          style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
         ),
       ),
     );

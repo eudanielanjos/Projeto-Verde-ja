@@ -5,6 +5,7 @@ import 'educacao_view.dart';
 import 'config_view.dart';
 import 'historico_denuncias_view.dart';
 import 'home_view.dart';
+import 'coleta_view.dart';
 
 class TelaInicialView extends StatefulWidget {
   const TelaInicialView({super.key});
@@ -17,7 +18,7 @@ class _TelaInicialViewState extends State<TelaInicialView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // MENU À DIREITA
+      // MENU À DIREITA (Drawer)
       endDrawer: Drawer(
         child: Column(
           children: [
@@ -28,10 +29,10 @@ class _TelaInicialViewState extends State<TelaInicialView> {
               child: Column(
                 children: [
                   CircleAvatar(
-                    radius: 32,
+                    radius: 50,
                     backgroundColor: Colors.white,
                     child: Padding(
-                      padding: const EdgeInsets.all(6),
+                      padding: const EdgeInsets.all(12),
                       child: Image.asset(
                         'assets/images/logo.png',
                         fit: BoxFit.contain,
@@ -43,13 +44,12 @@ class _TelaInicialViewState extends State<TelaInicialView> {
                     "Olá, Usuario",
                     style: TextStyle(
                         color: Colors.white,
-                        fontSize: 18,
+                        fontSize: 20,
                         fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
             ),
-
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.symmetric(vertical: 20),
@@ -58,19 +58,18 @@ class _TelaInicialViewState extends State<TelaInicialView> {
                     icon: Icons.home,
                     title: "Início",
                     onTap: () {
-                      Navigator.pop(context);
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const TelaInicialView()),
-                      );
+                      Navigator.pop(context); // Apenas fecha o drawer já que estamos na home
                     },
                   ),
                   _buildMenuCard(
-                    icon: Icons.calendar_today,
+                    icon: Icons.calendar_month,
                     title: "Coleta Regular",
                     onTap: () {
                       Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const ColetaView()),
+                      );
                     },
                   ),
                   _buildMenuCard(
@@ -80,9 +79,18 @@ class _TelaInicialViewState extends State<TelaInicialView> {
                       Navigator.pop(context);
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
-                          builder: (context) => const EducacaoView(),
-                        ),
+                        MaterialPageRoute(builder: (context) => const EducacaoView()),
+                      );
+                    },
+                  ),
+                  _buildMenuCard(
+                    icon: Icons.history_edu,
+                    title: "Histórico de Denúncias",
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const HistoricoDenunciasView()),
                       );
                     },
                   ),
@@ -93,22 +101,7 @@ class _TelaInicialViewState extends State<TelaInicialView> {
                       Navigator.pop(context);
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
-                          builder: (context) => const PerfilPage(),
-                        ),
-                      );
-                    },
-                  ),
-                  _buildMenuCard(
-                    icon: Icons.history,
-                    title: "Histórico de Denúncias",
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const HistoricoDenunciasView(),
-                        ),
+                        MaterialPageRoute(builder: (context) => const PerfilPage()),
                       );
                     },
                   ),
@@ -119,16 +112,13 @@ class _TelaInicialViewState extends State<TelaInicialView> {
                       Navigator.pop(context);
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
-                          builder: (context) => const ConfiguracaoPage(),
-                        ),
+                        MaterialPageRoute(builder: (context) => const ConfiguracaoPage()),
                       );
                     },
                   ),
                 ],
               ),
             ),
-
             Padding(
               padding: const EdgeInsets.all(16),
               child: InkWell(
@@ -137,9 +127,7 @@ class _TelaInicialViewState extends State<TelaInicialView> {
                   Navigator.pop(context);
                   Navigator.pushAndRemoveUntil(
                     context,
-                    MaterialPageRoute(
-                      builder: (context) => const HomeView(),
-                    ),
+                    MaterialPageRoute(builder: (context) => const HomeView()),
                     (route) => false,
                   );
                 },
@@ -168,7 +156,7 @@ class _TelaInicialViewState extends State<TelaInicialView> {
         ),
       ),
 
-      // TELA PRINCIPAL
+      // CORPO DA TELA COM ROLAGEM
       body: Container(
         width: double.infinity,
         height: double.infinity,
@@ -180,18 +168,21 @@ class _TelaInicialViewState extends State<TelaInicialView> {
             stops: [0.0, 0.2],
           ),
         ),
-        child: Padding(
+        // O SingleChildScrollView permite mexer a tela para baixo
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 40),
 
+              // Botão de abrir o Drawer
               Builder(
                 builder: (context) => Align(
                   alignment: Alignment.topRight,
                   child: IconButton(
-                    icon: const Icon(Icons.menu),
+                    icon: const Icon(Icons.menu, size: 30),
                     onPressed: () {
                       Scaffold.of(context).openEndDrawer();
                     },
@@ -202,34 +193,37 @@ class _TelaInicialViewState extends State<TelaInicialView> {
               Center(
                 child: Image.asset(
                   'assets/images/logo3.png',
-                  width: 170,
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              const Text(
-                'Olá, seja bem-vindo!',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Color.fromARGB(255, 68, 104, 93),
-                ),
-              ),
-
-              const SizedBox(height: 18),
-
-              const Text(
-                'Confira o dia da Coleta Seletiva\nna sua Região',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Color.fromARGB(255, 76, 107, 99),
+                  width: 200,
                 ),
               ),
 
               const SizedBox(height: 15),
 
+              const Center(
+                child: Text(
+                  "Bem-vindo ao VerdeJá 🌿",
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 10),
+
+              const Text(
+                "Explore as funcionalidades do aplicativo, informe-se e faça parte dessa mudança!",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Colors.black54,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+
+              const SizedBox(height: 25),
+
+              // CARDS PRINCIPAIS
               _buildMainCard(
                 imagePath: 'assets/images/lixo.png',
                 title: 'Denuncie Agora',
@@ -250,9 +244,14 @@ class _TelaInicialViewState extends State<TelaInicialView> {
               _buildMainCard(
                 imagePath: 'assets/images/icon1.png',
                 title: 'Coleta Regular',
-                subtitle: 'Encontre Horários e Dias no Bairro',
+                subtitle: 'Horários e Dias no Bairro',
                 icon: Icons.arrow_forward_ios,
-                onTap: () {},
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const ColetaView()),
+                  );
+                },
               ),
 
               const SizedBox(height: 15),
@@ -262,8 +261,16 @@ class _TelaInicialViewState extends State<TelaInicialView> {
                 title: 'Coleta Seletiva',
                 subtitle: 'Confira os dias disponíveis',
                 icon: Icons.calendar_month,
-                onTap: () {},
+                onTap: () {
+                  // Pode levar para a mesma view ou outra específica
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const ColetaView()),
+                  );
+                },
               ),
+              
+              const SizedBox(height: 30), // Espaço extra no final
             ],
           ),
         ),
@@ -271,6 +278,7 @@ class _TelaInicialViewState extends State<TelaInicialView> {
     );
   }
 
+  // Widget do Menu Lateral
   Widget _buildMenuCard(
       {required IconData icon, required String title, required VoidCallback onTap}) {
     return Padding(
@@ -290,7 +298,7 @@ class _TelaInicialViewState extends State<TelaInicialView> {
                 Expanded(
                   child: Text(
                     title,
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
                   ),
                 ),
                 const Icon(Icons.arrow_forward_ios,
@@ -303,6 +311,7 @@ class _TelaInicialViewState extends State<TelaInicialView> {
     );
   }
 
+  // Widget dos Cards Grandes da Home
   Widget _buildMainCard({
     required String imagePath,
     required String title,
@@ -311,7 +320,7 @@ class _TelaInicialViewState extends State<TelaInicialView> {
     required VoidCallback onTap,
   }) {
     return SizedBox(
-      height: 100,
+      height: 110, // Aumentei um pouco para não cortar o texto
       width: double.infinity,
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
@@ -319,6 +328,7 @@ class _TelaInicialViewState extends State<TelaInicialView> {
         child: Card(
           color: const Color.fromRGBO(137, 186, 21, 1),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          elevation: 5,
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
@@ -332,10 +342,17 @@ class _TelaInicialViewState extends State<TelaInicialView> {
                     children: [
                       Text(title,
                           style: const TextStyle(
-                              fontSize: 21,
+                              fontSize: 22,
                               fontWeight: FontWeight.bold,
                               color: Colors.white)),
-                      Text(subtitle, style: const TextStyle(color: Colors.white)),
+                      Text(
+                        subtitle,
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15,
+                        ),
+                      ),
                     ],
                   ),
                 ),
