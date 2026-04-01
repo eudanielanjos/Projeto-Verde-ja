@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_app/views/home_view.dart';
 import 'views/splash_view.dart';
 import 'views/login_view.dart';
 import 'views/cadastro_view.dart';
 import 'views/tela_inicial_view.dart';
 import 'views/denuncia_view.dart';
 import 'views/educacao_view.dart';
-
+import 'views/admin_view.dart';
+import 'views/admin_educacao_view.dart';
+import 'views/historico_admin_view.dart';
 void main() {
   runApp(const MyApp());
 }
@@ -56,11 +59,15 @@ class _MyAppState extends State<MyApp> {
 
         routes: {
           '/': (context) => const SplashView(),
+          '/home': (context) => const HomeView(),
           '/login': (context) => const LoginView(),
           '/cadastro': (context) => const CadastroView(),
-          '/home': (context) => const TelaInicialView(),
+          '/inicial': (context) => const TelaInicialView(),
           '/denuncia': (context) => const LocalDenunciaPage(),
           '/educacao': (context) => const EducacaoView(),
+          '/admin': (context) => const AdminMenuView(),
+          '/educacaoAdmin': (context) => const EducacaoAdminView(),
+          '/historicoAdmin': (context) => const HistoricoAdminView(),
         },
       ),
     );
