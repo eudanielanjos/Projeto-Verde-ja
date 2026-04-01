@@ -19,6 +19,8 @@ class ConfiguracaoPage extends StatefulWidget {
 }
 
 class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
+  // int _selectedIndex = 3;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

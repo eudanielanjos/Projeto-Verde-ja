@@ -150,36 +150,17 @@ class _EducacaoViewState extends State<EducacaoView> {
         ),
       ),
 
-      // CORPO DA TELA
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color.fromRGBO(120, 159, 130, 1), Colors.white], // Cores da sua Home
-            stops: [0.0, 0.2], // Stop da sua Home
-          ),
-        ),
-        // O SingleChildScrollView permite que você mexe a tela para baixo!
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(), // Efeito elástico ao puxar
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 40),
-
-              // Botão de Menu (Igual à Home)
-              Builder(
-                builder: (context) => Align(
-                  alignment: Alignment.topRight,
-                  child: IconButton(
-                    icon: const Icon(Icons.menu, color: Colors.black, size: 30),
-                    onPressed: () => Scaffold.of(context).openEndDrawer(),
-                  ),
-                ),
+      body: Stack(
+        children: [
+          Container(
+            width: double.infinity,
+            height: double.infinity,
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Color.fromRGBO(120, 159, 130, 1), Colors.white],
+                stops: [0.0, 0.2],
               ),
 
               Center(
@@ -218,28 +199,23 @@ class _EducacaoViewState extends State<EducacaoView> {
     );
   }
 
-  Widget buildVideoCard({required YoutubePlayerController controller, required String titulo}) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 25),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 5)),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                const Icon(Icons.play_circle_fill, color: Color(0xFF1F5C3A)),
-                const SizedBox(width: 8),
-                Text(
-                  titulo,
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1F5C3A)),
+          // 🔥 BOTÃO DO MENU À DIREITA
+          Positioned(
+            top: 0,
+            right: 0,
+            child: SafeArea(
+              child: Builder(
+                builder: (context) => IconButton(
+                  padding: const EdgeInsets.only(right: 8, top: 8),
+                  constraints: const BoxConstraints(),
+                  icon: const Icon(
+                    Icons.menu,
+                    
+                    size: 30,
+                  ),
+                  onPressed: () {
+                    Scaffold.of(context).openEndDrawer();
+                  },
                 ),
               ],
             ),

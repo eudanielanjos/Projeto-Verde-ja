@@ -61,15 +61,6 @@ class _Denuncias2State extends State<Denuncias2> {
                       icon: const Icon(Icons.arrow_back, color: Color(0xFF1F5C3A)),
                       onPressed: () => Navigator.pop(context),
                     ),
-                    const Text(
-                      "Nova Denúncia",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1F5C3A),
-                      ),
-                    ),
-
                   ],
                 ),
               ),

@@ -15,9 +15,7 @@ class LocalDenunciaPage extends StatelessWidget {
           icon: const Icon(Icons.arrow_back, color: Color(0xFF1F5C3A)),
           onPressed: () => Navigator.pop(context),
         ),
-        actions: const [
-          
-        ],
+        
       ),
       body: Container(
         width: double.infinity,
