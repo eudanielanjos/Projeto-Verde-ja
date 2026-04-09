@@ -9,7 +9,13 @@ import 'views/educacao_view.dart';
 import 'views/admin_view.dart';
 import 'views/admin_educacao_view.dart';
 import 'views/historico_admin_view.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(const MyApp());
 }
 
