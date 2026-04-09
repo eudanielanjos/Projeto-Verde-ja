@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "338543741519",
+    "project_id": "projeto-verdeja",
+    "storage_bucket": "projeto-verdeja.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:338543741519:android:55f24a7d2574537ccc783a",
+        "android_client_info": {
+          "package_name": "com.example.flutter_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDDH-QMIGLcG9PhZD7xzD-VTnNBLj_6ga4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
