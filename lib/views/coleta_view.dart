@@ -310,8 +310,9 @@ class _ColetaViewState extends State<ColetaView> {
             onDaySelected: (selectedDay, focusedDayNew) {
               setState(() {
                 focusedDay = focusedDayNew;
-                if (dataInicial == null) dataInicial = selectedDay;
-                else if (dataFinal == null) dataFinal = selectedDay;
+                if (dataInicial == null) {
+                  dataInicial = selectedDay;
+                } else if (dataFinal == null) dataFinal = selectedDay;
                 else { dataInicial = selectedDay; dataFinal = null; }
               });
             },
