@@ -237,7 +237,7 @@ class _AcessibilidadeViewState extends State<AcessibilidadeView> {
       child: SwitchListTile(
         value: value,
         onChanged: onChanged,
-        activeColor: activeColor,
+        activeThumbColor: activeColor,
         secondary: Container(
           height: 45,
           width: 45,

@@ -152,7 +152,7 @@ class _PrivacidadeViewState extends State<PrivacidadeView> {
       child: SwitchListTile(
         value: value,
         onChanged: onChanged,
-        activeColor: const Color(0xFF1F5C3A),
+        activeThumbColor: const Color(0xFF1F5C3A),
         secondary: Container(
           height: 45, width: 45,
           decoration: BoxDecoration(color: value ? const Color(0xFFE8F0EA) : const Color(0xFFF1F5F2), borderRadius: BorderRadius.circular(12)),

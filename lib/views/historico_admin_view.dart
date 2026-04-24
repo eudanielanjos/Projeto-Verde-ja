@@ -85,7 +85,7 @@ class _HistoricoAdminViewState extends State<HistoricoAdminView> {
                       ],
                     ),
                   ),
-                  Container(
+                  SizedBox(
                     height: 65,
                     child: ListView(
                       scrollDirection: Axis.horizontal,
