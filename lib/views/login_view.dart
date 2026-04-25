@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'home_view.dart';
+import 'package:flutter_app/views/home_view.dart';
+import 'package:flutter_app/services/auth_services.dart'; // Importe seu serviço de autenticação
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -14,44 +13,17 @@ class _LoginViewState extends State<LoginView> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _senhaController = TextEditingController();
+  bool _isLoading = false;
 
-  // Função para lidar com o login do Google
-  Future<void> _signInWithGoogle() async {
-    try {
-      // Inicia o fluxo de autenticação do Google
-      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
-
-      // Obtém os detalhes de autenticação da requisição
-      final GoogleSignInAuthentication? googleAuth = await googleUser?.authentication;
-
-      if (googleAuth != null) {
-        // Cria uma nova credencial para o Firebase
-        final credential = GoogleAuthProvider.credential(
-          accessToken: googleAuth.accessToken,
-          idToken: googleAuth.idToken,
-        );
-
-        // Faz o login no Firebase com a credencial do Google
-        await FirebaseAuth.instance.signInWithCredential(credential);
-
-        // Se tudo der certo, vai para a Home
-        if (mounted) {
-          Navigator.pushReplacementNamed(context, '/home');
-        }
-      }
-    } catch (e) {
-      // Aqui você pode mostrar um SnackBar com o erro
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Erro ao entrar com Google: $e")),
-      );
-    }
-  }
+  // Instância do seu serviço
+  final AuthService _authService = AuthService();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
         children: [
+          // Fundo com Gradiente
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
@@ -61,97 +33,130 @@ class _LoginViewState extends State<LoginView> {
               ),
             ),
           ),
+          
+          // Botão de Voltar
           Positioned(
             top: 40,
             left: 10,
             child: IconButton(
               icon: const Icon(Icons.arrow_back, color: Colors.white, size: 28),
-              onPressed: () {
-                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const HomeView()));
-              },
+              onPressed: () => Navigator.pushReplacement(
+                context, MaterialPageRoute(builder: (context) => const HomeView())
+              ),
             ),
           ),
+
+          // Conteúdo Principal
           Center(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 30),
               child: Form(
                 key: _formKey,
                 child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const SizedBox(height: 80),
+                    const SizedBox(height: 60),
                     Image.asset("assets/images/logo.png", height: 160),
                     const SizedBox(height: 10),
-                    const Text('Viva verde, viva melhor!', style: TextStyle(fontSize: 18, color: Colors.black54)),
-                    const SizedBox(height: 70),
-                    _buildInput('Email', controller: _emailController),
-                    const SizedBox(height: 20),
-                    _buildInput('Senha', controller: _senhaController, obscure: true),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton(
-                        onPressed: () {},
-                        child: const Text("Esqueci minha senha", style: TextStyle(color: Color(0xFF305D3C), fontWeight: FontWeight.bold, fontSize: 16)),
-                      ),
+                    const Text(
+                      'Viva verde, viva melhor!',
+                      style: TextStyle(fontSize: 18, color: Colors.black54),
                     ),
+                    const SizedBox(height: 50),
+
+                    // Inputs de Texto
+                    _buildInput('Email', controller: _emailController),
+                    const SizedBox(height: 15),
+                    _buildInput('Senha', controller: _senhaController, obscure: true),
+                    
+                    const SizedBox(height: 30),
+
+                    // Botão Entrar Manual
+                    _isLoading 
+                      ? const CircularProgressIndicator(color: Color(0xFF7BB132))
+                      : SizedBox(
+                          width: double.infinity,
+                          height: 55,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF7BB132),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              elevation: 2,
+                            ),
+                            onPressed: () {
+                              if (_formKey.currentState!.validate()) {
+                                // Aqui você pode adicionar a lógica de login por email se desejar
+                                Navigator.pushReplacementNamed(context, '/inicial');
+                              }
+                            },
+                            child: const Text(
+                              'Entrar',
+                              style: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ),
+
                     const SizedBox(height: 15),
 
-                    // BOTÃO ENTRAR COM LÓGICA DE CREDENCIAIS
-                    SizedBox(
-                      width: 180,
-                      height: 50,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF7BB132),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
-                        ),
-                        onPressed: () {
-                          if (_formKey.currentState!.validate()) {
-                            String email = _emailController.text.trim();
-                            String senha = _senhaController.text.trim();
-
-                            if (email == "admin@verdeja.com" && senha == "admin123") {
-                              Navigator.pushReplacementNamed(context, '/admin');
-                            } else {
-                              Navigator.pushReplacementNamed(context, '/home');
-                            }
-                          }
-                        },
-                        child: const Text('Entrar', style: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold)),
-                      ),
-                    ),
-                    
-                    const SizedBox(height: 20),
-
-                    // BOTÃO GOOGLE
+                    // Botão Google (Usando seu AuthService)
                     OutlinedButton.icon(
-                      style: OutlinedButton.styleFrom(
-                        fixedSize: const Size(220, 50),
-                        side: const BorderSide(color: Colors.grey),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
-                      ),
-                      onPressed: _signInWithGoogle,
-                      icon: Image.network(
-                        'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/1200px-Google_%22G%22_logo.svg.png',
-                        height: 24,
-                      ),
+                      icon: Image.asset('assets/images/google.png', height: 24),
                       label: const Text(
-                        "Entrar com Google",
-                        style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w600),
+                        'Entrar com Google', 
+                        style: TextStyle(color: Colors.black87, fontSize: 16, fontWeight: FontWeight.w600)
                       ),
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size.fromHeight(55),
+                        backgroundColor: Colors.white,
+                        side: const BorderSide(color: Colors.black12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      onPressed: _isLoading ? null : () async {
+                        setState(() => _isLoading = true);
+                        try {
+                          // Chama o seu serviço original
+                          final user = await _authService.signInWithGoogle();
+                          
+                          if (user != null && mounted) {
+                            Navigator.pushReplacementNamed(context, '/inicial');
+                          } else if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Login cancelado pelo usuário.')),
+                            );
+                          }
+                        } catch (e) {
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Erro ao entrar: $e')),
+                            );
+                          }
+                        } finally {
+                          if (mounted) setState(() => _isLoading = false);
+                        }
+                      },
                     ),
 
-                    const SizedBox(height: 50),
+                    const SizedBox(height: 40),
+
+                    // Rodapé para Cadastro
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text('Não possui conta? ', style: TextStyle(color: Colors.black, fontSize: 18)),
+                        const Text('Não possui conta? ', style: TextStyle(color: Colors.black, fontSize: 16)),
                         GestureDetector(
                           onTap: () => Navigator.pushReplacementNamed(context, '/cadastro'),
-                          child: const Text('Cadastre-se', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF305D3C), fontSize: 19)),
+                          child: const Text(
+                            'Cadastre-se',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold, 
+                              color: Color(0xFF305D3C), 
+                              fontSize: 16,
+                            ),
+                          ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 30),
+                    const SizedBox(height: 20),
                   ],
                 ),
               ),
@@ -162,22 +167,22 @@ class _LoginViewState extends State<LoginView> {
     );
   }
 
+  // Widget auxiliar para os campos de input
   Widget _buildInput(String hint, {bool obscure = false, required TextEditingController controller}) {
     return TextFormField(
       controller: controller,
       obscureText: obscure,
-      validator: (value) {
-        if (value == null || value.isEmpty) return "Preencha $hint";
-        if (hint == "Email" && !value.contains("@")) return "Email inválido";
-        if (hint == "Senha" && value.length < 6) return "Mínimo 6 caracteres";
-        return null;
-      },
+      validator: (value) => (value == null || value.isEmpty) ? "Preencha $hint" : null,
       decoration: InputDecoration(
         hintText: hint,
         filled: true,
         fillColor: const Color(0xFF5F826C),
         hintStyle: const TextStyle(color: Colors.white70),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
       ),
       style: const TextStyle(color: Colors.white),
     );

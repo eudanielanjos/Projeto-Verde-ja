@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // Import necessário
+import 'package:google_sign_in/google_sign_in.dart'; // Import necessário
 import 'denuncia_view.dart';
 import 'perfil_view.dart';
 import 'educacao_view.dart';
@@ -18,10 +20,10 @@ class _TelaInicialViewState extends State<TelaInicialView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // MENU À DIREITA (Drawer)
       endDrawer: Drawer(
         child: Column(
           children: [
+            // Header do Menu (Mantido original)
             Container(
               width: double.infinity,
               padding: const EdgeInsets.only(top: 50, bottom: 25),
@@ -50,6 +52,8 @@ class _TelaInicialViewState extends State<TelaInicialView> {
                 ],
               ),
             ),
+            
+            // Itens do Menu (Mantido original)
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.symmetric(vertical: 20),
@@ -57,19 +61,14 @@ class _TelaInicialViewState extends State<TelaInicialView> {
                   _buildMenuCard(
                     icon: Icons.home,
                     title: "Início",
-                    onTap: () {
-                      Navigator.pop(context); // Apenas fecha o drawer já que estamos na home
-                    },
+                    onTap: () => Navigator.pop(context),
                   ),
                   _buildMenuCard(
                     icon: Icons.calendar_month,
                     title: "Coleta Regular",
                     onTap: () {
                       Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const ColetaView()),
-                      );
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => const ColetaView()));
                     },
                   ),
                   _buildMenuCard(
@@ -77,10 +76,7 @@ class _TelaInicialViewState extends State<TelaInicialView> {
                     title: "Educação",
                     onTap: () {
                       Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const EducacaoView()),
-                      );
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => const EducacaoView()));
                     },
                   ),
                   _buildMenuCard(
@@ -88,10 +84,7 @@ class _TelaInicialViewState extends State<TelaInicialView> {
                     title: "Histórico de Denúncias",
                     onTap: () {
                       Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const HistoricoDenunciasView()),
-                      );
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => const HistoricoDenunciasView()));
                     },
                   ),
                   _buildMenuCard(
@@ -99,10 +92,7 @@ class _TelaInicialViewState extends State<TelaInicialView> {
                     title: "Perfil",
                     onTap: () {
                       Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const PerfilPage()),
-                      );
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => const PerfilPage()));
                     },
                   ),
                   _buildMenuCard(
@@ -110,26 +100,35 @@ class _TelaInicialViewState extends State<TelaInicialView> {
                     title: "Configurações",
                     onTap: () {
                       Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const ConfiguracaoPage()),
-                      );
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => const ConfiguracaoPage()));
                     },
                   ),
                 ],
               ),
             ),
+
+            // 🔥 BOTÃO SAIR DA CONTA COM LIMPEZA DE CACHE E LOGOUT
             Padding(
               padding: const EdgeInsets.all(16),
               child: InkWell(
                 borderRadius: BorderRadius.circular(14),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (context) => const HomeView()),
-                    (route) => false,
-                  );
+                onTap: () async {
+                  // 1. Limpa o cache de imagens da memória do Flutter
+                  PaintingBinding.instance.imageCache.clear();
+                  PaintingBinding.instance.imageCache.clearLiveImages();
+
+                  // 2. Faz o logout no Firebase e no Google
+                  await FirebaseAuth.instance.signOut();
+                  await GoogleSignIn().signOut();
+
+                  // 3. Redireciona para a HomeView e remove todas as telas anteriores da pilha
+                  if (context.mounted) {
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(builder: (context) => const HomeView()),
+                      (route) => false,
+                    );
+                  }
                 },
                 child: Container(
                   height: 55,
@@ -156,7 +155,7 @@ class _TelaInicialViewState extends State<TelaInicialView> {
         ),
       ),
 
-      // CORPO DA TELA COM ROLAGEM
+      // Restante do body (Mantido original)
       body: Container(
         width: double.infinity,
         height: double.infinity,
@@ -168,7 +167,6 @@ class _TelaInicialViewState extends State<TelaInicialView> {
             stops: [0.0, 0.2],
           ),
         ),
-        // O SingleChildScrollView permite mexer a tela para baixo
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
           padding: const EdgeInsets.all(16),
@@ -176,101 +174,58 @@ class _TelaInicialViewState extends State<TelaInicialView> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 40),
-
-              // Botão de abrir o Drawer
               Builder(
                 builder: (context) => Align(
                   alignment: Alignment.topRight,
                   child: IconButton(
                     icon: const Icon(Icons.menu, size: 30),
-                    onPressed: () {
-                      Scaffold.of(context).openEndDrawer();
-                    },
+                    onPressed: () => Scaffold.of(context).openEndDrawer(),
                   ),
                 ),
               ),
-
-              Center(
-                child: Image.asset(
-                  'assets/images/logo3.png',
-                  width: 200,
-                ),
-              ),
-
+              Center(child: Image.asset('assets/images/logo3.png', width: 200)),
               const SizedBox(height: 15),
-
               const Center(
-                child: Text(
-                  "Bem-vindo ao VerdeJá 🌿",
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                child: Text("Bem-vindo ao VerdeJá 🌿",
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
               ),
-
               const SizedBox(height: 10),
-
               const Text(
                 "Explore as funcionalidades do aplicativo, informe-se e faça parte dessa mudança!",
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 18,
-                  color: Colors.black54,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 18, color: Colors.black54, fontWeight: FontWeight.bold),
               ),
-
               const SizedBox(height: 25),
-
-              // CARDS PRINCIPAIS
               _buildMainCard(
                 imagePath: 'assets/images/lixo.png',
                 title: 'Denuncie Agora',
                 subtitle: 'Denuncie descarte ilegal',
                 icon: Icons.arrow_forward_ios,
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const LocalDenunciaPage(),
-                    ),
-                  );
+                   Navigator.push(context, MaterialPageRoute(builder: (context) => const LocalDenunciaPage()));
                 },
               ),
-
               const SizedBox(height: 15),
-
               _buildMainCard(
                 imagePath: 'assets/images/icon1.png',
                 title: 'Coleta Regular',
                 subtitle: 'Horários e Dias no Bairro',
                 icon: Icons.arrow_forward_ios,
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const ColetaView()),
-                  );
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => const ColetaView()));
                 },
               ),
-
               const SizedBox(height: 15),
-
               _buildMainCard(
                 imagePath: 'assets/images/icon2.png',
                 title: 'Coleta Seletiva',
                 subtitle: 'Confira os dias disponíveis',
                 icon: Icons.calendar_month,
                 onTap: () {
-                  // Pode levar para a mesma view ou outra específica
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const ColetaView()),
-                  );
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => const ColetaView()));
                 },
               ),
-              
-              const SizedBox(height: 30), // Espaço extra no final
+              const SizedBox(height: 30),
             ],
           ),
         ),
@@ -278,9 +233,8 @@ class _TelaInicialViewState extends State<TelaInicialView> {
     );
   }
 
-  // Widget do Menu Lateral
-  Widget _buildMenuCard(
-      {required IconData icon, required String title, required VoidCallback onTap}) {
+  // Widgets Auxiliares (Mantidos originais)
+  Widget _buildMenuCard({required IconData icon, required String title, required VoidCallback onTap}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: InkWell(
@@ -295,14 +249,8 @@ class _TelaInicialViewState extends State<TelaInicialView> {
               children: [
                 Icon(icon, color: const Color(0xFF1F5C3A)),
                 const SizedBox(width: 16),
-                Expanded(
-                  child: Text(
-                    title,
-                    style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
-                  ),
-                ),
-                const Icon(Icons.arrow_forward_ios,
-                    color: Color(0xFF1F5C3A), size: 16),
+                Expanded(child: Text(title, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold))),
+                const Icon(Icons.arrow_forward_ios, color: Color(0xFF1F5C3A), size: 16),
               ],
             ),
           ),
@@ -311,16 +259,9 @@ class _TelaInicialViewState extends State<TelaInicialView> {
     );
   }
 
-  // Widget dos Cards Grandes da Home
-  Widget _buildMainCard({
-    required String imagePath,
-    required String title,
-    required String subtitle,
-    required IconData icon,
-    required VoidCallback onTap,
-  }) {
+  Widget _buildMainCard({required String imagePath, required String title, required String subtitle, required IconData icon, required VoidCallback onTap}) {
     return SizedBox(
-      height: 110, // Aumentei um pouco para não cortar o texto
+      height: 110,
       width: double.infinity,
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
@@ -340,19 +281,8 @@ class _TelaInicialViewState extends State<TelaInicialView> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(title,
-                          style: const TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white)),
-                      Text(
-                        subtitle,
-                        style: const TextStyle(
-                          color: Colors.white70,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 15,
-                        ),
-                      ),
+                      Text(title, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
+                      Text(subtitle, style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.w600, fontSize: 15)),
                     ],
                   ),
                 ),
