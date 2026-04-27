@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'home_view.dart';
 
 class CadastroView extends StatefulWidget {
@@ -14,11 +15,12 @@ class _CadastroViewState extends State<CadastroView> {
   final TextEditingController _nomeController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _senhaController = TextEditingController();
-  final TextEditingController _confirmarSenhaController =
-      TextEditingController();
+  final TextEditingController _confirmarSenhaController = TextEditingController();
 
   bool _senhaVisivel = false;
   bool _confirmarSenhaVisivel = false;
+  bool _isLoading = false;
+  bool _autoValidate = false;
 
   String _forcaSenha = "";
 
@@ -41,25 +43,47 @@ class _CadastroViewState extends State<CadastroView> {
     }
   }
 
-  void _cadastrar() {
-    if (_formKey.currentState!.validate()) {
-      if (_senhaController.text != _confirmarSenhaController.text) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("As senhas não coincidem"),
-          ),
-        );
-        return;
-      }
+  Future<void> _cadastrar() async {
+    setState(() => _autoValidate = true);
+
+    if (!_formKey.currentState!.validate()) return;
+
+    if (_senhaController.text != _confirmarSenhaController.text) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("As senhas não coincidem")),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _senhaController.text.trim(),
+      );
+
+      if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Cadastro realizado com sucesso! 🎉"),
+          backgroundColor: Colors.green,
         ),
       );
 
       Navigator.pushReplacementNamed(context, '/home');
+
+    } on FirebaseAuthException catch (e) {
+      String mensagem = "Erro ao cadastrar";
+
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(mensagem)),
+      );
     }
+
+    setState(() => _isLoading = false);
   }
 
   @override
@@ -68,7 +92,6 @@ class _CadastroViewState extends State<CadastroView> {
       body: Stack(
         children: [
 
-          // 🔹 FUNDO
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
@@ -83,67 +106,50 @@ class _CadastroViewState extends State<CadastroView> {
             ),
           ),
 
-          // 🔹 VOLTAR
           Positioned(
             top: 40,
             left: 10,
             child: IconButton(
-              icon: const Icon(
-                Icons.arrow_back,
-                color: Colors.white,
-                size: 28,
-              ),
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
               onPressed: () {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => const HomeView(),
-                  ),
+                  MaterialPageRoute(builder: (context) => const HomeView()),
                 );
               },
             ),
           ),
 
-          // 🔹 CONTEÚDO
           Center(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 30),
               child: Form(
                 key: _formKey,
+                autovalidateMode: _autoValidate
+                    ? AutovalidateMode.onUserInteraction
+                    : AutovalidateMode.disabled,
                 child: Column(
                   children: [
 
                     const SizedBox(height: 80),
 
-                    Image.asset(
-                      "assets/images/logo.png",
-                      height: 190,
-                    ),
+                    Image.asset("assets/images/logo.png", height: 190),
 
                     const SizedBox(height: 10),
 
                     const Text(
                       'Viva verde, viva melhor!',
-                      style: TextStyle(
-                        fontSize: 20,
-                        color: Colors.black54,
-                      ),
+                      style: TextStyle(fontSize: 20, color: Colors.black54),
                       textAlign: TextAlign.center,
                     ),
 
                     const SizedBox(height: 50),
 
-                    _buildInput(
-                      'Nome Completo',
-                      controller: _nomeController,
-                    ),
+                    _buildInput('Nome Completo', controller: _nomeController),
 
-                      const SizedBox(height: 20),
+                    const SizedBox(height: 20),
 
-                    _buildInput(
-                      'Email',
-                      controller: _emailController,
-                    ),
+                    _buildInput('Email', controller: _emailController),
 
                     const SizedBox(height: 20),
 
@@ -151,20 +157,16 @@ class _CadastroViewState extends State<CadastroView> {
                       'Senha',
                       controller: _senhaController,
                       obscure: !_senhaVisivel,
+                      onChanged: _verificarForcaSenha,
                       icon: IconButton(
                         icon: Icon(
-                          _senhaVisivel
-                              ? Icons.visibility
-                              : Icons.visibility_off,
+                          _senhaVisivel ? Icons.visibility : Icons.visibility_off,
                           color: Colors.white,
                         ),
                         onPressed: () {
-                          setState(() {
-                            _senhaVisivel = !_senhaVisivel;
-                          });
+                          setState(() => _senhaVisivel = !_senhaVisivel);
                         },
                       ),
-                      onChanged: _verificarForcaSenha,
                     ),
 
                     if (_forcaSenha.isNotEmpty)
@@ -194,10 +196,8 @@ class _CadastroViewState extends State<CadastroView> {
                           color: Colors.white,
                         ),
                         onPressed: () {
-                          setState(() {
-                            _confirmarSenhaVisivel =
-                                !_confirmarSenhaVisivel;
-                          });
+                          setState(() =>
+                              _confirmarSenhaVisivel = !_confirmarSenhaVisivel);
                         },
                       ),
                     ),
@@ -210,49 +210,19 @@ class _CadastroViewState extends State<CadastroView> {
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF7BB132),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(9),
-                          ),
                         ),
-                        onPressed: _cadastrar,
-                        child: const Text(
-                          'Cadastrar',
-                          style: TextStyle(
-                            fontSize: 20,
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                        onPressed: _isLoading ? null : _cadastrar,
+                        child: _isLoading
+                            ? const CircularProgressIndicator(color: Colors.white)
+                            : const Text(
+                                'Cadastrar',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                       ),
-                    ),
-
-                    const SizedBox(height: 35),
-
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text(
-                          'Já possui conta? ',
-                          style: TextStyle(color: Colors.black,
-                            fontSize: 18
-                            
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.pushReplacementNamed(
-                                context, '/login');
-                          },
-                          child: const Text(
-                            'Faça login',
-                            style: TextStyle(
-                              fontSize: 19,
-                              fontWeight: FontWeight.bold,
-                              color: Color.fromRGBO(48, 93, 60, 1),
-                            ),
-                          ),
-                        ),
-                      ],
                     ),
 
                     const SizedBox(height: 30),
@@ -288,10 +258,8 @@ class _CadastroViewState extends State<CadastroView> {
           }
         }
 
-        if (hint == "Senha") {
-          if (value.length < 6) {
-            return "Mínimo 6 caracteres";
-          }
+        if (hint == "Senha" && value.length < 6) {
+          return "Mínimo 6 caracteres";
         }
 
         return null;
@@ -301,7 +269,7 @@ class _CadastroViewState extends State<CadastroView> {
         filled: true,
         fillColor: const Color(0xFF5F826C),
         suffixIcon: icon,
-        hintStyle: const TextStyle(color: Color(0xECFFFFFF)),
+        hintStyle: const TextStyle(color: Colors.white70),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(9),
           borderSide: BorderSide.none,

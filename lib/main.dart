@@ -9,7 +9,25 @@ import 'views/educacao_view.dart';
 import 'views/admin_view.dart';
 import 'views/admin_educacao_view.dart';
 import 'views/historico_admin_view.dart';
-void main() {
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart'; 
+
+void main() async {
+  // Garante que os widgets estejam prontos antes do Firebase
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  try {
+    // Se o Firebase ainda não estiver rodando, ele inicializa
+    // Se já estiver (devido a um Hot Restart), ele ignora o erro e segue em frente
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+    }
+  } catch (e) {
+    debugPrint("Firebase já inicializado: $e");
+  }
+  
   runApp(const MyApp());
 }
 
@@ -26,7 +44,6 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-
   bool daltonismo = false;
 
   void setDaltonismo(bool valor) {
@@ -37,9 +54,7 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-
     return ColorFiltered(
-
       colorFilter: daltonismo
           ? const ColorFilter.matrix([
               0.567, 0.433, 0, 0, 0,
@@ -51,12 +66,9 @@ class _MyAppState extends State<MyApp> {
               Colors.transparent,
               BlendMode.multiply,
             ),
-
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-
         initialRoute: '/',
-
         routes: {
           '/': (context) => const SplashView(),
           '/home': (context) => const HomeView(),

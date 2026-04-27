@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-// Importações das suas views (certifique-se de que os nomes dos arquivos estão corretos)
+// Importações das suas views
 import 'perfil_view.dart';
 import 'educacao_view.dart';
 import 'config_view.dart';
@@ -16,7 +16,6 @@ class HistoricoDenunciasView extends StatefulWidget {
 }
 
 class _HistoricoDenunciasViewState extends State<HistoricoDenunciasView> {
-  // Lista de dados para teste
   final List<Map<String, String>> denuncias = [
     {
       "nome": "José Geraldo",
@@ -49,17 +48,18 @@ class _HistoricoDenunciasViewState extends State<HistoricoDenunciasView> {
 
   IconData _getStatusIcon(String status) {
     switch (status) {
-      case "Resolvido": return Icons.check_circle;
-      case "Em análise": return Icons.hourglass_top;
-      case "Recusado": return Icons.cancel;
-      default: return Icons.info;
+      case "Resolvido": return Icons.check_circle_rounded;
+      case "Em análise": return Icons.pending_actions_rounded;
+      case "Recusado": return Icons.cancel_rounded;
+      default: return Icons.info_rounded;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // --- MENU LATERAL PADRONIZADO ---
+      backgroundColor: const Color(0xFFF8FAF9),
+      // --- MENU LATERAL ORIGINAL MANTIDO ---
       endDrawer: Drawer(
         child: Column(
           children: [
@@ -111,106 +111,122 @@ class _HistoricoDenunciasViewState extends State<HistoricoDenunciasView> {
                 ],
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: InkWell(
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => const HomeView()), (route) => false);
-                },
-                child: Container(
-                  height: 55,
-                  decoration: BoxDecoration(color: Colors.red, borderRadius: BorderRadius.circular(14)),
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.logout, color: Colors.white),
-                      SizedBox(width: 10),
-                      Text("Sair da conta", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                    ],
-                  ),
-                ),
-              ),
-            ),
+            _buildSairButton(context),
           ],
         ),
       ),
 
-      // --- CORPO SEM APPBAR ---
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color.fromRGBO(120, 159, 130, 1), Colors.white],
-            stops: [0.0, 0.2],
-          ),
-        ),
-        child: Column(
-          children: [
-            const SizedBox(height: 40),
-            // Botão do Menu Flutuante
-            Builder(
-              builder: (context) => Align(
-                alignment: Alignment.topRight,
-                child: Padding(
-                  padding: const EdgeInsets.only(right: 16),
-                  child: IconButton(
-                    icon: const Icon(Icons.menu, size: 30, color: Colors.black87),
+      body: Column(
+        children: [
+          // --- HEADER CURVADO (NOVO LAYOUT) ---
+          Stack(
+            children: [
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.only(top: 60, bottom: 40),
+                decoration: const BoxDecoration(
+                  color: Color(0xFF1F5C3A),
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(40),
+                    bottomRight: Radius.circular(40),
+                  ),
+                ),
+                child: const Column(
+                  children: [
+                    Icon(Icons.history_edu_rounded, size: 50, color: Colors.white70),
+                    SizedBox(height: 10),
+                    Text(
+                      "HISTÓRICO",
+                      style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold, letterSpacing: 1.2),
+                    ),
+                    Text(
+                      "Acompanhe suas solicitações",
+                      style: TextStyle(color: Colors.white70, fontSize: 14),
+                    ),
+                  ],
+                ),
+              ),
+              // Botão do Menu
+              Positioned(
+                top: 40,
+                right: 15,
+                child: Builder(
+                  builder: (context) => IconButton(
+                    icon: const Icon(Icons.menu, color: Colors.white, size: 30),
                     onPressed: () => Scaffold.of(context).openEndDrawer(),
                   ),
                 ),
               ),
-            ),
-            const Text(
-              "Histórico de denúncias",
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1F5C3A)),
-            ),
-            const SizedBox(height: 60),
-            Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                itemCount: denuncias.length,
-                itemBuilder: (context, index) {
-                  final item = denuncias[index];
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(15),
-                      boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 6)],
+            ],
+          ),
+
+          // --- LISTA DE DENÚNCIAS ---
+          Expanded(
+            child: ListView.builder(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(20, 30, 20, 20),
+              itemCount: denuncias.length,
+              itemBuilder: (context, index) {
+                final item = denuncias[index];
+                final statusColor = _getStatusColor(item["status"]!);
+                
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(22),
+                    boxShadow: [
+                      BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))
+                    ],
+                  ),
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.all(12),
+                    leading: CircleAvatar(
+                      radius: 28,
+                      backgroundColor: const Color(0xFFF1F5F2),
+                      backgroundImage: AssetImage(item["foto"]!),
                     ),
-                    child: ListTile(
-                      leading: CircleAvatar(backgroundImage: AssetImage(item["foto"]!)),
-                      title: Text(item["titulo"]!, style: const TextStyle(fontWeight: FontWeight.bold)),
-                      subtitle: Text(item["data"]!),
-                      trailing: Icon(_getStatusIcon(item["status"]!), color: _getStatusColor(item["status"]!)),
-                      onTap: () {
-                        // Navegação para a tela de detalhes abaixo
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => DetalheDenunciaPage(
-                              denuncia: item,
-                              statusColor: _getStatusColor(item["status"]!),
-                              statusIcon: _getStatusIcon(item["status"]!),
-                            ),
+                    title: Text(
+                      item["titulo"]!,
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF2D312E)),
+                    ),
+                    subtitle: Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(item["data"]!, style: TextStyle(color: Colors.grey.shade600)),
+                    ),
+                    trailing: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(_getStatusIcon(item["status"]!), color: statusColor, size: 28),
+                        Text(
+                          item["status"]!,
+                          style: TextStyle(color: statusColor, fontSize: 10, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => DetalheDenunciaPage(
+                            denuncia: item,
+                            statusColor: statusColor,
+                            statusIcon: _getStatusIcon(item["status"]!),
                           ),
-                        );
-                      },
-                    ),
-                  );
-                },
-              ),
+                        ),
+                      );
+                    },
+                  ),
+                );
+              },
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
+  // Métodos do menu original preservados
   Widget _buildMenuCard({required IconData icon, required String title, required VoidCallback onTap}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -235,9 +251,33 @@ class _HistoricoDenunciasViewState extends State<HistoricoDenunciasView> {
       ),
     );
   }
+
+  Widget _buildSairButton(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: InkWell(
+        onTap: () {
+          Navigator.pop(context);
+          Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => const HomeView()), (route) => false);
+        },
+        child: Container(
+          height: 55,
+          decoration: BoxDecoration(color: Colors.red, borderRadius: BorderRadius.circular(14)),
+          child: const Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.logout, color: Colors.white),
+              SizedBox(width: 10),
+              Text("Sair da conta", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
-// --- TELA DE DETALHES ---
+// --- TELA DE DETALHES ATUALIZADA ---
 class DetalheDenunciaPage extends StatelessWidget {
   final Map<String, String> denuncia;
   final Color statusColor;
@@ -253,72 +293,82 @@ class DetalheDenunciaPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF8FAF9),
       appBar: AppBar(
-        title: const Text("Detalhes", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text("DETALHES", style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 16)),
+        centerTitle: true,
         backgroundColor: const Color(0xFF1F5C3A),
+        elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
       ),
-      body: Container(
-        width: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFFD2E1D4), Color(0xFFF2F2F2)],
-            stops: [0.0, 0.3],
-          ),
-        ),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(25),
-          child: Column(
-            children: [
-              const SizedBox(height: 10),
-              CircleAvatar(radius: 60, backgroundImage: AssetImage(denuncia["foto"]!)),
-              const SizedBox(height: 15),
-              Text(denuncia["nome"]!, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF1F5C3A))),
-              const SizedBox(height: 25),
-              _infoBox("Título", denuncia["titulo"]!),
-              _infoBox("Localização", denuncia["local"]!),
-              _infoBox("Data da Ocorrência", denuncia["data"]!),
-              _infoBox("Descrição do Motivo", denuncia["motivo"]!),
-              const SizedBox(height: 30),
-              // Badge de Status
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 12),
-                decoration: BoxDecoration(color: statusColor, borderRadius: BorderRadius.circular(30)),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(statusIcon, color: Colors.white),
-                    const SizedBox(width: 10),
-                    Text(denuncia["status"]!.toUpperCase(), 
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                  ],
-                ),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 30),
+              decoration: const BoxDecoration(
+                color: Color(0xFF1F5C3A),
+                borderRadius: BorderRadius.only(bottomLeft: Radius.circular(40), bottomRight: Radius.circular(40)),
               ),
-            ],
-          ),
+              child: Column(
+                children: [
+                  CircleAvatar(radius: 50, backgroundColor: Colors.white, backgroundImage: AssetImage(denuncia["foto"]!)),
+                  const SizedBox(height: 15),
+                  Text(denuncia["nome"]!, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  _infoCard("Título", denuncia["titulo"]!, Icons.title),
+                  _infoCard("Localização", denuncia["local"]!, Icons.location_on),
+                  _infoCard("Data", denuncia["data"]!, Icons.calendar_today),
+                  _infoCard("Descrição", denuncia["motivo"]!, Icons.description),
+                  const SizedBox(height: 20),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                    decoration: BoxDecoration(color: statusColor, borderRadius: BorderRadius.circular(30)),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(statusIcon, color: Colors.white),
+                        const SizedBox(width: 10),
+                        Text(denuncia["status"]!.toUpperCase(), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _infoBox(String label, String value) {
+  Widget _infoCard(String label, String value, IconData icon) {
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
       margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 5)],
-      ),
-      child: Column(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10)]),
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 5),
-          Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Color(0xFF1F5C3A))),
+          Icon(icon, color: const Color(0xFF1F5C3A), size: 20),
+          const SizedBox(width: 15),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 4),
+                Text(value, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Color(0xFF2D312E))),
+              ],
+            ),
+          ),
         ],
       ),
     );

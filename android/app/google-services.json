@@ -1,26 +1,51 @@
 {
   "project_info": {
-    "project_number": "338543741519",
-    "project_id": "projeto-verdeja",
-    "storage_bucket": "projeto-verdeja.firebasestorage.app"
+    "project_number": "784388264033",
+    "project_id": "projetoverdeja-19c46",
+    "storage_bucket": "projetoverdeja-19c46.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:338543741519:android:55f24a7d2574537ccc783a",
+        "mobilesdk_app_id": "1:784388264033:android:0790dba7d51818bd255a20",
         "android_client_info": {
           "package_name": "com.example.flutter_app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "784388264033-p83cepceint44qaf0lt30p5r4cgfj0pr.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.flutter_app",
+            "certificate_hash": "ab9f2a7d00d220e5d925737f206b346dd887adba"
+          }
+        },
+        {
+          "client_id": "784388264033-c6ln58g4fh9ogaududk11jc8l9j3fhi8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
-          "current_key": "AIzaSyDDH-QMIGLcG9PhZD7xzD-VTnNBLj_6ga4"
+          "current_key": "AIzaSyAAzK6exxbv5U__tS8HlzqrXFdeVnQ_10k"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "784388264033-c6ln58g4fh9ogaududk11jc8l9j3fhi8.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "784388264033-ackh7udgth8i05itnokea6fbsuk6fp29.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.flutterApp"
+              }
+            }
+          ]
         }
       }
     }
