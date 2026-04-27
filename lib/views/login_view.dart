@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'home_view.dart';
+import '../services/auth_service.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -12,6 +13,7 @@ class _LoginViewState extends State<LoginView> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _senhaController = TextEditingController();
+  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -88,6 +90,63 @@ class _LoginViewState extends State<LoginView> {
                     ),
 
                     const SizedBox(height: 50),
+
+                    OutlinedButton.icon( 
+
+  icon: Icon(Icons.g_mobiledata, size: 28), 
+
+  label: const Text('Entrar com Google'), 
+
+  style: OutlinedButton.styleFrom( 
+
+    minimumSize: const Size.fromHeight(56), 
+
+  ), 
+
+  onPressed: () async { 
+
+    setState(() => _isLoading = true); 
+
+ 
+
+    try { 
+
+      final user = await AuthService().signInWithGoogle(); 
+
+ 
+
+      if (user != null && mounted) { 
+
+        Navigator.pushReplacementNamed(context, '/home'); 
+
+      } else { 
+
+        ScaffoldMessenger.of(context).showSnackBar( 
+
+          const SnackBar(content: Text('Login cancelado')), 
+
+        ); 
+
+      } 
+
+    } catch (e) { 
+
+      ScaffoldMessenger.of(context).showSnackBar( 
+
+        SnackBar(content: Text('Erro ao entrar com Google: $e')), 
+
+      ); 
+
+    } 
+
+ 
+
+    setState(() => _isLoading = false); 
+
+  }, 
+
+),
+
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -99,6 +158,8 @@ class _LoginViewState extends State<LoginView> {
                       ],
                     ),
                     const SizedBox(height: 30),
+
+                    
                   ],
                 ),
               ),
@@ -108,6 +169,8 @@ class _LoginViewState extends State<LoginView> {
       ),
     );
   }
+
+  
 
   Widget _buildInput(String hint, {bool obscure = false, required TextEditingController controller}) {
     return TextFormField(
