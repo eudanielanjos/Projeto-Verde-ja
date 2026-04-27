@@ -136,20 +136,13 @@ class _AcessibilidadeViewState extends State<AcessibilidadeView> {
                       salvar("daltonismo", v);
                     },
                   ),
-                  _buildToggleCard(
-                    Icons.text_fields_rounded,
-                    "Fonte Ampliada",
-                    "Textos maiores para leitura.",
-                    fonteGrande,
-                    corPrincipal,
-                    (v) {
-                      vibrar();
-                      setState(() {
-                        fonteGrande = v;
-                        escalaFonte = v ? 1.25 : 1.0;
-                      });
-                      salvar("fonteGrande", v);
-                    },
+                ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 40, vertical: 8),
+                  child: Text(
+                    "Ajuste a interface para sua melhor comodidade visual e tátil.",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Color.fromARGB(179, 0, 0, 0), fontSize: 14),
                   ),
                   _buildToggleCard(
                     Icons.contrast_rounded,
@@ -237,7 +230,7 @@ class _AcessibilidadeViewState extends State<AcessibilidadeView> {
       child: SwitchListTile(
         value: value,
         onChanged: onChanged,
-        activeThumbColor: activeColor,
+        activeThumbColor: const Color(0xFF1F5C3A),
         secondary: Container(
           height: 45,
           width: 45,
