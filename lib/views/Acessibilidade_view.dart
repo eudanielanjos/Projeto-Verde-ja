@@ -15,6 +15,7 @@ class _AcessibilidadeViewState extends State<AcessibilidadeView> {
   bool altoContraste = false;
   bool vibracao = false;
   bool zoomInterface = false;
+
   double escalaFonte = 1.0;
 
   @override
@@ -42,7 +43,7 @@ class _AcessibilidadeViewState extends State<AcessibilidadeView> {
 
   void vibrar() async {
     if (vibracao) {
-      if (await Vibration.hasVibrator() ?? false) {
+      if (await Vibration.hasVibrator()) {
         Vibration.vibrate(duration: 40);
       }
     }
@@ -50,14 +51,15 @@ class _AcessibilidadeViewState extends State<AcessibilidadeView> {
 
   @override
   Widget build(BuildContext context) {
-    // Definição da cor do tema baseada nas configurações
+    // Lógica de cores baseada nas configurações
     Color corPrincipal;
+
     if (altoContraste) {
       corPrincipal = Colors.black;
     } else if (daltonismo) {
-      corPrincipal = const Color(0xFF455A64);
+      corPrincipal = const Color(0xFF455A64); // Azul acinzentado para daltonismo
     } else {
-      corPrincipal = const Color(0xFF1F5C3A);
+      corPrincipal = const Color.fromRGBO(120, 159, 130, 1); // Seu verde padrão
     }
 
     return MediaQuery(
@@ -65,76 +67,46 @@ class _AcessibilidadeViewState extends State<AcessibilidadeView> {
         textScaler: TextScaler.linear(escalaFonte),
       ),
       child: Scaffold(
-        backgroundColor: const Color(0xFFF8FAF9),
-        appBar: AppBar(
-          title: const Text(
-            "ACESSIBILIDADE",
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w800,
-              fontSize: 18,
-              letterSpacing: 2,
+        body: Container(
+          width: double.infinity,
+          height: double.infinity,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [corPrincipal, Colors.white],
+              stops: const [0.0, 0.25],
             ),
           ),
-          centerTitle: true,
-          backgroundColor: corPrincipal,
-          elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 20),
-            onPressed: () {
-              vibrar();
-              Navigator.pop(context);
-            },
-          ),
-        ),
-        body: Column(
-          children: [
-            // --- HEADER CURVADO ---
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 400),
-              width: double.infinity,
-              padding: const EdgeInsets.only(bottom: 30, top: 10),
-              decoration: BoxDecoration(
-                color: corPrincipal,
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(40),
-                  bottomRight: Radius.circular(40),
-                ),
-              ),
-              child: const Column(
-                children: [
-                  Icon(Icons.accessibility_new_rounded, size: 50, color: Colors.white70),
-                  SizedBox(height: 15),
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 40),
-                    child: Text(
-                      "Personalize sua experiência para tornar o uso mais confortável.",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.white70, fontSize: 14),
+          child: SafeArea(
+            child: Column(
+              children: [
+                // --- BOTÃO VOLTAR ---
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: IconButton(
+                      icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 22),
+                      onPressed: () {
+                        vibrar();
+                        Navigator.pop(context);
+                      },
                     ),
                   ),
-                ],
-              ),
-            ),
+                ),
 
-            // --- LISTA DE OPÇÕES ---
-            Expanded(
-              child: ListView(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(20, 30, 20, 20),
-                children: [
-                  _buildSectionTitle("Preferências Visuais"),
-                  _buildToggleCard(
-                    Icons.visibility_rounded,
-                    "Modo Daltonismo",
-                    "Ajuste de cores para distinção.",
-                    daltonismo,
-                    corPrincipal,
-                    (v) {
-                      vibrar();
-                      setState(() => daltonismo = v);
-                      salvar("daltonismo", v);
-                    },
+                // --- CABEÇALHO ---
+                const Icon(Icons.accessibility_new_rounded, size: 50, color: Color.fromARGB(255, 0, 0, 0)),
+                const SizedBox(height: 10),
+                Text(
+                  "ACESSIBILIDADE",
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: const Color.fromARGB(255, 0, 0, 0),
+                    letterSpacing: 1.2,
+
                   ),
                 ),
                 const Padding(
@@ -144,86 +116,129 @@ class _AcessibilidadeViewState extends State<AcessibilidadeView> {
                     textAlign: TextAlign.center,
                     style: TextStyle(color: Color.fromARGB(179, 0, 0, 0), fontSize: 14),
                   ),
-                  _buildToggleCard(
-                    Icons.contrast_rounded,
-                    "Alto Contraste",
-                    "Cores com maior nitidez.",
-                    altoContraste,
-                    corPrincipal,
-                    (v) {
-                      vibrar();
-                      setState(() => altoContraste = v);
-                      salvar("altoContraste", v);
-                    },
+                ),
+
+                const SizedBox(height: 20),
+
+                // --- PAINEL DE OPÇÕES ---
+                Expanded(
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(35),
+                        topRight: Radius.circular(35),
+                      ),
+                    ),
+                    child: SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 25),
+                      child: Column(
+                        children: [
+                          _buildSectionTitle("Visual"),
+                          _tile(
+                            Icons.remove_red_eye_outlined,
+                            "Modo Daltonismo",
+                            "Paleta de cores otimizada.",
+                            daltonismo,
+                            (v) {
+                              vibrar();
+                              setState(() => daltonismo = v);
+                              salvar("daltonismo", v);
+                            },
+                          ),
+                          _tile(
+                            Icons.format_size_rounded,
+                            "Fonte Ampliada",
+                            "Aumenta o tamanho dos textos.",
+                            fonteGrande,
+                            (v) {
+                              vibrar();
+                              setState(() {
+                                fonteGrande = v;
+                                escalaFonte = v ? 1.25 : 1.0;
+                              });
+                              salvar("fonteGrande", v);
+                            },
+                          ),
+                          _tile(
+                            Icons.brightness_medium_outlined,
+                            "Alto Contraste",
+                            "Melhora a definição de bordas e textos.",
+                            altoContraste,
+                            (v) {
+                              vibrar();
+                              setState(() => altoContraste = v);
+                              salvar("altoContraste", v);
+                            },
+                          ),
+                          
+                          _buildSectionTitle("Interação"),
+                          _tile(
+                            Icons.vibration_rounded,
+                            "Resposta Tátil",
+                            "Vibrar ao tocar em botões.",
+                            vibracao,
+                            (v) {
+                              setState(() => vibracao = v);
+                              salvar("vibracao", v);
+                              if (v) vibrar();
+                            },
+                          ),
+                          _tile(
+                            Icons.zoom_in_rounded,
+                            "Zoom da Interface",
+                            "Amplia elementos interativos.",
+                            zoomInterface,
+                            (v) {
+                              vibrar();
+                              setState(() => zoomInterface = v);
+                              salvar("zoomInterface", v);
+                            },
+                          ),
+                          const SizedBox(height: 40),
+                        ],
+                      ),
+                    ),
                   ),
-                  
-                  const SizedBox(height: 10),
-                  _buildSectionTitle("Interação"),
-                  
-                  _buildToggleCard(
-                    Icons.vibration_rounded,
-                    "Resposta Tátil",
-                    "Feedback físico ao tocar.",
-                    vibracao,
-                    corPrincipal,
-                    (v) {
-                      setState(() => vibracao = v);
-                      salvar("vibracao", v);
-                      if (v) vibrar();
-                    },
-                  ),
-                  _buildToggleCard(
-                    Icons.zoom_in_map_rounded,
-                    "Zoom Dinâmico",
-                    "Aumenta áreas de toque.",
-                    zoomInterface,
-                    corPrincipal,
-                    (v) {
-                      vibrar();
-                      setState(() => zoomInterface = v);
-                      salvar("zoomInterface", v);
-                    },
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildSectionTitle(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 8, bottom: 12, top: 10),
-      child: Text(
-        title.toUpperCase(),
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w900,
-          color: Colors.grey.shade600,
-          letterSpacing: 1.5,
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Padding(
+        padding: const EdgeInsets.only(left: 10, top: 10, bottom: 15),
+        child: Text(
+          title.toUpperCase(),
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+            color: Colors.grey,
+            letterSpacing: 1.5,
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildToggleCard(IconData icon, String title, String subtitle, bool value, Color activeColor, Function(bool) onChanged) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 250),
-      margin: const EdgeInsets.only(bottom: 16),
+  Widget _tile(IconData icon, String title, String description, bool value, Function(bool) onChanged) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(
-          color: value ? activeColor : Colors.transparent,
-          width: 2,
-        ),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.04),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -232,29 +247,24 @@ class _AcessibilidadeViewState extends State<AcessibilidadeView> {
         onChanged: onChanged,
         activeThumbColor: const Color(0xFF1F5C3A),
         secondary: Container(
-          height: 45,
-          width: 45,
+          padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: value ? activeColor.withOpacity(0.1) : const Color(0xFFF1F5F2),
-            borderRadius: BorderRadius.circular(12),
+            color: const Color(0xFFF1F5F2),
+            borderRadius: BorderRadius.circular(14),
           ),
-          child: Icon(
-            icon,
-            color: value ? activeColor : Colors.grey,
-            size: 22,
-          ),
+          child: Icon(icon, color: const Color(0xFF1F5C3A), size: 24),
         ),
         title: Text(
           title,
           style: const TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 16,
-            color: Color(0xFF2D312E),
+            color: Color(0xFF1F5C3A),
           ),
         ),
         subtitle: Text(
-          subtitle,
-          style: const TextStyle(fontSize: 13, color: Colors.black54),
+          description,
+          style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
         ),
       ),
     );
