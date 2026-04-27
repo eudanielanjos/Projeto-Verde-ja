@@ -19,12 +19,11 @@ class ConfiguracaoPage extends StatefulWidget {
 }
 
 class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
-  // int _selectedIndex = 3;
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // --- MENU LATERAL (DRAWER) PADRONIZADO ---
+      backgroundColor: const Color(0xFFF8FAF9),
+      // --- MENU LATERAL (DRAWER) ORIGINAL MANTIDO ---
       endDrawer: Drawer(
         child: Column(
           children: [
@@ -81,118 +80,121 @@ class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
         ),
       ),
 
-      body: Container(
-        width: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color.fromRGBO(120, 159, 130, 1), // Seu verde padrão
-              Colors.white,
-            ],
-            stops: [0.0, 0.25],
-          ),
+      appBar: AppBar(
+        title: const Text(
+          "CONFIGURAÇÕES",
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 18, letterSpacing: 2),
         ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              // Botão de abrir o Drawer (Hambúrguer)
-              Builder(
-                builder: (context) => Align(
-                  alignment: Alignment.topRight,
-                  child: Padding(
-                    padding: const EdgeInsets.only(right: 16, top: 10),
-                    child: IconButton(
-                      icon: const Icon(Icons.menu, size: 32, color: Colors.black87),
-                      onPressed: () => Scaffold.of(context).openEndDrawer(),
-                    ),
+        centerTitle: true,
+        backgroundColor: const Color(0xFF1F5C3A),
+        elevation: 0,
+        // --- REMOÇÃO DO BOTÃO DE VOLTAR ---
+        automaticallyImplyLeading: false, 
+        actions: [
+          Builder(
+            builder: (context) => IconButton(
+              icon: const Icon(Icons.menu, color: Colors.white, size: 28),
+              onPressed: () => Scaffold.of(context).openEndDrawer(),
+            ),
+          ),
+        ],
+      ),
+
+      body: Column(
+        children: [
+          // --- HEADER CURVADO ---
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.only(bottom: 35, top: 10),
+            decoration: const BoxDecoration(
+              color: Color(0xFF1F5C3A),
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(40),
+                bottomRight: Radius.circular(40),
+              ),
+            ),
+            child: const Column(
+              children: [
+                Icon(Icons.settings_suggest_rounded, size: 55, color: Colors.white70),
+                SizedBox(height: 15),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 40),
+                  child: Text(
+                    "Personalize sua experiência no aplicativo.",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.white70, fontSize: 14),
                   ),
                 ),
-              ),
+              ],
+            ),
+          ),
 
-              const SizedBox(height: 20),
-
-              const Text(
-                "CONFIGURAÇÕES",
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1F5C3A),
-                  letterSpacing: 1.5,
+          // --- LISTA DE OPÇÕES ---
+          Expanded(
+            child: ListView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(20, 30, 20, 20),
+              children: [
+                _buildConfigButton(
+                  icon: Icons.lock_outline, 
+                  label: "Privacidade", 
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const PrivacidadeView()))
                 ),
-              ),
-              
-              const SizedBox(height: 10),
-              
-              Text(
-                "Personalize sua experiência no app",
-                style: TextStyle(color: Colors.black.withOpacity(0.5), fontSize: 14),
-              ),
-
-              const SizedBox(height: 40),
-
-              // Botões de Configuração Refinados
-              _buildConfigButton(
-                icon: Icons.lock_outline, 
-                label: "Privacidade", 
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const PrivacidadeView()))
-              ),
-              _buildConfigButton(
-                icon: Icons.accessibility_new, 
-                label: "Acessibilidade", 
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const AcessibilidadeView()))
-              ),
-              _buildConfigButton(
-                icon: Icons.translate, 
-                label: "Idiomas e Tradução", 
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const IdiomasView()))
-              ),
-            ],
+                _buildConfigButton(
+                  icon: Icons.accessibility_new, 
+                  label: "Acessibilidade", 
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const AcessibilidadeView()))
+                ),
+                _buildConfigButton(
+                  icon: Icons.translate, 
+                  label: "Idiomas e Tradução", 
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const IdiomasView()))
+                ),
+              ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
 
-  // Widget para os botões da lista de configurações
+  // Widget para os botões da lista
   Widget _buildConfigButton({required IconData icon, required String label, required VoidCallback onTap}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.06),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: ListTile(
-          onTap: onTap,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-          leading: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF1F5F2),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: const Color(0xFF1F5C3A)),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
           ),
-          title: Text(
-            label,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF2E4D3B)),
+        ],
+      ),
+      child: ListTile(
+        onTap: onTap,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+        leading: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF1F5F2),
+            borderRadius: BorderRadius.circular(12),
           ),
-          trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+          child: Icon(icon, color: const Color(0xFF1F5C3A)),
         ),
+        title: Text(
+          label,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF2D312E)),
+        ),
+        trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
       ),
     );
   }
 
-  // Itens do Drawer (Cards com sombra)
+  // --- MÉTODOS DO MENU LATERAL (ORIGINAIS) ---
   Widget _buildDrawerItem({required IconData icon, required String title, required VoidCallback onTap}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -213,7 +215,6 @@ class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
     );
   }
 
-  // Botão Sair no Drawer
   Widget _buildSairButton(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(20),

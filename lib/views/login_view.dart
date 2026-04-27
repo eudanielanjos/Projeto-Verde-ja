@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../services/auth_service.dart'; 
+import 'package:google_sign_in/google_sign_in.dart';
 import 'home_view.dart';
 
 class LoginView extends StatefulWidget {
@@ -15,8 +15,37 @@ class _LoginViewState extends State<LoginView> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _senhaController = TextEditingController();
 
-bool _senhaVisivel = false;
-bool _isLoading = false;
+  // Função para lidar com o login do Google
+  Future<void> _signInWithGoogle() async {
+    try {
+      // Inicia o fluxo de autenticação do Google
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+
+      // Obtém os detalhes de autenticação da requisição
+      final GoogleSignInAuthentication? googleAuth = await googleUser?.authentication;
+
+      if (googleAuth != null) {
+        // Cria uma nova credencial para o Firebase
+        final credential = GoogleAuthProvider.credential(
+          accessToken: googleAuth.accessToken,
+          idToken: googleAuth.idToken,
+        );
+
+        // Faz o login no Firebase com a credencial do Google
+        await FirebaseAuth.instance.signInWithCredential(credential);
+
+        // Se tudo der certo, vai para a Home
+        if (mounted) {
+          Navigator.pushReplacementNamed(context, '/home');
+        }
+      }
+    } catch (e) {
+      // Aqui você pode mostrar um SnackBar com o erro
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Erro ao entrar com Google: $e")),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -136,7 +165,6 @@ bool _isLoading = false;
                             String email = _emailController.text.trim();
                             String senha = _senhaController.text.trim();
 
-                            // LÓGICA DE ACESSO
                             if (email == "admin@verdeja.com" && senha == "admin123") {
                               Navigator.pushReplacementNamed(context, '/admin');
                             } else {
@@ -145,6 +173,26 @@ bool _isLoading = false;
                           }
                         },
                         child: const Text('Entrar', style: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                    
+                    const SizedBox(height: 20),
+
+                    // BOTÃO GOOGLE
+                    OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        fixedSize: const Size(220, 50),
+                        side: const BorderSide(color: Colors.grey),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
+                      ),
+                      onPressed: _signInWithGoogle,
+                      icon: Image.network(
+                        'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/1200px-Google_%22G%22_logo.svg.png',
+                        height: 24,
+                      ),
+                      label: const Text(
+                        "Entrar com Google",
+                        style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w600),
                       ),
                     ),
 

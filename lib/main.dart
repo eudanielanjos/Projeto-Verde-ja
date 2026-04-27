@@ -10,10 +10,11 @@ import 'views/admin_view.dart';
 import 'views/admin_educacao_view.dart';
 import 'views/historico_admin_view.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
-void main() {
+import 'firebase_options.dart'; 
+
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  Firebase.initializeApp(
+  await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
   runApp(const MyApp());
