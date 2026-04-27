@@ -114,7 +114,7 @@ class _AcessibilidadeViewState extends State<AcessibilidadeView> {
                   child: Text(
                     "Ajuste a interface para sua melhor comodidade visual e tátil.",
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: const Color.fromARGB(179, 0, 0, 0), fontSize: 14),
+                    style: TextStyle(color: Color.fromARGB(179, 0, 0, 0), fontSize: 14),
                   ),
                 ),
 
@@ -245,7 +245,7 @@ class _AcessibilidadeViewState extends State<AcessibilidadeView> {
       child: SwitchListTile(
         value: value,
         onChanged: onChanged,
-        activeColor: const Color(0xFF1F5C3A),
+        activeThumbColor: const Color(0xFF1F5C3A),
         secondary: Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
