@@ -84,7 +84,7 @@ class _LoginViewState extends State<LoginView> {
                                 String senha = _senhaController.text;
 
                                 // LÓGICA DE FILTRO DE USUÁRIO
-                                if (email == 'admin@vivaverde.com.br' && senha == 'admin123') {
+                                if (email == 'admin@verdeja.com' && senha == 'admin123') {
                                   Navigator.pushReplacementNamed(context, '/admin');
                                 } else {
                                   // Aqui entraria sua lógica de login real via AuthService
