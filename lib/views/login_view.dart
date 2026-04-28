@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_app/views/home_view.dart';
-import 'package:flutter_app/services/auth_services.dart'; // Importe seu serviço de autenticação
+import 'package:flutter_app/services/auth_services.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -15,7 +15,6 @@ class _LoginViewState extends State<LoginView> {
   final TextEditingController _senhaController = TextEditingController();
   bool _isLoading = false;
 
-  // Instância do seu serviço
   final AuthService _authService = AuthService();
 
   @override
@@ -40,13 +39,10 @@ class _LoginViewState extends State<LoginView> {
             left: 10,
             child: IconButton(
               icon: const Icon(Icons.arrow_back, color: Colors.white, size: 28),
-              onPressed: () => Navigator.pushReplacement(
-                context, MaterialPageRoute(builder: (context) => const HomeView())
-              ),
+              onPressed: () => Navigator.pushReplacementNamed(context, '/home'),
             ),
           ),
 
-          // Conteúdo Principal
           Center(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 30),
@@ -64,14 +60,13 @@ class _LoginViewState extends State<LoginView> {
                     ),
                     const SizedBox(height: 50),
 
-                    // Inputs de Texto
                     _buildInput('Email', controller: _emailController),
                     const SizedBox(height: 15),
                     _buildInput('Senha', controller: _senhaController, obscure: true),
                     
                     const SizedBox(height: 30),
 
-                    // Botão Entrar Manual
+                    // Botão Entrar com Lógica de Admin
                     _isLoading 
                       ? const CircularProgressIndicator(color: Color(0xFF7BB132))
                       : SizedBox(
@@ -85,8 +80,16 @@ class _LoginViewState extends State<LoginView> {
                             ),
                             onPressed: () {
                               if (_formKey.currentState!.validate()) {
-                                // Aqui você pode adicionar a lógica de login por email se desejar
-                                Navigator.pushReplacementNamed(context, '/inicial');
+                                String email = _emailController.text.trim().toLowerCase();
+                                String senha = _senhaController.text;
+
+                                // LÓGICA DE FILTRO DE USUÁRIO
+                                if (email == 'admin@vivaverde.com.br' && senha == 'admin123') {
+                                  Navigator.pushReplacementNamed(context, '/admin');
+                                } else {
+                                  // Aqui entraria sua lógica de login real via AuthService
+                                  Navigator.pushReplacementNamed(context, '/inicial');
+                                }
                               }
                             },
                             child: const Text(
@@ -98,7 +101,7 @@ class _LoginViewState extends State<LoginView> {
 
                     const SizedBox(height: 15),
 
-                    // Botão Google (Usando seu AuthService)
+                    // Botão Google
                     OutlinedButton.icon(
                       icon: Image.asset('assets/images/google.png', height: 24),
                       label: const Text(
@@ -114,15 +117,9 @@ class _LoginViewState extends State<LoginView> {
                       onPressed: _isLoading ? null : () async {
                         setState(() => _isLoading = true);
                         try {
-                          // Chama o seu serviço original
                           final user = await _authService.signInWithGoogle();
-                          
                           if (user != null && mounted) {
                             Navigator.pushReplacementNamed(context, '/inicial');
-                          } else if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Login cancelado pelo usuário.')),
-                            );
                           }
                         } catch (e) {
                           if (mounted) {
@@ -138,7 +135,7 @@ class _LoginViewState extends State<LoginView> {
 
                     const SizedBox(height: 40),
 
-                    // Rodapé para Cadastro
+                    // Rodapé
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -156,7 +153,6 @@ class _LoginViewState extends State<LoginView> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 20),
                   ],
                 ),
               ),
@@ -167,7 +163,6 @@ class _LoginViewState extends State<LoginView> {
     );
   }
 
-  // Widget auxiliar para os campos de input
   Widget _buildInput(String hint, {bool obscure = false, required TextEditingController controller}) {
     return TextFormField(
       controller: controller,
