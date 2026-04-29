@@ -24,7 +24,7 @@ class _PrivacidadeViewState extends State<PrivacidadeView> {
 
   Future carregarConfiguracoes() async {
     final prefs = await SharedPreferences.getInstance();
-    setState(() {
+    setState(() { 
       localizacao = prefs.getBool('localizacao') ?? false;
       camera = prefs.getBool('camera') ?? false;
       microfone = prefs.getBool('microfone') ?? false;
