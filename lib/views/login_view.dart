@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_app/views/home_view.dart';
 import 'package:flutter_app/services/auth_services.dart';
 
 class LoginView extends StatefulWidget {

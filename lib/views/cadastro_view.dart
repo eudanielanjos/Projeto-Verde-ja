@@ -74,7 +74,7 @@ class _CadastroViewState extends State<CadastroView> {
 
       Navigator.pushReplacementNamed(context, '/home');
 
-    } on FirebaseAuthException catch (e) {
+    } on FirebaseAuthException {
       String mensagem = "Erro ao cadastrar";
 
 

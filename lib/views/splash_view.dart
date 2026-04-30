@@ -11,9 +11,10 @@ class SplashView extends StatefulWidget {
 
 class _SplashViewState extends State<SplashView>
     with SingleTickerProviderStateMixin {
-
   late AnimationController _controller;
-  late Animation<double> _logoAnimation;
+  late Animation<double> _logoFade;
+  late Animation<double> _logoScale;
+  late Animation<double> _contentOpacity;
 
   @override
   void initState() {
@@ -21,22 +22,40 @@ class _SplashViewState extends State<SplashView>
 
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 2),
+      duration: const Duration(milliseconds: 3000), // Aumentado para fluidez
     );
 
-    _logoAnimation = CurvedAnimation(
+    // Entrada suave do logo
+    _logoFade = CurvedAnimation(
       parent: _controller,
-      curve: Curves.easeInOut,
+      curve: const Interval(0.0, 0.5, curve: Curves.easeIn),
+    );
+
+    // Efeito "Pop" elástico no logo
+    _logoScale = CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.1, 0.6, curve: Curves.elasticOut),
+    );
+
+    // Texto e barra aparecem com atraso elegante
+    _contentOpacity = CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.5, 0.8, curve: Curves.easeIn),
     );
 
     _controller.forward();
 
-    Future.delayed(const Duration(seconds: 3), () {
+    Timer(const Duration(seconds: 4), () {
       if (!mounted) return;
-
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const HomeView()),
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) => const HomeView(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(opacity: animation, child: child);
+          },
+          transitionDuration: const Duration(milliseconds: 1000),
+        ),
       );
     });
   }
@@ -52,7 +71,6 @@ class _SplashViewState extends State<SplashView>
     return Scaffold(
       body: Container(
         width: double.infinity,
-
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
@@ -63,53 +81,85 @@ class _SplashViewState extends State<SplashView>
             ],
           ),
         ),
-
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-
-            /// LOGO ANIMADA
+            // LOGO ANIMADO COM SOMBRA SUTIL
             FadeTransition(
-              opacity: _logoAnimation,
+              opacity: _logoFade,
               child: ScaleTransition(
-                scale: _logoAnimation,
-                child: Image.asset(
-                  'assets/images/logo3.png',
-                  width: 230,
+                scale: _logoScale,
+                child: Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 20,
+                        spreadRadius: 5,
+                      )
+                    ],
+                  ),
+                  child: Image.asset(
+                    'assets/images/logo3.png',
+                    width: 240,
+                  ),
                 ),
               ),
             ),
 
-            const SizedBox(height: 50),
+            const SizedBox(height: 80),
 
-            /// TEXTO
-            const Text(
-              "Carregando...",
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.black54,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            /// PROGRESS BAR
-            SizedBox(
-              width: 220,
-              child: AnimatedBuilder(
-                animation: _controller,
-                builder: (context, child) {
-                  return ClipRRect(
-                    borderRadius: BorderRadius.circular(50),
-                    child: LinearProgressIndicator(
-                      value: _controller.value,
-                      minHeight: 8,
-                      color: const Color.fromARGB(255, 46, 148, 104),
-                      backgroundColor: Colors.white,
+            // GRUPO DE CARREGAMENTO
+            FadeTransition(
+              opacity: _contentOpacity,
+              child: Column(
+                children: [
+                  // Texto com espaçamento moderno
+                  const Text(
+                    "INICIALIZANDO",
+                    style: TextStyle(
+                      fontSize: 17,
+                      letterSpacing: 4.0,
+                      color: Colors.black38,
+                      fontWeight: FontWeight.w800,
                     ),
-                  );
-                },
+                  ),
+                  const SizedBox(height: 20),
+                  
+                  // BARRA DE PROGRESSO SLIM
+                  SizedBox(
+                    width: 180,
+                    child: AnimatedBuilder(
+                      animation: _controller,
+                      builder: (context, child) {
+                        return Column(
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(50),
+                              child: LinearProgressIndicator(
+                                value: _controller.value,
+                                minHeight: 4, // Mais fina = mais elegante
+                                color: const Color(0xFF1E9241),
+                                backgroundColor: Colors.black.withOpacity(0.05),
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            // Contador de porcentagem discreto
+                            Text(
+                              "${(_controller.value * 100).toInt()}%",
+                              style: const TextStyle(
+                                fontSize: 17,
+                                color: Colors.black26,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -118,110 +168,3 @@ class _SplashViewState extends State<SplashView>
     );
   }
 }
-/*
-import 'dart:async';
-import 'package:flutter/material.dart';
-import 'home_view.dart';
-
-class SplashView extends StatefulWidget {
-  const SplashView({super.key});
-
-  @override
-  State<SplashView> createState() => _SplashViewState();
-}
-
-class _SplashViewState extends State<SplashView>
-    with TickerProviderStateMixin {
-
-  late AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 5),
-    );
-
-    _controller.forward();
-
-    Future.delayed(const Duration(seconds: 5), () {
-      if (!mounted) return;
-
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const HomeView()),
-      );
-    });
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        width: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color.fromARGB(255, 63, 129, 37),
-              Color.fromARGB(255, 255, 255, 255),
-            ],
-          ),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset(
-              'assets/images/logo.png',
-              width: 150,
-            ),
-            const SizedBox(height: 40),
-            SizedBox(
-              width: 220,
-              height: 25,
-              child: AnimatedBuilder(
-                animation: _controller,
-                builder: (context, child) {
-                  int percentage = (_controller.value * 100).toInt();
-
-                  return Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(50),
-                        child: LinearProgressIndicator(
-                          value: _controller.value,
-                          minHeight: 8,
-                          color: Colors.white,
-                          backgroundColor: Colors.white24,
-                        ),
-                      ),
-                      Text(
-                        '$percentage%',
-                        style: const TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-*/ 
