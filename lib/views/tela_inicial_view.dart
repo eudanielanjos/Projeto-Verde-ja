@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart'; // Import necessário
-import 'package:google_sign_in/google_sign_in.dart'; // Import necessário
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'denuncia_view.dart';
 import 'perfil_view.dart';
 import 'educacao_view.dart';
@@ -23,7 +23,6 @@ class _TelaInicialViewState extends State<TelaInicialView> {
       endDrawer: Drawer(
         child: Column(
           children: [
-            // Header do Menu (Mantido original)
             Container(
               width: double.infinity,
               padding: const EdgeInsets.only(top: 50, bottom: 25),
@@ -52,8 +51,6 @@ class _TelaInicialViewState extends State<TelaInicialView> {
                 ],
               ),
             ),
-            
-            // Itens do Menu (Mantido original)
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.symmetric(vertical: 20),
@@ -106,22 +103,15 @@ class _TelaInicialViewState extends State<TelaInicialView> {
                 ],
               ),
             ),
-
-            // 🔥 BOTÃO SAIR DA CONTA COM LIMPEZA DE CACHE E LOGOUT
             Padding(
               padding: const EdgeInsets.all(16),
               child: InkWell(
                 borderRadius: BorderRadius.circular(14),
                 onTap: () async {
-                  // 1. Limpa o cache de imagens da memória do Flutter
                   PaintingBinding.instance.imageCache.clear();
                   PaintingBinding.instance.imageCache.clearLiveImages();
-
-                  // 2. Faz o logout no Firebase e no Google
                   await FirebaseAuth.instance.signOut();
                   await GoogleSignIn().signOut();
-
-                  // 3. Redireciona para a HomeView e remove todas as telas anteriores da pilha
                   if (context.mounted) {
                     Navigator.pushAndRemoveUntil(
                       context,
@@ -154,8 +144,6 @@ class _TelaInicialViewState extends State<TelaInicialView> {
           ],
         ),
       ),
-
-      // Restante do body (Mantido original)
       body: Container(
         width: double.infinity,
         height: double.infinity,
@@ -171,7 +159,7 @@ class _TelaInicialViewState extends State<TelaInicialView> {
           physics: const BouncingScrollPhysics(),
           padding: const EdgeInsets.all(16),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start, // Mantém o alinhamento à esquerda
             children: [
               const SizedBox(height: 40),
               Builder(
@@ -185,15 +173,23 @@ class _TelaInicialViewState extends State<TelaInicialView> {
               ),
               Center(child: Image.asset('assets/images/logo3.png', width: 200)),
               const SizedBox(height: 15),
-              const Center(
-                child: Text("Bem-vindo ao VerdeJá 🌿",
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+              
+              // --- TITULO COM NEGRITO E SEM CENTRALIZAR ---
+              const Text(
+                "Bem-vindo ao VerdeJá 🌿",
+                style: TextStyle(
+                  fontSize: 24, 
+                  fontWeight: FontWeight.bold, // Negrito restaurado
+                ),
               ),
+              
               const SizedBox(height: 10),
               const Text(
                 "Explore as funcionalidades do aplicativo, informe-se e faça parte dessa mudança!",
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 18, color: Colors.black54, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 18, 
+                  color: Colors.black54, 
+                ),
               ),
               const SizedBox(height: 25),
               _buildMainCard(
@@ -208,8 +204,8 @@ class _TelaInicialViewState extends State<TelaInicialView> {
               const SizedBox(height: 15),
               _buildMainCard(
                 imagePath: 'assets/images/icon1.png',
-                title: 'Coleta Regular',
-                subtitle: 'Horários e Dias no Bairro',
+                title: 'Pontos de Coleta',
+                subtitle: 'Veja os pontos de coleta',
                 icon: Icons.arrow_forward_ios,
                 onTap: () {
                   Navigator.push(context, MaterialPageRoute(builder: (context) => const ColetaView()));
@@ -233,7 +229,6 @@ class _TelaInicialViewState extends State<TelaInicialView> {
     );
   }
 
-  // Widgets Auxiliares (Mantidos originais)
   Widget _buildMenuCard({required IconData icon, required String title, required VoidCallback onTap}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
