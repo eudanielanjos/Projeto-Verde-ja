@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // 1. Importação necessária para os formatadores
 
 class Denuncias2 extends StatefulWidget {
   const Denuncias2({super.key});
@@ -8,7 +9,6 @@ class Denuncias2 extends StatefulWidget {
 }
 
 class _Denuncias2State extends State<Denuncias2> {
-  // Variável para armazenar o tipo selecionado
   String tipoSelecionado = "";
 
   final List<String> tiposDenuncia = [
@@ -36,14 +36,13 @@ class _Denuncias2State extends State<Denuncias2> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Removido o bottomNavigationBar
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFFD2E1D4), // Cor mais clara para combinar com o app
+              Color(0xFFD2E1D4),
               Color(0xFFF2F2F2),
             ],
           ),
@@ -51,7 +50,6 @@ class _Denuncias2State extends State<Denuncias2> {
         child: SafeArea(
           child: Column(
             children: [
-              /// 🔹 TOPO (AppBar Custom)
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Row(
@@ -64,14 +62,12 @@ class _Denuncias2State extends State<Denuncias2> {
                   ],
                 ),
               ),
-
               Expanded(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.symmetric(horizontal: 25),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      /// 🔹 TÓPICOS: TIPO DE DENÚNCIA
                       const Text(
                         "Selecione o tipo de denúncia:",
                         style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -102,32 +98,40 @@ class _Denuncias2State extends State<Denuncias2> {
                           );
                         }).toList(),
                       ),
-
                       const SizedBox(height: 25),
-
-                      /// 🔹 ENDEREÇO
                       const Text(
                         "Endereço da Ocorrência",
                         style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 15),
-                      TextField(decoration: campo("CEP", Icons.location_on)),
+                      
+                      // CEP: Apenas números
+                      TextField(
+                        decoration: campo("CEP", Icons.location_on),
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      ),
+                      
                       const SizedBox(height: 12),
                       TextField(decoration: campo("Rua", Icons.map)),
                       const SizedBox(height: 12),
                       Row(
                         children: [
-                          Expanded(child: TextField(decoration: campo("Número", Icons.pin))),
+                          Expanded(
+                            child: TextField(
+                              decoration: campo("Número", Icons.pin),
+                              // 2. Configuração para aceitar apenas números
+                              keyboardType: TextInputType.number,
+                              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                            ),
+                          ),
                           const SizedBox(width: 10),
                           Expanded(child: TextField(decoration: campo("Bairro", Icons.place))),
                         ],
                       ),
                       const SizedBox(height: 12),
                       TextField(decoration: campo("Complemento", Icons.apartment)),
-
                       const SizedBox(height: 25),
-
-                      /// 🔹 DESCRIÇÃO
                       const Text(
                         "Detalhes",
                         style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -149,10 +153,7 @@ class _Denuncias2State extends State<Denuncias2> {
                           ),
                         ),
                       ),
-
                       const SizedBox(height: 20),
-
-                      /// 🔹 BOTÕES DE MÍDIA
                       Row(
                         children: [
                           Expanded(
@@ -180,15 +181,10 @@ class _Denuncias2State extends State<Denuncias2> {
                           ),
                         ],
                       ),
-
                       const SizedBox(height: 30),
-
-                      /// 🔹 BOTÃO ENVIAR
                       Center(
                         child: ElevatedButton(
-                          onPressed: () {
-                            // Lógica de envio aqui
-                          },
+                          onPressed: () {},
                           style: ElevatedButton.styleFrom(
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                             backgroundColor: const Color(0xFF59BA15),

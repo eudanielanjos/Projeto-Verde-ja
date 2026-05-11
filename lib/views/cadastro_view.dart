@@ -107,7 +107,7 @@ class _CadastroViewState extends State<CadastroView> {
           ),
 
           Positioned(
-            top: 40,
+            top: 60,
             left: 10,
             child: IconButton(
               icon: const Icon(Icons.arrow_back, color: Colors.white),
@@ -176,8 +176,16 @@ class _CadastroViewState extends State<CadastroView> {
                           _forcaSenha,
                           style: TextStyle(
                             color: _forcaSenha == "Senha forte"
+                                
                                 ? Colors.green
-                                : Colors.orange,
+                                : _forcaSenha == "Senha média"
+                                    ? Colors.orangeAccent
+                                  : _forcaSenha == "Senha fraca"
+                                      ? Colors.redAccent
+
+                                      : Colors.white,
+                            fontSize: 14,
+
                           ),
                         ),
                       ),

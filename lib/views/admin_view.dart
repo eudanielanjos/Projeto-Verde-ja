@@ -5,6 +5,7 @@ class AdminMenuView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Definição de cores para manter o padrão visual
     const Color greenDark = Color(0xFF133621);
     const Color greenPrimary = Color(0xFF1B4D2E);
     const Color softWhite = Color(0xFFF8FAFB);
@@ -23,6 +24,7 @@ class AdminMenuView extends StatelessWidget {
           child: Column(
             children: [
               const SizedBox(height: 40),
+              // Certifique-se que o caminho da imagem está correto no pubspec.yaml
               Image.asset('assets/images/logo2.png', height: 90),
               
               const SizedBox(height: 20),
@@ -50,16 +52,16 @@ class AdminMenuView extends StatelessWidget {
                   ),
                   child: Column(
                     children: [
-                      // 🔹 GRID COM 2 EM CIMA E 2 EM BAIXO
+                      // 🔹 GRID DE FUNCIONALIDADES
                       Expanded(
                         child: GridView.count(
-                          crossAxisCount: 2, // 2 colunas
-                          crossAxisSpacing: 15, // Espaço lateral entre botões
-                          mainAxisSpacing: 15, // Espaço vertical entre botões
-                          childAspectRatio: 1.1, // Ajusta a proporção (mais quadrado ou retângulo)
-                          physics: const NeverScrollableScrollPhysics(),
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 15,
+                          mainAxisSpacing: 15,
+                          childAspectRatio: 1.1,
+                          physics: const BouncingScrollPhysics(), // Permite scroll se a tela for pequena
                           children: [
-                            _buildGridItem(context, 'Gestão de\ncoletas', Icons.recycling, '/home_visitante'),
+                            _buildGridItem(context, 'Gestão de\ncoletas', Icons.recycling, '/gestaoColetasAdmin'),
                             _buildGridItem(context, 'Área\neducativa', Icons.school, '/educacaoAdmin'),
                             _buildGridItem(context, 'Fale\nconosco', Icons.chat_bubble, '/home_visitante'),
                             _buildGridItem(context, 'Histórico de\ndenúncias', Icons.history, '/historicoAdmin'),
@@ -69,6 +71,7 @@ class AdminMenuView extends StatelessWidget {
                       
                       const SizedBox(height: 20),
                       
+                      // BOTÃO SAIR
                       TextButton(
                         onPressed: () => Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false),
                         child: const Text(
@@ -93,7 +96,7 @@ class AdminMenuView extends StatelessWidget {
     );
   }
 
-  // Widget para os botões em formato de Card (Grid)
+  // 🔹 Widget para os botões do Grid (Agora corrigido e dinâmico)
   Widget _buildGridItem(BuildContext context, String title, IconData icon, String route) {
     return Container(
       decoration: BoxDecoration(
@@ -111,6 +114,7 @@ class AdminMenuView extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(25),
+          // CORREÇÃO: Agora ele navega para a rota passada por parâmetro
           onTap: () => Navigator.pushNamed(context, route),
           child: Padding(
             padding: const EdgeInsets.all(15),

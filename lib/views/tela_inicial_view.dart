@@ -186,7 +186,7 @@ class _TelaInicialViewState extends State<TelaInicialView> {
               Center(child: Image.asset('assets/images/logo3.png', width: 200)),
               const SizedBox(height: 15),
               const Center(
-                child: Text("Bem-vindo ao VerdeJá 🌿",
+                child: Text("Bem-vindo ao VerdeJá!",
                     style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
               ),
               const SizedBox(height: 10),
