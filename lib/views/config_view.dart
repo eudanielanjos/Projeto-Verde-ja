@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
-// Importações das suas views
+// Suas importações existentes
 import 'acessibilidade_view.dart'; 
 import 'privacidade_view.dart';
 import 'idiomas_view.dart';
@@ -10,6 +12,7 @@ import 'coleta_view.dart';
 import 'educacao_view.dart';
 import 'perfil_view.dart';
 import 'historico_denuncias_view.dart';
+import 'notificacoes_view.dart'; // Certifique-se de que o arquivo se chama assim
 
 class ConfiguracaoPage extends StatefulWidget {
   const ConfiguracaoPage({super.key});
@@ -23,13 +26,14 @@ class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAF9),
-      // --- MENU LATERAL (DRAWER) ORIGINAL MANTIDO ---
+      
+      // --- MENU LATERAL (DRAWER) ---
       endDrawer: Drawer(
         child: Column(
           children: [
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.only(top: 60, bottom: 30),
+              padding: const EdgeInsets.only(top: 50, bottom: 25),
               decoration: const BoxDecoration(color: Color(0xFF1F5C3A)),
               child: Column(
                 children: [
@@ -41,37 +45,36 @@ class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
                       child: Image.asset('assets/images/logo.png', fit: BoxFit.contain),
                     ),
                   ),
-                  const SizedBox(height: 15),
-                  const Text("Olá, Usuario", 
-                    style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 10),
+                  const Text("Olá, Usuario", style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
                 ],
               ),
             ),
             Expanded(
               child: ListView(
-                padding: const EdgeInsets.symmetric(vertical: 10),
+                padding: const EdgeInsets.symmetric(vertical: 20),
                 children: [
-                  _buildDrawerItem(icon: Icons.home, title: "Início", onTap: () {
+                  _buildMenuCard(icon: Icons.home, title: "Início", onTap: () {
                     Navigator.pop(context);
                     Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const TelaInicialView()));
                   }),
-                  _buildDrawerItem(icon: Icons.calendar_month, title: "Coleta Regular", onTap: () {
+                  _buildMenuCard(icon: Icons.calendar_month, title: "Coleta Regular", onTap: () {
                     Navigator.pop(context);
                     Navigator.push(context, MaterialPageRoute(builder: (context) => const ColetaView()));
                   }),
-                  _buildDrawerItem(icon: Icons.school, title: "Educação", onTap: () {
+                  _buildMenuCard(icon: Icons.school, title: "Educação", onTap: () {
                     Navigator.pop(context);
                     Navigator.push(context, MaterialPageRoute(builder: (context) => const EducacaoView()));
                   }),
-                  _buildDrawerItem(icon: Icons.history_edu, title: "Histórico de Denúncias", onTap: () {
+                  _buildMenuCard(icon: Icons.history_edu, title: "Histórico de Denúncias", onTap: () {
                     Navigator.pop(context);
                     Navigator.push(context, MaterialPageRoute(builder: (context) => const HistoricoDenunciasView()));
                   }),
-                  _buildDrawerItem(icon: Icons.person, title: "Perfil", onTap: () {
+                  _buildMenuCard(icon: Icons.person, title: "Perfil", onTap: () {
                     Navigator.pop(context);
                     Navigator.push(context, MaterialPageRoute(builder: (context) => const PerfilPage()));
                   }),
-                  _buildDrawerItem(icon: Icons.settings, title: "Configurações", onTap: () => Navigator.pop(context)),
+                  _buildMenuCard(icon: Icons.settings, title: "Configurações", onTap: () => Navigator.pop(context)),
                 ],
               ),
             ),
@@ -81,74 +84,74 @@ class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
       ),
 
       appBar: AppBar(
-        title: const Text(
-          "CONFIGURAÇÕES",
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 18, letterSpacing: 2),
-        ),
+        title: const Text("CONFIGURAÇÕES", style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 18, letterSpacing: 2)),
         centerTitle: true,
         backgroundColor: const Color(0xFF1F5C3A),
         elevation: 0,
-        // --- REMOÇÃO DO BOTÃO DE VOLTAR ---
         automaticallyImplyLeading: false, 
         actions: [
-          Builder(
-            builder: (context) => IconButton(
-              icon: const Icon(Icons.menu, color: Colors.white, size: 28),
-              onPressed: () => Scaffold.of(context).openEndDrawer(),
-            ),
-          ),
+          Builder(builder: (context) => IconButton(
+            icon: const Icon(Icons.menu, color: Colors.white, size: 28),
+            onPressed: () => Scaffold.of(context).openEndDrawer(),
+          )),
         ],
       ),
 
       body: Column(
         children: [
-          // --- HEADER CURVADO ---
+          // Header Curvado
           Container(
             width: double.infinity,
             padding: const EdgeInsets.only(bottom: 35, top: 10),
             decoration: const BoxDecoration(
               color: Color(0xFF1F5C3A),
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(40),
-                bottomRight: Radius.circular(40),
-              ),
+              borderRadius: BorderRadius.only(bottomLeft: Radius.circular(40), bottomRight: Radius.circular(40)),
             ),
             child: const Column(
               children: [
                 Icon(Icons.settings_suggest_rounded, size: 55, color: Colors.white70),
                 SizedBox(height: 15),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 40),
-                  child: Text(
-                    "Personalize sua experiência no aplicativo.",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.white70, fontSize: 14),
-                  ),
-                ),
+                Text("Personalize sua experiência", style: TextStyle(color: Colors.white70, fontSize: 14)),
               ],
             ),
           ),
 
-          // --- LISTA DE OPÇÕES ---
+          // --- GRADE DE BOTÕES (2 EM 2) ---
           Expanded(
-            child: ListView(
-              physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(20, 30, 20, 20),
+            child: GridView.count(
+              crossAxisCount: 2,
+              crossAxisSpacing: 15,
+              mainAxisSpacing: 15,
+              padding: const EdgeInsets.all(20),
               children: [
-                _buildConfigButton(
+                _buildGridButton(
                   icon: Icons.lock_outline, 
                   label: "Privacidade", 
                   onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const PrivacidadeView()))
                 ),
-                _buildConfigButton(
+                _buildGridButton(
                   icon: Icons.accessibility_new, 
                   label: "Acessibilidade", 
                   onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const AcessibilidadeView()))
                 ),
-                _buildConfigButton(
+                _buildGridButton(
                   icon: Icons.translate, 
-                  label: "Idiomas e Tradução", 
+                  label: "Idiomas", 
                   onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const IdiomasView()))
+                ),
+                _buildGridButton(
+                  icon: Icons.notifications_none, 
+                  label: "Notificações", 
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const NotificacoesView()))
+                ), 
+                _buildGridButton(icon: Icons.dark_mode_outlined, label: "Tema", onTap: () {}),
+                _buildGridButton(icon: Icons.help_outline, label: "Suporte", onTap: () {}),
+                _buildGridButton(icon: Icons.info_outline, label: "Sobre o App", onTap: () {}),
+                _buildGridButton(
+                  icon: Icons.delete_forever_outlined, 
+                  label: "Excluir Conta", 
+                  onTap: () {}, 
+                  color: Colors.red.shade50
                 ),
               ],
             ),
@@ -158,57 +161,62 @@ class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
     );
   }
 
-  // Widget para os botões da lista
-  Widget _buildConfigButton({required IconData icon, required String label, required VoidCallback onTap}) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(22),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: ListTile(
-        onTap: onTap,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
-        leading: Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF1F5F2),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(icon, color: const Color(0xFF1F5C3A)),
+  // --- BOTÃO DA GRADE (GRID) ---
+  Widget _buildGridButton({required IconData icon, required String label, required VoidCallback onTap, Color? color}) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(22),
+      child: Container(
+        decoration: BoxDecoration(
+          color: color ?? Colors.white,
+          borderRadius: BorderRadius.circular(22),
+          boxShadow: [
+            BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 4)),
+          ],
         ),
-        title: Text(
-          label,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF2D312E)),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: color != null ? Colors.white.withOpacity(0.5) : const Color(0xFFF1F5F2),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: const Color(0xFF1F5C3A), size: 30),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF2D312E)),
+            ),
+          ],
         ),
-        trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
       ),
     );
   }
 
-  // --- MÉTODOS DO MENU LATERAL (ORIGINAIS) ---
-  Widget _buildDrawerItem({required IconData icon, required String title, required VoidCallback onTap}) {
+  // Métodos auxiliares do menu lateral
+  Widget _buildMenuCard({required IconData icon, required String title, required VoidCallback onTap}) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Card(
-          elevation: 3,
-          shadowColor: Colors.black26,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          child: ListTile(
-            leading: Icon(icon, color: const Color(0xFF1F5C3A)),
-            title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-            trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
+          elevation: 4,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Icon(icon, color: const Color(0xFF1F5C3A)),
+                const SizedBox(width: 16),
+                Expanded(child: Text(title, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold))),
+                const Icon(Icons.arrow_forward_ios, color: Color(0xFF1F5C3A), size: 16),
+              ],
+            ),
           ),
         ),
       ),
@@ -217,12 +225,18 @@ class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
 
   Widget _buildSairButton(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       child: InkWell(
-        onTap: () => Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => const HomeView()), (route) => false),
+        onTap: () async {
+          await FirebaseAuth.instance.signOut();
+          await GoogleSignIn().signOut();
+          if (context.mounted) {
+            Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => const HomeView()), (route) => false);
+          }
+        },
         child: Container(
           height: 55,
-          decoration: BoxDecoration(color: Colors.redAccent, borderRadius: BorderRadius.circular(16)),
+          decoration: BoxDecoration(color: Colors.red, borderRadius: BorderRadius.circular(14)),
           child: const Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
