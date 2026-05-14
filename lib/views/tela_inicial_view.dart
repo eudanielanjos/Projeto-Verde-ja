@@ -160,7 +160,7 @@ class _TelaInicialViewState extends State<TelaInicialView> {
           physics: const BouncingScrollPhysics(),
           padding: const EdgeInsets.all(16),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start, // Mantém o alinhamento à esquerda
             children: [
               const SizedBox(height: 40),
               Builder(
@@ -174,15 +174,23 @@ class _TelaInicialViewState extends State<TelaInicialView> {
               ),
               Center(child: Image.asset('assets/images/logo3.png', width: 200)),
               const SizedBox(height: 15),
-              const Center(
-                child: Text("Bem-vindo ao VerdeJá!",
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+              
+              // --- TITULO COM NEGRITO E SEM CENTRALIZAR ---
+              const Text(
+                "Bem-vindo ao VerdeJá 🌿",
+                style: TextStyle(
+                  fontSize: 24, 
+                  fontWeight: FontWeight.bold, // Negrito restaurado
+                ),
               ),
+              
               const SizedBox(height: 10),
               const Text(
                 "Explore as funcionalidades do aplicativo, informe-se e faça parte dessa mudança!",
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 18, color: Colors.black54, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 18, 
+                  color: Colors.black54, 
+                ),
               ),
               const SizedBox(height: 25),
               _buildMainCard(
