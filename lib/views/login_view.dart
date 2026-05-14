@@ -51,11 +51,11 @@ class _LoginViewState extends State<LoginView> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const SizedBox(height: 60),
-                    Image.asset("assets/images/logo.png", height: 160),
+                    Image.asset("assets/images/logo.png", height: 165),
                     const SizedBox(height: 10),
                     const Text(
                       'Viva verde, viva melhor!',
-                      style: TextStyle(fontSize: 18, color: Colors.black54),
+                      style: TextStyle(fontSize: 30, color: Color.fromRGBO(48, 93, 60, 1), fontStyle: FontStyle.italic, fontWeight: FontWeight.w300),
                     ),
                     const SizedBox(height: 50),
 
@@ -105,7 +105,7 @@ class _LoginViewState extends State<LoginView> {
                       icon: Image.asset('assets/images/google.png', height: 24),
                       label: const Text(
                         'Entrar com Google', 
-                        style: TextStyle(color: Colors.black87, fontSize: 16, fontWeight: FontWeight.w600)
+                        style: TextStyle(color: Colors.black87, fontSize: 20, fontWeight: FontWeight.w600)
                       ),
                       style: OutlinedButton.styleFrom(
                         minimumSize: const Size.fromHeight(55),
@@ -138,7 +138,7 @@ class _LoginViewState extends State<LoginView> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text('Não possui conta? ', style: TextStyle(color: Colors.black, fontSize: 16)),
+                        const Text('Não possui conta? ', style: TextStyle(color: Colors.black, fontSize: 20)),
                         GestureDetector(
                           onTap: () => Navigator.pushReplacementNamed(context, '/cadastro'),
                           child: const Text(
@@ -146,7 +146,7 @@ class _LoginViewState extends State<LoginView> {
                             style: TextStyle(
                               fontWeight: FontWeight.bold, 
                               color: Color(0xFF305D3C), 
-                              fontSize: 16,
+                              fontSize: 20,
                             ),
                           ),
                         ),

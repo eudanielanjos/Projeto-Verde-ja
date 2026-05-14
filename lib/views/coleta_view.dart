@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'package:firebase_auth/firebase_auth.dart'; // Import adicionado
-import 'package:google_sign_in/google_sign_in.dart'; // Import adicionado
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
-// Importações para o menu
+// Importações das suas views
 import 'perfil_view.dart';
 import 'educacao_view.dart';
 import 'config_view.dart';
 import 'historico_denuncias_view.dart';
 import 'home_view.dart';
 import 'tela_inicial_view.dart';
+import 'map_view.dart'; 
 
 class ColetaView extends StatefulWidget {
   const ColetaView({super.key});
@@ -74,128 +75,29 @@ class _ColetaViewState extends State<ColetaView> {
     return Colors.transparent;
   }
 
+  // Função centralizada para exibir a mensagem "Em breve" inserida com sucesso
+  void _mostrarMensagemEmBreve(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text(
+          "Funcionalidade em breve!",
+          textAlign: TextAlign.center,
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: const Color(0xFF1F5C3A),
+        duration: const Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // --- MENU LATERAL ATUALIZADO (DRAWER) ---
-      endDrawer: Drawer(
-        child: Column(
-          children: [
-            // Header do Menu
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.only(top: 50, bottom: 25),
-              decoration: const BoxDecoration(color: Color(0xFF1F5C3A)),
-              child: Column(
-                children: [
-                  CircleAvatar(
-                    radius: 50,
-                    backgroundColor: Colors.white,
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Image.asset('assets/images/logo.png', fit: BoxFit.contain),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  const Text(
-                    "Olá, Usuario",
-                    style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-            ),
-            
-            // Itens do Menu
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.symmetric(vertical: 20),
-                children: [
-                  _buildMenuCard(
-                    icon: Icons.home,
-                    title: "Início",
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const TelaInicialView()));
-                    },
-                  ),
-                  _buildMenuCard(
-                    icon: Icons.calendar_month,
-                    title: "Coleta Regular",
-                    onTap: () => Navigator.pop(context), // Já está na tela
-                  ),
-                  _buildMenuCard(
-                    icon: Icons.school,
-                    title: "Educação",
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => const EducacaoView()));
-                    },
-                  ),
-                  _buildMenuCard(
-                    icon: Icons.history_edu,
-                    title: "Histórico de Denúncias",
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => const HistoricoDenunciasView()));
-                    },
-                  ),
-                  _buildMenuCard(
-                    icon: Icons.person,
-                    title: "Perfil",
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => const PerfilPage()));
-                    },
-                  ),
-                  _buildMenuCard(
-                    icon: Icons.settings,
-                    title: "Configurações",
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => const ConfiguracaoPage()));
-                    },
-                  ),
-                ],
-              ),
-            ),
-
-            // BOTÃO SAIR COM LOGOUT REAL E LIMPEZA
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: InkWell(
-                borderRadius: BorderRadius.circular(14),
-                onTap: () async {
-                  PaintingBinding.instance.imageCache.clear();
-                  PaintingBinding.instance.imageCache.clearLiveImages();
-                  await FirebaseAuth.instance.signOut();
-                  await GoogleSignIn().signOut();
-
-                  if (context.mounted) {
-                    Navigator.pushAndRemoveUntil(
-                      context, 
-                      MaterialPageRoute(builder: (context) => const HomeView()), 
-                      (route) => false
-                    );
-                  }
-                },
-                child: Container(
-                  height: 55,
-                  decoration: BoxDecoration(color: Colors.red, borderRadius: BorderRadius.circular(14)),
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.logout, color: Colors.white),
-                      SizedBox(width: 10),
-                      Text("Sair da conta", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-
+      endDrawer: _buildDrawer(context),
       body: Container(
         width: double.infinity,
         height: double.infinity,
@@ -214,24 +116,12 @@ class _ColetaViewState extends State<ColetaView> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 40),
-              
-              Builder(
-                builder: (context) => Align(
-                  alignment: Alignment.topRight,
-                  child: IconButton(
-                    icon: const Icon(Icons.menu, size: 30, color: Colors.black87),
-                    onPressed: () => Scaffold.of(context).openEndDrawer(),
-                  ),
-                ),
-              ),
-
+              _buildMenuButton(context),
               const Text(
                 'Cronograma de coleta',
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Color(0xFF1F5C3A), letterSpacing: -0.5),
               ),
-              
               const SizedBox(height: 15),
-
               Row(
                 children: [
                   Expanded(child: _buildDataButton(context, true)),
@@ -239,24 +129,24 @@ class _ColetaViewState extends State<ColetaView> {
                   Expanded(child: _buildDataButton(context, false)),
                 ],
               ),
-              
               _buildFiltroLimparButtons(),
-              
-              _buildCalendar(),
-              
+              _buildCalendar(), 
               const SizedBox(height: 25),
-              
               const Text('Filtrar por tipo:', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black54)),
-              
               const SizedBox(height: 15),
-              
               _buildImageFilters(),
-              
               const SizedBox(height: 30),
-              
-              _buildBottomButton('Pontos de coleta', 'assets/images/icon_reciclagem.png', true),
+              _buildBottomButton('Pontos de coleta', 'assets/images/icon_reciclagem.png', () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const MapaView()),
+                );
+              }),
               const SizedBox(height: 15),
-              _buildBottomButton('Caminhões próximos', null, false),
+              // Chamando a função _mostrarMensagemEmBreve no clique do botão abaixo
+              _buildBottomButton('Caminhões próximos', null, () {
+                _mostrarMensagemEmBreve(context);
+              }),
               const SizedBox(height: 30),
             ],
           ),
@@ -265,36 +155,28 @@ class _ColetaViewState extends State<ColetaView> {
     );
   }
 
-  // --- MÉTODOS AUXILIARES DO MENU (DESIGN IGUAL À TELA INICIAL) ---
+  // --- WIDGETS COMPONENTIZADOS ---
 
-  Widget _buildMenuCard({required IconData icon, required String title, required VoidCallback onTap}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Card(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          elevation: 4,
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Icon(icon, color: const Color(0xFF1F5C3A)),
-                const SizedBox(width: 16),
-                Expanded(child: Text(title, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold))),
-                const Icon(Icons.arrow_forward_ios, color: Color(0xFF1F5C3A), size: 16),
-              ],
-            ),
-          ),
+  Widget _buildMenuButton(BuildContext context) {
+    return Builder(
+      builder: (context) => Align(
+        alignment: Alignment.topRight,
+        child: IconButton(
+          icon: const Icon(Icons.menu, size: 30, color: Colors.black87),
+          onPressed: () => Scaffold.of(context).openEndDrawer(),
         ),
       ),
     );
   }
 
-  // --- RESTANTE DOS MÉTODOS ORIGINAIS DA VIEW ---
-
   Widget _buildCalendar() {
+    final months = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    String mesAtual = months[focusedDay.month - 1];
+    String anoAtual = focusedDay.year.toString();
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -304,14 +186,29 @@ class _ColetaViewState extends State<ColetaView> {
       clipBehavior: Clip.antiAlias,
       child: Column(
         children: [
+          // Box do Mês
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border(bottom: BorderSide(color: Colors.grey.withOpacity(0.1))),
+            ),
+            child: Text(
+              "$mesAtual $anoAtual",
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1F5C3A)),
+            ),
+          ),
+          // Cabeçalho dos Dias (D, S, T...)
           Container(
             height: 40,
             color: const Color(0xFF1F5C3A),
             child: const Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _WeekLabel('D'), _WeekLabel('S'), _WeekLabel('T'),
-                _WeekLabel('Q'), _WeekLabel('Q'), _WeekLabel('S'), _WeekLabel('S'),
+                _WeekLabel('S'), _WeekLabel('M'), _WeekLabel('T'),
+                _WeekLabel('W'), _WeekLabel('T'), _WeekLabel('F'), _WeekLabel('S'),
               ],
             ),
           ),
@@ -323,7 +220,19 @@ class _ColetaViewState extends State<ColetaView> {
             daysOfWeekVisible: false,
             rowHeight: 52,
             sixWeekMonthsEnforced: true,
-            calendarStyle: const CalendarStyle(cellMargin: EdgeInsets.zero, outsideDaysVisible: false),
+            selectedDayPredicate: (day) {
+              if (dataInicial != null && isSameDay(day, dataInicial)) return true;
+              if (dataFinal != null && isSameDay(day, dataFinal)) return true;
+              return false;
+            },
+            calendarStyle: CalendarStyle(
+              cellMargin: EdgeInsets.zero, 
+              outsideDaysVisible: false,
+              selectedDecoration: BoxDecoration(
+                color: const Color(0xFF1F5C3A).withOpacity(0.3),
+                shape: BoxShape.rectangle,
+              ),
+            ),
             calendarBuilders: CalendarBuilders(
               defaultBuilder: (context, day, fDay) => _buildCustomCell(day, const Color(0xFF9FB1A3)),
               todayBuilder: (context, day, fDay) => _buildCustomCell(day, const Color(0xFF9FB1A3), isToday: true),
@@ -333,9 +242,20 @@ class _ColetaViewState extends State<ColetaView> {
                 focusedDay = focusedDayNew;
                 if (dataInicial == null) {
                   dataInicial = selectedDay;
-                } else if (dataFinal == null) dataFinal = selectedDay;
-                else { dataInicial = selectedDay; dataFinal = null; }
+                } else if (dataFinal == null) {
+                  if (selectedDay.isBefore(dataInicial!)) {
+                    dataInicial = selectedDay;
+                  } else {
+                    dataFinal = selectedDay;
+                  }
+                } else {
+                  dataInicial = selectedDay;
+                  dataFinal = null;
+                }
               });
+            },
+            onPageChanged: (focusedDayNew) {
+              setState(() => focusedDay = focusedDayNew);
             },
           ),
         ],
@@ -447,16 +367,16 @@ class _ColetaViewState extends State<ColetaView> {
     );
   }
 
-  Widget _buildBottomButton(String label, String? asset, bool isReciclagem) {
+  Widget _buildBottomButton(String label, String? asset, VoidCallback onTap) {
     return Container(
       width: double.infinity,
       height: 56,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(15),
-        boxShadow: [BoxShadow(color: const Color.fromRGBO(137, 186, 21, 0.3), blurRadius: 12, offset: const Offset(0, 5))],
+        boxShadow: [const BoxShadow(color: Color.fromRGBO(137, 186, 21, 0.3), blurRadius: 12, offset: Offset(0, 5))],
       ),
       child: ElevatedButton.icon(
-        onPressed: () {},
+        onPressed: onTap, 
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color.fromRGBO(137, 186, 21, 1),
           foregroundColor: Colors.white,
@@ -484,14 +404,145 @@ class _ColetaViewState extends State<ColetaView> {
     );
   }
 
+  // --- FUNÇÕES DE DATA ---
   Future<void> _selecionarDataInicial(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(context: context, initialDate: dataInicial ?? DateTime.now(), firstDate: DateTime(2000), lastDate: DateTime(2100));
-    if (picked != null) setState(() => dataInicial = picked);
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: dataInicial ?? DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+    if (picked != null) {
+      setState(() {
+        dataInicial = picked;
+        focusedDay = picked; 
+      });
+    }
   }
 
   Future<void> _selecionarDataFinal(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(context: context, initialDate: dataFinal ?? DateTime.now(), firstDate: DateTime(2000), lastDate: DateTime(2100));
-    if (picked != null) setState(() => dataFinal = picked);
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: dataFinal ?? dataInicial ?? DateTime.now(),
+      firstDate: dataInicial ?? DateTime(2000), 
+      lastDate: DateTime(2100),
+    );
+    if (picked != null) {
+      setState(() {
+        dataFinal = picked;
+        focusedDay = picked;
+      });
+    }
+  }
+
+  // --- DRAWER (MENU LATERAL) ---
+  Widget _buildDrawer(BuildContext context) {
+    return Drawer(
+      child: Column(
+        children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.only(top: 50, bottom: 25),
+            decoration: const BoxDecoration(color: Color(0xFF1F5C3A)),
+            child: Column(
+              children: [
+                CircleAvatar(
+                  radius: 50,
+                  backgroundColor: Colors.white,
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Image.asset('assets/images/logo.png', fit: BoxFit.contain),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                const Text("Olá, Usuario", style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+              ],
+            ),
+          ),
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              children: [
+                _buildMenuCard(icon: Icons.home, title: "Início", onTap: () {
+                  Navigator.pop(context);
+                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const TelaInicialView()));
+                }),
+                _buildMenuCard(icon: Icons.calendar_month, title: "Coleta Regular", onTap: () => Navigator.pop(context)),
+                _buildMenuCard(icon: Icons.school, title: "Educação", onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => const EducacaoView()));
+                }),
+                _buildMenuCard(icon: Icons.history_edu, title: "Histórico de Denúncias", onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => const HistoricoDenunciasView()));
+                }),
+                _buildMenuCard(icon: Icons.person, title: "Perfil", onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => const PerfilPage()));
+                }),
+                _buildMenuCard(icon: Icons.settings, title: "Configurações", onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => const ConfiguracaoPage()));
+                }),
+              ],
+            ),
+          ),
+          _buildLogoutButton(context),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMenuCard({required IconData icon, required String title, required VoidCallback onTap}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Card(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          elevation: 4,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Icon(icon, color: const Color(0xFF1F5C3A)),
+                const SizedBox(width: 16),
+                Expanded(child: Text(title, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold))),
+                const Icon(Icons.arrow_forward_ios, color: Color(0xFF1F5C3A), size: 16),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLogoutButton(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: InkWell(
+        onTap: () async {
+          await FirebaseAuth.instance.signOut();
+          await GoogleSignIn().signOut();
+          if (context.mounted) {
+            Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => const HomeView()), (route) => false);
+          }
+        },
+        child: Container(
+          height: 55,
+          decoration: BoxDecoration(color: Colors.red, borderRadius: BorderRadius.circular(14)),
+          child: const Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.logout, color: Colors.white),
+              SizedBox(width: 10),
+              Text("Sair da conta", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 

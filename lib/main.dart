@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart'; 
 
+// Imports para a inicialização de formatação de data
+import 'package:intl/date_symbol_data_local.dart'; 
+
 // Imports das Views
 import 'package:flutter_app/views/home_view.dart';
 import 'views/splash_view.dart';
@@ -16,18 +19,26 @@ import 'views/historico_admin_view.dart';
 import 'views/gestao_coleta_view.dart';
 
 void main() async {
+  // 1. Garante a inicialização dos bindings nativos do Flutter
   WidgetsFlutterBinding.ensureInitialized();
   
+  // 2. Inicializa as datas com idioma fixo para evitar travamentos por 'null'
   try {
-    if (Firebase.apps.isEmpty) {
-      await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform,
-      );
-    }
+    await initializeDateFormatting('pt_BR', null);
   } catch (e) {
-    debugPrint("Erro ao inicializar Firebase: $e");
+    debugPrint("Erro ao inicializar formatação de datas: $e");
   }
   
+  // 3. Inicializa o Firebase em segundo plano para não congelar o app caso falte internet
+  Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  ).then((_) {
+    debugPrint("Firebase inicializado com sucesso!");
+  }).catchError((e) {
+    debugPrint("Erro ao inicializar Firebase: $e");
+  });
+  
+  // 4. Executa o app imediatamente, permitindo que a SplashView carregue
   runApp(const MyApp());
 }
 
@@ -82,7 +93,7 @@ class _MyAppState extends State<MyApp> {
           '/educacaoAdmin': (context) => const EducacaoAdminView(),
           '/historicoAdmin': (context) => const HistoricoAdminView(),
           '/gestaoColetasAdmin': (context) => const ColetaAdmin(),
-          '/home_visitante': (context) => const HomeView(), // Adicionada caso use no Fale Conosco
+          '/home_visitante': (context) => const HomeView(),
         },
       ),
     );

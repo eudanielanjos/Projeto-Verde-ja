@@ -8,6 +8,7 @@ import 'config_view.dart';
 import 'historico_denuncias_view.dart';
 import 'home_view.dart';
 import 'coleta_view.dart';
+import 'map_view.dart';
 
 class TelaInicialView extends StatefulWidget {
   const TelaInicialView({super.key});
@@ -203,22 +204,34 @@ class _TelaInicialViewState extends State<TelaInicialView> {
               ),
               const SizedBox(height: 15),
               _buildMainCard(
-                imagePath: 'assets/images/icon1.png',
+                imagePath: 'assets/images/ponto.png',
                 title: 'Pontos de Coleta',
-                subtitle: 'Veja os pontos de coleta',
+                subtitle: 'Pontos de coleta próximos a você',
                 icon: Icons.arrow_forward_ios,
                 onTap: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => const ColetaView()));
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => Scaffold( 
+                        body: const MapaView(),
+                      ),
+                    ),
+                  );
                 },
               ),
               const SizedBox(height: 15),
+              
+              // 🔥 AQUI FOI ADICIONADA A NAVEGAÇÃO PARA ColetaView
               _buildMainCard(
                 imagePath: 'assets/images/icon2.png',
                 title: 'Coleta Seletiva',
                 subtitle: 'Confira os dias disponíveis',
                 icon: Icons.calendar_month,
                 onTap: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => const ColetaView()));
+                  Navigator.push(
+                    context, 
+                    MaterialPageRoute(builder: (context) => const ColetaView())
+                  );
                 },
               ),
               const SizedBox(height: 30),

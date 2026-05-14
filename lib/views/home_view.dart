@@ -1,31 +1,25 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart'; // Import necessário
-import 'package:google_sign_in/google_sign_in.dart'; // Import necessário
+import 'package:firebase_auth/firebase_auth.dart'; 
+import 'package:google_sign_in/google_sign_in.dart'; 
 import 'tela_inicial_view.dart';
 
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
 
-  // 🔹 FUNÇÃO QUE ABRE O LOGIN DO GOOGLE
   Future<void> _fazerLoginGoogle(BuildContext context) async {
     try {
-      // 1. Abre a janelinha do Google para selecionar o e-mail
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
-      if (googleUser == null) return; // Usuário fechou a janelinha
+      if (googleUser == null) return; 
 
-      // 2. Obtém os dados de autenticação da conta selecionada
       final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
 
-      // 3. Cria a credencial para o Firebase
       final AuthCredential credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
-      // 4. Faz o login no Firebase
       await FirebaseAuth.instance.signInWithCredential(credential);
 
-      // 5. Se deu certo, vai para a tela inicial
       if (context.mounted) {
         Navigator.pushReplacement(
           context,
@@ -33,7 +27,6 @@ class HomeView extends StatelessWidget {
         );
       }
     } catch (e) {
-      // Exibe erro caso algo falhe (ex: falta de internet ou erro de config)
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Erro ao conectar com Google: $e')),
@@ -47,7 +40,7 @@ class HomeView extends StatelessWidget {
     return Scaffold(
       body: Stack(
         children: [
-          // Fundo (Mantido)
+          // Fundo
           Container(
             width: double.infinity,
             height: double.infinity,
@@ -64,7 +57,7 @@ class HomeView extends StatelessWidget {
             ),
           ),
 
-          // Conteúdo (Mantido)
+          // Conteúdo
           Padding(
             padding: const EdgeInsets.only(bottom: 120),
             child: Column(
@@ -81,9 +74,9 @@ class HomeView extends StatelessWidget {
                     color: Color.fromRGBO(48, 93, 60, 1),
                   ),
                 ),
-                const SizedBox(height: 50),
+                const SizedBox(height: 40),
 
-                // Botão Cadastrar (Mantido)
+                // Botão Cadastrar
                 SizedBox(
                   width: 310,
                   height: 54,
@@ -98,9 +91,9 @@ class HomeView extends StatelessWidget {
                   ),
                 ),
 
-                const SizedBox(height: 25),
+                const SizedBox(height: 15),
 
-                // Botão Visitante (Mantido)
+                // Botão Visitante
                 SizedBox(
                   width: 310,
                   height: 54,
@@ -120,24 +113,29 @@ class HomeView extends StatelessWidget {
                   ),
                 ),
 
-                const SizedBox(height: 20),
-                const Text('Acessar com', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Colors.black)),
-                const SizedBox(height: 10),
+                const SizedBox(height: 25),
+                const Text('Ou acesse com', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.grey)),
+                const SizedBox(height: 15),
 
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    IconButton(
-                      icon: Image.asset('assets/images/facebook.png', width: 40),
-                      onPressed: () {}, 
+                // 🔥 BOTÃO GOOGLE (ESTILO LARGO)
+                SizedBox(
+                  width: 310,
+                  height: 54,
+                  child: ElevatedButton.icon(
+                    icon: Image.asset('assets/images/google.png', width: 24),
+                    label: const Text('Entrar com Google', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+                    onPressed: () => _fazerLoginGoogle(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.black,
+                      elevation: 2,
+                      side: const BorderSide(color: Colors.grey, width: 0.5),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     ),
-                    // 🔥 AQUI ESTÁ A CHAMADA PARA O LOGIN DO GOOGLE
-                    IconButton(
-                      icon: Image.asset('assets/images/google.png', width: 40),
-                      onPressed: () => _fazerLoginGoogle(context), 
-                    ),
-                  ],
+                  ),
                 ),
+
+                const SizedBox(height: 15),
 
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -156,13 +154,6 @@ class HomeView extends StatelessWidget {
             ),
           ),
 
-          // Imagem Base (Mantida)
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Image.asset('assets/images/base.png', width: double.infinity, fit: BoxFit.cover),
-          ),
         ],
       ),
     );
