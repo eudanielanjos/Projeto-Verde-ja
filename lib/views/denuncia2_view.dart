@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // 1. Importação necessária para os formatadores
+import 'package:flutter/services.dart';
 
+// --- 1. TELA DE FORMULÁRIO (DENUNCIAS2) ---
 class Denuncias2 extends StatefulWidget {
   const Denuncias2({super.key});
 
@@ -98,6 +99,16 @@ class _Denuncias2State extends State<Denuncias2> {
                           );
                         }).toList(),
                       ),
+
+                      // ESPAÇO PARA ESCRITA (Aparece apenas se selecionar "Outros")
+                      if (tipoSelecionado == "Outros")
+                        Padding(
+                          padding: const EdgeInsets.only(top: 15),
+                          child: TextField(
+                            decoration: campo("Qual o tipo de denúncia?", Icons.edit_note),
+                          ),
+                        ),
+
                       const SizedBox(height: 25),
                       const Text(
                         "Endereço da Ocorrência",
@@ -105,7 +116,6 @@ class _Denuncias2State extends State<Denuncias2> {
                       ),
                       const SizedBox(height: 15),
                       
-                      // CEP: Apenas números
                       TextField(
                         decoration: campo("CEP", Icons.location_on),
                         keyboardType: TextInputType.number,
@@ -120,7 +130,6 @@ class _Denuncias2State extends State<Denuncias2> {
                           Expanded(
                             child: TextField(
                               decoration: campo("Número", Icons.pin),
-                              // 2. Configuração para aceitar apenas números
                               keyboardType: TextInputType.number,
                               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                             ),
@@ -184,7 +193,13 @@ class _Denuncias2State extends State<Denuncias2> {
                       const SizedBox(height: 30),
                       Center(
                         child: ElevatedButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            // VAI PARA A TELA DE SPLASH
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const EnvioDenunciaSplash()),
+                            );
+                          },
                           style: ElevatedButton.styleFrom(
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                             backgroundColor: const Color(0xFF59BA15),
@@ -201,6 +216,89 @@ class _Denuncias2State extends State<Denuncias2> {
                     ],
                   ),
                 ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// --- 2. TELA DE SPLASH (SIMULA O ENVIO) ---
+class EnvioDenunciaSplash extends StatefulWidget {
+  const EnvioDenunciaSplash({super.key});
+
+  @override
+  State<EnvioDenunciaSplash> createState() => _EnvioDenunciaSplashState();
+}
+
+class _EnvioDenunciaSplashState extends State<EnvioDenunciaSplash> {
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const ConfirmacaoDenunciaView()),
+        );
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      backgroundColor: Color(0xFF1F5C3A),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(color: Colors.white),
+            SizedBox(height: 20),
+            Text("Enviando sua denúncia...", style: TextStyle(color: Colors.white, fontSize: 18)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// --- 3. TELA DE CONFIRMAÇÃO (SUCESSO) ---
+class ConfirmacaoDenunciaView extends StatelessWidget {
+  const ConfirmacaoDenunciaView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF2F2F2),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 30),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.check_circle_rounded, size: 100, color: Color(0xFF59BA15)),
+              const SizedBox(height: 20),
+              const Text(
+                "Denúncia Enviada!",
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1F5C3A)),
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                "Sua solicitação foi registrada com sucesso.",
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16),
+              ),
+              const SizedBox(height: 40),
+              ElevatedButton(
+                onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF1F5C3A),
+                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                ),
+                child: const Text("VOLTAR AO INÍCIO", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
               ),
             ],
           ),

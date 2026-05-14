@@ -190,7 +190,7 @@ class _EducacaoViewState extends State<EducacaoView> {
 
               const Center(
                 child: Text(
-                  "Educação Ambiental 🌿",
+                  "Educação Ambiental ",
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
               ),

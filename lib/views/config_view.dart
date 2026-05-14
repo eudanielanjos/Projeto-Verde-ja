@@ -12,7 +12,7 @@ import 'coleta_view.dart';
 import 'educacao_view.dart';
 import 'perfil_view.dart';
 import 'historico_denuncias_view.dart';
-import 'notificacoes_view.dart'; // Certifique-se de que o arquivo se chama assim
+import 'notificacoes_view.dart';
 
 class ConfiguracaoPage extends StatefulWidget {
   const ConfiguracaoPage({super.key});
@@ -22,6 +22,26 @@ class ConfiguracaoPage extends StatefulWidget {
 }
 
 class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
+  
+  // Função centralizada para exibir a mensagem "Em breve"
+  void _mostrarMensagemEmBreve(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text(
+          "Funcionalidade em breve!",
+          textAlign: TextAlign.center,
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: const Color(0xFF1F5C3A),
+        duration: const Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -116,7 +136,7 @@ class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
             ),
           ),
 
-          // --- GRADE DE BOTÕES (2 EM 2) ---
+          // --- GRADE DE BOTÕES ---
           Expanded(
             child: GridView.count(
               crossAxisCount: 2,
@@ -144,13 +164,30 @@ class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
                   label: "Notificações", 
                   onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const NotificacoesView()))
                 ), 
-                _buildGridButton(icon: Icons.dark_mode_outlined, label: "Tema", onTap: () {}),
-                _buildGridButton(icon: Icons.help_outline, label: "Suporte", onTap: () {}),
-                _buildGridButton(icon: Icons.info_outline, label: "Sobre o App", onTap: () {}),
+                
+                // Botões com aviso de "Em breve"
+                _buildGridButton(
+                  icon: Icons.dark_mode_outlined, 
+                  label: "Tema", 
+                  onTap: () => _mostrarMensagemEmBreve(context)
+                ),
+                _buildGridButton(
+                  icon: Icons.help_outline, 
+                  label: "Suporte", 
+                  onTap: () => _mostrarMensagemEmBreve(context)
+                ),
+                _buildGridButton(
+                  icon: Icons.info_outline, 
+                  label: "Sobre o App", 
+                  onTap: () => _mostrarMensagemEmBreve(context)
+                ),
+                
                 _buildGridButton(
                   icon: Icons.delete_forever_outlined, 
                   label: "Excluir Conta", 
-                  onTap: () {}, 
+                  onTap: () {
+                    // Implementação futura de exclusão
+                  }, 
                   color: Colors.red.shade50
                 ),
               ],
@@ -197,7 +234,6 @@ class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
     );
   }
 
-  // Métodos auxiliares do menu lateral
   Widget _buildMenuCard({required IconData icon, required String title, required VoidCallback onTap}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

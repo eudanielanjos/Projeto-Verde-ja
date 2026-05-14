@@ -366,8 +366,8 @@ class _HistoricoDenunciasViewState extends State<HistoricoDenunciasView> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(Icons.logout, color: Colors.white),
-              const SizedBox(width: 10),
-              const Text("Sair da conta", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+              SizedBox(width: 10),
+              Text("Sair da conta", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
             ],
           ),
         ),

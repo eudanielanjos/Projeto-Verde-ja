@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart'; // Import necessário
-import 'package:google_sign_in/google_sign_in.dart'; // Import necessário
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'denuncia_view.dart';
 import 'perfil_view.dart';
 import 'educacao_view.dart';
@@ -8,6 +8,7 @@ import 'config_view.dart';
 import 'historico_denuncias_view.dart';
 import 'home_view.dart';
 import 'coleta_view.dart';
+import 'map_view.dart';
 
 class TelaInicialView extends StatefulWidget {
   const TelaInicialView({super.key});
@@ -23,7 +24,6 @@ class _TelaInicialViewState extends State<TelaInicialView> {
       endDrawer: Drawer(
         child: Column(
           children: [
-            // Header do Menu (Mantido original)
             Container(
               width: double.infinity,
               padding: const EdgeInsets.only(top: 50, bottom: 25),
@@ -52,8 +52,6 @@ class _TelaInicialViewState extends State<TelaInicialView> {
                 ],
               ),
             ),
-            
-            // Itens do Menu (Mantido original)
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.symmetric(vertical: 20),
@@ -106,22 +104,15 @@ class _TelaInicialViewState extends State<TelaInicialView> {
                 ],
               ),
             ),
-
-            // 🔥 BOTÃO SAIR DA CONTA COM LIMPEZA DE CACHE E LOGOUT
             Padding(
               padding: const EdgeInsets.all(16),
               child: InkWell(
                 borderRadius: BorderRadius.circular(14),
                 onTap: () async {
-                  // 1. Limpa o cache de imagens da memória do Flutter
                   PaintingBinding.instance.imageCache.clear();
                   PaintingBinding.instance.imageCache.clearLiveImages();
-
-                  // 2. Faz o logout no Firebase e no Google
                   await FirebaseAuth.instance.signOut();
                   await GoogleSignIn().signOut();
-
-                  // 3. Redireciona para a HomeView e remove todas as telas anteriores da pilha
                   if (context.mounted) {
                     Navigator.pushAndRemoveUntil(
                       context,
@@ -154,8 +145,6 @@ class _TelaInicialViewState extends State<TelaInicialView> {
           ],
         ),
       ),
-
-      // Restante do body (Mantido original)
       body: Container(
         width: double.infinity,
         height: double.infinity,
@@ -207,22 +196,34 @@ class _TelaInicialViewState extends State<TelaInicialView> {
               ),
               const SizedBox(height: 15),
               _buildMainCard(
-                imagePath: 'assets/images/icon1.png',
-                title: 'Coleta Regular',
-                subtitle: 'Horários e Dias no Bairro',
+                imagePath: 'assets/images/ponto.png',
+                title: 'Pontos de Coleta',
+                subtitle: 'Pontos de coleta próximos a você',
                 icon: Icons.arrow_forward_ios,
                 onTap: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => const ColetaView()));
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => Scaffold( 
+                        body: const MapaView(),
+                      ),
+                    ),
+                  );
                 },
               ),
               const SizedBox(height: 15),
+              
+              // 🔥 AQUI FOI ADICIONADA A NAVEGAÇÃO PARA ColetaView
               _buildMainCard(
                 imagePath: 'assets/images/icon2.png',
                 title: 'Coleta Seletiva',
                 subtitle: 'Confira os dias disponíveis',
                 icon: Icons.calendar_month,
                 onTap: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => const ColetaView()));
+                  Navigator.push(
+                    context, 
+                    MaterialPageRoute(builder: (context) => const ColetaView())
+                  );
                 },
               ),
               const SizedBox(height: 30),
@@ -233,7 +234,6 @@ class _TelaInicialViewState extends State<TelaInicialView> {
     );
   }
 
-  // Widgets Auxiliares (Mantidos originais)
   Widget _buildMenuCard({required IconData icon, required String title, required VoidCallback onTap}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

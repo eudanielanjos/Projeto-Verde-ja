@@ -182,7 +182,7 @@ Widget _buildTableContent() {
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  ...linhasTabela.asMap().entries.map((entry) => _rowInput(entry.key)).toList(),
+                  ...linhasTabela.asMap().entries.map((entry) => _rowInput(entry.key)),
                 ],
               ),
             ),
