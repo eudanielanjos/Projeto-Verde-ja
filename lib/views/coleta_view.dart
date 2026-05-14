@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // Import adicionado
+import 'package:google_sign_in/google_sign_in.dart'; // Import adicionado
 
 // Importações para o menu
 import 'perfil_view.dart';
@@ -75,9 +77,11 @@ class _ColetaViewState extends State<ColetaView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // --- MENU LATERAL ATUALIZADO (DRAWER) ---
       endDrawer: Drawer(
         child: Column(
           children: [
+            // Header do Menu
             Container(
               width: double.infinity,
               padding: const EdgeInsets.only(top: 50, bottom: 25),
@@ -100,6 +104,8 @@ class _ColetaViewState extends State<ColetaView> {
                 ],
               ),
             ),
+            
+            // Itens do Menu
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.symmetric(vertical: 20),
@@ -115,7 +121,7 @@ class _ColetaViewState extends State<ColetaView> {
                   _buildMenuCard(
                     icon: Icons.calendar_month,
                     title: "Coleta Regular",
-                    onTap: () => Navigator.pop(context),
+                    onTap: () => Navigator.pop(context), // Já está na tela
                   ),
                   _buildMenuCard(
                     icon: Icons.school,
@@ -152,12 +158,25 @@ class _ColetaViewState extends State<ColetaView> {
                 ],
               ),
             ),
+
+            // BOTÃO SAIR COM LOGOUT REAL E LIMPEZA
             Padding(
               padding: const EdgeInsets.all(16),
               child: InkWell(
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => const HomeView()), (route) => false);
+                borderRadius: BorderRadius.circular(14),
+                onTap: () async {
+                  PaintingBinding.instance.imageCache.clear();
+                  PaintingBinding.instance.imageCache.clearLiveImages();
+                  await FirebaseAuth.instance.signOut();
+                  await GoogleSignIn().signOut();
+
+                  if (context.mounted) {
+                    Navigator.pushAndRemoveUntil(
+                      context, 
+                      MaterialPageRoute(builder: (context) => const HomeView()), 
+                      (route) => false
+                    );
+                  }
                 },
                 child: Container(
                   height: 55,
@@ -246,7 +265,7 @@ class _ColetaViewState extends State<ColetaView> {
     );
   }
 
-  // --- MÉTODOS AUXILIARES ---
+  // --- MÉTODOS AUXILIARES DO MENU (DESIGN IGUAL À TELA INICIAL) ---
 
   Widget _buildMenuCard({required IconData icon, required String title, required VoidCallback onTap}) {
     return Padding(
@@ -272,6 +291,8 @@ class _ColetaViewState extends State<ColetaView> {
       ),
     );
   }
+
+  // --- RESTANTE DOS MÉTODOS ORIGINAIS DA VIEW ---
 
   Widget _buildCalendar() {
     return Container(

@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart'; 
+
+// Imports das Views
 import 'package:flutter_app/views/home_view.dart';
 import 'views/splash_view.dart';
 import 'views/login_view.dart';
@@ -9,23 +13,19 @@ import 'views/educacao_view.dart';
 import 'views/admin_view.dart';
 import 'views/admin_educacao_view.dart';
 import 'views/historico_admin_view.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart'; 
+import 'views/gestao_coleta_view.dart';
 
 void main() async {
-  // Garante que os widgets estejam prontos antes do Firebase
   WidgetsFlutterBinding.ensureInitialized();
   
   try {
-    // Se o Firebase ainda não estiver rodando, ele inicializa
-    // Se já estiver (devido a um Hot Restart), ele ignora o erro e segue em frente
     if (Firebase.apps.isEmpty) {
       await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,
       );
     }
   } catch (e) {
-    debugPrint("Firebase já inicializado: $e");
+    debugPrint("Erro ao inicializar Firebase: $e");
   }
   
   runApp(const MyApp());
@@ -68,6 +68,7 @@ class _MyAppState extends State<MyApp> {
             ),
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
+        title: 'Seu App de Coleta',
         initialRoute: '/',
         routes: {
           '/': (context) => const SplashView(),
@@ -80,6 +81,8 @@ class _MyAppState extends State<MyApp> {
           '/admin': (context) => const AdminMenuView(),
           '/educacaoAdmin': (context) => const EducacaoAdminView(),
           '/historicoAdmin': (context) => const HistoricoAdminView(),
+          '/gestaoColetasAdmin': (context) => const ColetaAdmin(),
+          '/home_visitante': (context) => const HomeView(), // Adicionada caso use no Fale Conosco
         },
       ),
     );

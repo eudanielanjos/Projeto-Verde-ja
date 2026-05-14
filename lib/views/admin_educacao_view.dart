@@ -8,170 +8,206 @@ class EducacaoAdminView extends StatefulWidget {
 }
 
 class _EducacaoAdminViewState extends State<EducacaoAdminView> {
+  final Color greenDark = const Color(0xFF0D2D19);
   final Color greenPrimary = const Color(0xFF1B4D2E);
-  final Color greenAccent = const Color(0xFF7BB132);
-  final Color cardWhite = const Color(0xFFF8FAF9);
+  final Color greenAccent = const Color(0xFF8CC63F);
+  final Color softGrey = const Color(0xFFF0F4F1);
 
-  // Lista de vídeos
   final List<Map<String, String>> _videos = [
-    {"titulo": "Como Reciclar", "link": "oV3pK3SOjxo"},
-    {"titulo": "Sustentabilidade", "link": "GXFXdtycljo"},
-    {"titulo": "Meio Ambiente", "link": "AiP2qscQUes"},
+    {"titulo": "Manual da Reciclagem", "link": "oV3pK3SOjxo", "visualizacoes": "1.2k"},
+    {"titulo": "Sustentabilidade Urbana", "link": "GXFXdtycljo", "visualizacoes": "850"},
+    {"titulo": "Preservação de Rios", "link": "AiP2qscQUes", "visualizacoes": "2.4k"},
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: greenPrimary,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 20),
-          onPressed: () => Navigator.pop(context),
+      backgroundColor: softGrey,
+      // 🔹 Floating Action Button com Design Orgânico
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _modalFormulario(context),
+        backgroundColor: greenPrimary,
+        elevation: 8,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        icon: const Icon(Icons.video_call_rounded, color: Colors.white, size: 28),
+        label: const Text("ADICIONAR", 
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 1.1)
         ),
-        title: const Text(
-          "PAINEL DE VÍDEOS",
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, letterSpacing: 1.2),
-        ),
-        centerTitle: true,
       ),
       
-      // 🔹 BOTÃO DE ADICIONAR MELHORADO
-      floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: greenAccent,
-        elevation: 4,
-        icon: const Icon(Icons.add_circle_outline, color: Colors.white),
-        label: const Text("ADICIONAR VÍDEO", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        onPressed: () => _modalFormulario(context),
-      ),
+      body: CustomScrollView(
+        physics: const BouncingScrollPhysics(),
+        slivers: [
+          // 🔹 AppBar com Gradiente e Design Curvado
+          SliverAppBar(
+            expandedHeight: 220,
+            pinned: true,
+            stretch: true,
+            backgroundColor: greenDark,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+              onPressed: () => Navigator.pop(context),
+            ),
+            flexibleSpace: FlexibleSpaceBar(
+              stretchModes: const [StretchMode.zoomBackground],
+              centerTitle: true,
+              title: const Text("GESTÃO DE CONTEÚDO", 
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 2)
+              ),
+              background: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [greenDark, greenPrimary, greenAccent.withOpacity(0.4)],
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    right: -20,
+                    top: 40,
+                    child: Icon(Icons.eco, size: 200, color: Colors.white.withOpacity(0.05)),
+                  ),
+                ],
+              ),
+            ),
+          ),
 
-      body: Column(
-        children: [
-          _buildHeaderInfo(),
-          Expanded(
-            child: _videos.isEmpty 
-              ? _buildEmptyState()
-              : ListView.builder(
-                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 100),
-                  itemCount: _videos.length,
-                  itemBuilder: (context, index) {
-                    final video = _videos[index];
-                    return _buildEnhancedVideoCard(index, video['titulo']!, video['link']!);
-                  },
-                ),
+          // 🔹 Lista de Vídeos com Design de Cards Profissionais
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(20, 25, 20, 100),
+            sliver: SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  final video = _videos[index];
+                  return _buildVideoCard(index, video);
+                },
+                childCount: _videos.length,
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
-  // 🔹 WIDGET: CABEÇALHO INFORMATIVO
-  Widget _buildHeaderInfo() {
+  Widget _buildVideoCard(int index, Map<String, String> video) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 30),
-      child: Column(
-        children: [
-          const Icon(Icons.settings_suggest_outlined, color: Colors.white54, size: 40),
-          const SizedBox(height: 10),
-          Text(
-            "Gerencie os conteúdos educativos da plataforma. Use IDs válidos do YouTube para garantir a reprodução.",
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 13, height: 1.5),
-          ),
-          const SizedBox(height: 10),
-          const Divider(color: Colors.white12, thickness: 1),
-        ],
-      ),
-    );
-  }
-
-  // 🔹 WIDGET: CARD DE VÍDEO CUSTOMIZADO
-  Widget _buildEnhancedVideoCard(int index, String titulo, String id) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 25),
       decoration: BoxDecoration(
-        color: cardWhite,
-        borderRadius: BorderRadius.circular(20),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(25),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 10, offset: const Offset(0, 4)),
+          BoxShadow(
+            color: greenPrimary.withOpacity(0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
         ],
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: Container(
-          decoration: const BoxDecoration(
-            border: Border(left: BorderSide(color: Color(0xFF7BB132), width: 6)),
-          ),
-          child: ListTile(
-            contentPadding: const EdgeInsets.all(20),
-            leading: Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(color: greenPrimary.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
-              child: Icon(Icons.play_circle_outline, color: greenPrimary, size: 30),
-            ),
-            title: Text(titulo, style: TextStyle(fontWeight: FontWeight.bold, color: greenPrimary, fontSize: 17)),
-            subtitle: Padding(
-              padding: const EdgeInsets.only(top: 5),
-              child: Text("ID: $id", style: const TextStyle(color: Colors.black45, fontSize: 12, fontWeight: FontWeight.w600)),
-            ),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.mode_edit_outline_outlined, color: Colors.blueAccent),
-                  onPressed: () => _modalFormulario(context, index: index, titulo: titulo, id: id),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // "Thumbnail" Simulada do Vídeo
+          Stack(
+            children: [
+              Container(
+                height: 160,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
+                  image: DecorationImage(
+                    image: NetworkImage("https://img.youtube.com/vi/${video['link']}/hqdefault.jpg"),
+                    fit: BoxFit.cover,
+                  ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.delete_sweep_outlined, color: Colors.redAccent),
-                  onPressed: () => _confirmarExclusao(index),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
+                    color: Colors.black.withOpacity(0.2),
+                  ),
+                  child: const Icon(Icons.play_circle_fill_rounded, color: Colors.white, size: 60),
+                ),
+              ),
+              Positioned(
+                top: 15,
+                right: 15,
+                child: _buildGlassAction(
+                  icon: Icons.edit_rounded,
+                  onTap: () => _modalFormulario(context, index: index, titulo: video['titulo'], id: video['link']),
+                ),
+              ),
+              Positioned(
+                top: 70,
+                right: 15,
+                child: _buildGlassAction(
+                  icon: Icons.delete_outline_rounded,
+                  color: Colors.redAccent,
+                  onTap: () => _confirmarExclusao(index),
+                ),
+              ),
+            ],
+          ),
+          
+          // Informações do Vídeo
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(video['titulo']!, 
+                        style: TextStyle(color: greenDark, fontWeight: FontWeight.bold, fontSize: 18)
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          Icon(Icons.link_rounded, size: 14, color: greenAccent),
+                          const SizedBox(width: 4),
+                          Text("ID: ${video['link']}", 
+                            style: const TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.w600)
+                          ),
+                          const SizedBox(width: 15),
+                          Icon(Icons.remove_red_eye_outlined, size: 14, color: greenAccent),
+                          const SizedBox(width: 4),
+                          Text("${video['visualizacoes']} views", 
+                            style: const TextStyle(color: Colors.grey, fontSize: 12)
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  // 🔹 Botão com Efeito de Vidro (Glassmorphism)
+  Widget _buildGlassAction({required IconData icon, required VoidCallback onTap, Color color = Colors.white}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.9),
+          shape: BoxShape.circle,
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10)],
         ),
+        child: Icon(icon, color: color == Colors.white ? greenPrimary : color, size: 22),
       ),
     );
   }
 
-  // 🔹 ESTADO VAZIO
-  Widget _buildEmptyState() {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.video_collection_outlined, color: Colors.white24, size: 80),
-          SizedBox(height: 10),
-          Text("Nenhum vídeo cadastrado.", style: TextStyle(color: Colors.white54, fontSize: 16)),
-        ],
-      ),
-    );
-  }
-
-  // 🔹 LÓGICA: CONFIRMAR EXCLUSÃO
-  void _confirmarExclusao(int index) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text("Excluir Vídeo?"),
-        content: const Text("Essa ação não poderá ser desfeita."),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("CANCELAR")),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
-            onPressed: () {
-              setState(() => _videos.removeAt(index));
-              Navigator.pop(context);
-            },
-            child: const Text("EXCLUIR", style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // 🔹 MODAL: FORMULÁRIO ESTILIZADO
   void _modalFormulario(BuildContext context, {int? index, String? titulo, String? id}) {
     final TextEditingController tituloController = TextEditingController(text: titulo);
     final TextEditingController idController = TextEditingController(text: id);
@@ -179,65 +215,88 @@ class _EducacaoAdminViewState extends State<EducacaoAdminView> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(30))),
-      builder: (context) => Padding(
-        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom, top: 30, left: 25, right: 25),
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(35)),
+        ),
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom + 20, 
+          top: 20, left: 25, right: 25
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              index == null ? "🚀 Novo Conteúdo" : "📝 Editar Conteúdo", 
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: greenPrimary),
+            Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(10))),
+            const SizedBox(height: 25),
+            Text(index == null ? "🆕 NOVO CONTEÚDO" : "📝 EDITAR VÍDEO", 
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: greenPrimary)
             ),
             const SizedBox(height: 25),
-            _buildTextField(controller: tituloController, label: "Título chamativo", icon: Icons.title),
+            _buildTextField(tituloController, "Título do Vídeo", Icons.text_fields_rounded),
             const SizedBox(height: 15),
-            _buildTextField(controller: idController, label: "ID do Vídeo (Youtube)", icon: Icons.link, hint: "Ex: oV3pK3SOjxo"),
-            const SizedBox(height: 30),
-            SizedBox(
-              width: double.infinity,
-              height: 55,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: greenPrimary,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                  elevation: 2,
-                ),
-                onPressed: () {
-                  if (tituloController.text.isNotEmpty && idController.text.isNotEmpty) {
-                    setState(() {
-                      if (index == null) {
-                        _videos.add({"titulo": tituloController.text, "link": idController.text});
-                      } else {
-                        _videos[index] = {"titulo": tituloController.text, "link": idController.text};
-                      }
-                    });
-                    Navigator.pop(context);
-                  }
-                },
-                child: const Text("SALVAR CONTEÚDO", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+            _buildTextField(idController, "ID do Vídeo no Youtube", Icons.play_circle_outline),
+            const SizedBox(height: 35),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: greenPrimary,
+                minimumSize: const Size(double.infinity, 60),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                elevation: 5,
               ),
+              onPressed: () {
+                if (tituloController.text.isNotEmpty && idController.text.isNotEmpty) {
+                  setState(() {
+                    if (index == null) {
+                      _videos.add({"titulo": tituloController.text, "link": idController.text, "visualizacoes": "0"});
+                    } else {
+                      _videos[index] = {"titulo": tituloController.text, "link": idController.text, "visualizacoes": "..."};
+                    }
+                  });
+                  Navigator.pop(context);
+                }
+              },
+              child: const Text("FINALIZAR", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
             ),
-            const SizedBox(height: 30),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildTextField({required TextEditingController controller, required String label, required IconData icon, String? hint}) {
+  Widget _buildTextField(TextEditingController controller, String label, IconData icon) {
     return TextField(
       controller: controller,
       decoration: InputDecoration(
         labelText: label,
-        hintText: hint,
         prefixIcon: Icon(icon, color: greenPrimary),
         filled: true,
-        fillColor: Colors.grey[100],
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
-        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide(color: greenAccent, width: 2)),
+        fillColor: softGrey,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: BorderSide.none),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: BorderSide(color: greenAccent)),
+      ),
+    );
+  }
+
+  void _confirmarExclusao(int index) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+        title: const Text("Excluir conteúdo?"),
+        content: const Text("Isso removerá o vídeo permanentemente da lista educativa."),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text("CANCELAR")),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+            onPressed: () {
+              setState(() => _videos.removeAt(index));
+              Navigator.pop(context);
+            },
+            child: const Text("EXCLUIR", style: TextStyle(color: Colors.white)),
+          ),
+        ],
       ),
     );
   }
