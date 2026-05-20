@@ -1,4 +1,7 @@
+
+import 'dart:io'; // Importado para trabalhar com a classe File
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart'; // Importado o Image Picker
 import 'package:flutter_app/views/coleta_view.dart';
 import 'tela_inicial_view.dart';
 import 'config_view.dart';
@@ -15,9 +18,125 @@ class PerfilPage extends StatefulWidget {
 
 class _PerfilPageState extends State<PerfilPage> {
   // Dados simulados que podem ser alterados
-  String telefone = "+55 11 99999-9999";
-  String endereco = "Rua Exemplo, 123 - São Paulo, SP";
+  String telefone = "+55 11 99999-9999"; // Mantido com código internacional
+  String endereco = "Rua Exemplo, 123";
+  String bairro = "Centro"; // Nova variável para o bairro
   String nome = "Usuário Admin";
+
+  // Variável para armazenar o arquivo da imagem selecionada
+  File? _imagemPerfil;
+  final ImagePicker _picker = ImagePicker();
+
+  // Função interna para capturar do ImagePicker
+  Future<void> _escolherImagem(ImageSource source) async {
+    try {
+      final XFile? imagemSelecionada = await _picker.pickImage(
+        source: source,
+        imageQuality: 70, // Otimiza o tamanho/qualidade da imagem
+        maxWidth: 500,    // Redimensiona para não sobrecarregar a memória
+      );
+
+      if (imagemSelecionada != null) {
+        setState(() {
+          _imagemPerfil = File(imagemSelecionada.path);
+        });
+      }
+    } catch (e) {
+      debugPrint("Erro ao selecionar imagem: $e");
+    }
+  }
+
+  // Exibe as opções de Câmera ou Galeria ao tocar no ícone
+  void _tirarFotoOuSelecionarGaleria() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 15),
+                child: Text(
+                  "Foto de Perfil",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ),
+              ListTile(
+                leading: const Icon(Icons.camera_alt, color: Color(0xFF1F5C3A)),
+                title: const Text("Tirar Foto com a Câmera"),
+                onTap: () {
+                  Navigator.pop(context);
+                  _escolherImagem(ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.image, color: Color(0xFF1F5C3A)),
+                title: const Text("Escolher da Galeria"),
+                onTap: () {
+                  Navigator.pop(context);
+                  _escolherImagem(ImageSource.gallery);
+                },
+              ),
+              const SizedBox(height: 10),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // Abre um modal para visualizar a foto em tamanho expandido
+  void _visualizarFotoPerfil() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.all(15),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Align(
+                alignment: Alignment.centerRight,
+                child: IconButton(
+                  icon: const Icon(Icons.close, color: Colors.white, size: 30),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ),
+              const SizedBox(height: 10),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: Container(
+                  width: double.infinity,
+                  constraints: BoxConstraints(
+                    maxHeight: MediaQuery.of(context).size.height * 0.6,
+                  ),
+                  color: const Color(0xFFF1F5F2),
+                  child: _imagemPerfil != null
+                      ? Image.file(
+                          _imagemPerfil!,
+                          fit: BoxFit.contain,
+                        )
+                      : const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 60),
+                          child: Icon(
+                            Icons.person,
+                            size: 200,
+                            color: Color(0xFF1F5C3A),
+                          ),
+                        ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -74,7 +193,7 @@ class _PerfilPageState extends State<PerfilPage> {
               children: [
                 _buildInfoCard(
                   icon: Icons.phone_android_rounded,
-                  title: "Telefone",
+                  title: "Telefone (com código internacional)",
                   value: telefone,
                 ),
                 _buildInfoCard(
@@ -83,13 +202,17 @@ class _PerfilPageState extends State<PerfilPage> {
                   value: endereco,
                 ),
                 _buildInfoCard(
+                  icon: Icons.holiday_village_outlined,
+                  title: "Bairro",
+                  value: bairro,
+                ),
+                _buildInfoCard(
                   icon: Icons.lock_outline_rounded,
                   title: "Senha",
                   value: "********",
                 ),
                 const SizedBox(height: 20),
                 
-                // Botão Editar que abre o Modal
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 40),
                   child: ElevatedButton.icon(
@@ -111,11 +234,10 @@ class _PerfilPageState extends State<PerfilPage> {
     );
   }
 
-  // --- FUNCIONALIDADE: MODAL DE EDIÇÃO ---
   void _abrirModalEdicao(BuildContext context) {
-    // Controladores para pegar os novos textos
-    final teledoneController = TextEditingController(text: telefone);
+    final telefoneController = TextEditingController(text: telefone);
     final enderecoController = TextEditingController(text: endereco);
+    final bairroController = TextEditingController(text: bairro);
 
     showModalBottomSheet(
       context: context,
@@ -138,15 +260,35 @@ class _PerfilPageState extends State<PerfilPage> {
               const SizedBox(height: 20),
               const Text("Editar Informações", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1F5C3A))),
               const SizedBox(height: 25),
-              _buildCampoEdicao(label: "Telefone", controller: teledoneController, icon: Icons.phone),
+              _buildCampoEdicao(label: "Telefone (Obrigatório Ex: +55...)", controller: telefoneController, icon: Icons.phone),
               const SizedBox(height: 15),
               _buildCampoEdicao(label: "Endereço", controller: enderecoController, icon: Icons.map),
+              const SizedBox(height: 15),
+              _buildCampoEdicao(label: "Bairro", controller: bairroController, icon: Icons.holiday_village_outlined),
               const SizedBox(height: 30),
               ElevatedButton(
                 onPressed: () {
+                  String textoTelefone = telefoneController.text.trim();
+
+                  // Validação: Verifica se começa estritamente com '+' seguido de números (Ex: +55...)
+                  RegExp ddiRegex = RegExp(r'^\+\d+');
+
+                  if (!ddiRegex.hasMatch(textoTelefone)) {
+                    // Exibe um aviso caso o DDI não tenha sido informado
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("Erro: O código internacional (Ex: +55) é obrigatório!"),
+                        backgroundColor: Colors.red,
+                        duration: Duration(seconds: 3),
+                      ),
+                    );
+                    return; // Bloqueia a execução e não fecha o modal
+                  }
+
                   setState(() {
-                    telefone = teledoneController.text;
+                    telefone = textoTelefone;
                     endereco = enderecoController.text;
+                    bairro = bairroController.text;
                   });
                   Navigator.pop(context);
                 },
@@ -164,28 +306,40 @@ class _PerfilPageState extends State<PerfilPage> {
     );
   }
 
-  // --- WIDGETS AUXILIARES ---
-
+  // --- EXIBIÇÃO DE FOTO DINÂMICA COM SUPORTE A TOQUE ---
   Widget _buildAvatarComFoto() {
     return Stack(
       alignment: Alignment.bottomRight,
       children: [
-        const CircleAvatar(
-          radius: 55,
-          backgroundColor: Colors.white,
+        GestureDetector(
+          onTap: _visualizarFotoPerfil, // Abre a visualização ampliada ao tocar na foto
           child: CircleAvatar(
-            radius: 52,
-            backgroundColor: Color(0xFFF1F5F2),
-            child: Icon(Icons.person, size: 65, color: Color(0xFF1F5C3A)),
+            radius: 55,
+            backgroundColor: Colors.white,
+            child: CircleAvatar(
+              radius: 52,
+              backgroundColor: const Color(0xFFF1F5F2),
+              backgroundImage: _imagemPerfil != null ? FileImage(_imagemPerfil!) : null,
+              child: _imagemPerfil == null
+                  ? const Icon(Icons.person, size: 65, color: Color(0xFF1F5C3A))
+                  : null,
+            ),
           ),
         ),
-        Container(
-          padding: const EdgeInsets.all(4),
-          decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-          child: const CircleAvatar(
-            radius: 14,
-            backgroundColor: Color(0xFF1F5C3A),
-            child: Icon(Icons.camera_alt, size: 14, color: Colors.white),
+        Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: _tirarFotoOuSelecionarGaleria, // Abre as opções de escolha de foto
+            customBorder: const CircleBorder(),
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+              child: const CircleAvatar(
+                radius: 14,
+                backgroundColor: Color(0xFF1F5C3A),
+                child: Icon(Icons.camera_alt, size: 14, color: Colors.white),
+              ),
+            ),
           ),
         ),
       ],
@@ -225,7 +379,6 @@ class _PerfilPageState extends State<PerfilPage> {
     );
   }
 
-  // --- MENU LATERAL (DRAWER) ---
   Widget _buildMenuDrawer(BuildContext context) {
     return Drawer(
       child: Column(
@@ -323,3 +476,4 @@ class _PerfilPageState extends State<PerfilPage> {
     );
   }
 }
+

@@ -1,5 +1,7 @@
+import 'dart:io'; // IMPORTADO para trabalhar com o arquivo da imagem
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart'; // IMPORTADO o Image Picker
 
 // --- 1. TELA DE FORMULÁRIO (DENUNCIAS2) ---
 class Denuncias2 extends StatefulWidget {
@@ -11,6 +13,10 @@ class Denuncias2 extends StatefulWidget {
 
 class _Denuncias2State extends State<Denuncias2> {
   String tipoSelecionado = "";
+  
+  // VARIÁVEIS PARA O IMAGE PICKER
+  File? _imagemDenuncia;
+  final ImagePicker _picker = ImagePicker();
 
   final List<String> tiposDenuncia = [
     "Lixo Acumulado",
@@ -19,6 +25,33 @@ class _Denuncias2State extends State<Denuncias2> {
     "Entulho",
     "Outros"
   ];
+
+  // FUNÇÃO PARA CAPTURAR OU SELECIONAR A IMAGEM
+  Future<void> _escolherImagem(ImageSource source) async {
+    try {
+      final XFile? imagemSelecionada = await _picker.pickImage(
+        source: source,
+        imageQuality: 70, // Otimiza o tamanho do arquivo
+        maxWidth: 800,    // Evita imagens gigantescas na memória
+      );
+
+      if (imagemSelecionada != null) {
+        setState(() {
+          _imagemDenuncia = File(imagemSelecionada.path);
+        });
+      }
+    } catch (e) {
+      debugPrint("Erro ao selecionar imagem: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Erro ao acessar a mídia: $e"),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
 
   InputDecoration campo(String texto, IconData icon) {
     return InputDecoration(
@@ -100,7 +133,6 @@ class _Denuncias2State extends State<Denuncias2> {
                         }).toList(),
                       ),
 
-                      // ESPAÇO PARA ESCRITA (Aparece apenas se selecionar "Outros")
                       if (tipoSelecionado == "Outros")
                         Padding(
                           padding: const EdgeInsets.only(top: 15),
@@ -163,11 +195,13 @@ class _Denuncias2State extends State<Denuncias2> {
                         ),
                       ),
                       const SizedBox(height: 20),
+                      
+                      // --- BOTÕES DE CÂMERA E GALERIA ATUALIZADOS ---
                       Row(
                         children: [
                           Expanded(
                             child: ElevatedButton.icon(
-                              onPressed: () {},
+                              onPressed: () => _escolherImagem(ImageSource.camera), // CHAMA A CÂMERA
                               icon: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
                               label: const Text("Câmera", style: TextStyle(color: Colors.white)),
                               style: ElevatedButton.styleFrom(
@@ -179,7 +213,7 @@ class _Denuncias2State extends State<Denuncias2> {
                           const SizedBox(width: 10),
                           Expanded(
                             child: ElevatedButton.icon(
-                              onPressed: () {},
+                              onPressed: () => _escolherImagem(ImageSource.gallery), // CHAMA A GALERIA
                               icon: const Icon(Icons.photo, color: Colors.white, size: 20),
                               label: const Text("Galeria", style: TextStyle(color: Colors.white)),
                               style: ElevatedButton.styleFrom(
@@ -190,11 +224,41 @@ class _Denuncias2State extends State<Denuncias2> {
                           ),
                         ],
                       ),
+
+                      // PRÉ-VISUALIZAÇÃO DA IMAGEM SELECIONADA
+                      if (_imagemDenuncia != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 15),
+                          child: Stack(
+                            alignment: Alignment.topRight,
+                            children: [
+                              Container(
+                                height: 160,
+                                width: double.infinity,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(12),
+                                  image: DecorationImage(
+                                    image: FileImage(_imagemDenuncia!),
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.cancel, color: Colors.red, size: 28),
+                                onPressed: () {
+                                  setState(() {
+                                    _imagemDenuncia = null; // Remove a foto
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+
                       const SizedBox(height: 30),
                       Center(
                         child: ElevatedButton(
                           onPressed: () {
-                            // VAI PARA A TELA DE SPLASH
                             Navigator.push(
                               context,
                               MaterialPageRoute(builder: (context) => const EnvioDenunciaSplash()),

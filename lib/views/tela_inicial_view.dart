@@ -206,7 +206,7 @@ class _TelaInicialViewState extends State<TelaInicialView> {
               _buildMainCard(
                 imagePath: 'assets/images/ponto.png',
                 title: 'Pontos de Coleta',
-                subtitle: 'Pontos de coleta próximos a você',
+                subtitle: 'Pontos de coleta próximos',
                 icon: Icons.arrow_forward_ios,
                 onTap: () {
                   Navigator.push(
