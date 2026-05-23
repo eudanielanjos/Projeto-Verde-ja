@@ -44,6 +44,7 @@ class _AcessibilidadeViewState extends State<AcessibilidadeView> {
 
   void vibrar() async {
     if (vibracao) {
+      // ignore: dead_null_aware_expression, dead_code
       if (await Vibration.hasVibrator() ?? false) {
         Vibration.vibrate(duration: 40);
       }

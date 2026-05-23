@@ -540,7 +540,7 @@ class _ColetaViewState extends State<ColetaView> {
               Text("Sair da conta", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
             ],
           ),
-        ),
+        ), 
       ),
     );
   }
