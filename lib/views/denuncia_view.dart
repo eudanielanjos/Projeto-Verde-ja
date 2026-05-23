@@ -1,8 +1,89 @@
 import 'package:flutter/material.dart';
-import 'denuncia2_view.dart'; // 🔹 Import da segunda tela
+import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
+import 'denuncia2_view.dart'; 
 
 class LocalDenunciaPage extends StatelessWidget {
   const LocalDenunciaPage({super.key});
+
+  // Função interna para obter a localização atual e converter em endereço básico
+  Future<void> _capturarLocalizacaoEAvancar(BuildContext context) async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    // Verifica se o serviço de GPS está ativo
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      _mostrarErro(context, "O serviço de localização está desativado.");
+      return;
+    }
+
+    // Verifica e solicita as permissões de GPS do aparelho
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        _mostrarErro(context, "Permissão de localização negada.");
+        return;
+      }
+    }
+    
+    if (permission == LocationPermission.deniedForever) {
+      _mostrarErro(context, "Permissão negada permanentemente nas configurações.");
+      return;
+    }
+
+    // Mostra um indicador de carregamento enquanto busca as coordenadas
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator(color: Color(0xFF59BA15))),
+    );
+
+    try {
+      // Pega a posição geográfica real
+      Position position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
+      );
+
+      // Converte coordenadas em dados textuais de endereço
+      List<Placemark> placemarks = await placemarkFromCoordinates(position.latitude, position.longitude);
+      
+      // Fecha o indicador de carregamento
+      if (!context.mounted) return;
+      Navigator.pop(context); 
+
+      if (placemarks.isNotEmpty) {
+        Placemark lugar = placemarks[0];
+
+        // Mapeia os dados recebidos do GPS
+        Map<String, String> dadosEndereco = {
+          'cep': lugar.postalCode ?? "",
+          'rua': lugar.thoroughfare ?? "",
+          'bairro': lugar.subLocality ?? lugar.subAdministrativeArea ?? "",
+          'numero': lugar.subThoroughfare ?? "",
+        };
+
+        // Avança para a próxima tela passando o mapa de dados
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => Denuncias2(dadosIniciaisEndereco: dadosEndereco),
+          ),
+        );
+      }
+    } catch (e) {
+      if (!context.mounted) return;
+      Navigator.pop(context); // Fecha o loading se der erro
+      _mostrarErro(context, "Erro ao buscar endereço: $e");
+    }
+  }
+
+  void _mostrarErro(BuildContext context, String mensagem) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(mensagem), backgroundColor: Colors.redAccent),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +96,6 @@ class LocalDenunciaPage extends StatelessWidget {
           icon: const Icon(Icons.arrow_back, color: Color(0xFF1F5C3A)),
           onPressed: () => Navigator.pop(context),
         ),
-        
       ),
       body: Container(
         width: double.infinity,
@@ -34,17 +114,16 @@ class LocalDenunciaPage extends StatelessWidget {
         ),
         child: SafeArea(
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center, // 🔹 Centraliza o conteúdo verticalmente
+            mainAxisAlignment: MainAxisAlignment.center, 
             children: [
-              const Spacer(flex: 2), // Empurra o conteúdo para o centro real
+              const Spacer(flex: 2), 
 
-              /// 🔹 TÍTULO EM DESTAQUE
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 40),
                 child: Text(
                   "Defina o local de denúncia:",
                   style: TextStyle(
-                    fontSize: 26, // Aumentado para destaque
+                    fontSize: 26, 
                     fontWeight: FontWeight.w900,
                     color: Color(0xFF1F5C3A),
                     letterSpacing: -0.8,
@@ -55,15 +134,12 @@ class LocalDenunciaPage extends StatelessWidget {
 
               const SizedBox(height: 50),
 
-              /// 🔹 BOTÕES CENTRALIZADOS
               _buildCenterButton(
                 context: context,
                 icon: Icons.my_location_rounded,
                 text: "Usar Minha Localização",
                 isPrimary: true,
-                onPressed: () {
-                  // Lógica de GPS
-                },
+                onPressed: () => _capturarLocalizacaoEAvancar(context), // 🔹 Nova lógica acoplada aqui
               ),
 
               const SizedBox(height: 20),
@@ -76,13 +152,12 @@ class LocalDenunciaPage extends StatelessWidget {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const Denuncias2()),
+                    MaterialPageRoute(builder: (context) => const Denuncias2()), // 🔹 Abre vazio por padrão
                   );
                 },
               ),
 
-              const Spacer(flex: 3), // Espaço maior embaixo para equilibrar o visual
-
+              const Spacer(flex: 3), 
               const SizedBox(height: 40),
             ],
           ),
@@ -91,7 +166,6 @@ class LocalDenunciaPage extends StatelessWidget {
     );
   }
 
-  /// 🔹 WIDGET DE BOTÃO OTIMIZADO PARA O CENTRO
   Widget _buildCenterButton({
     required BuildContext context,
     required IconData icon,
@@ -100,8 +174,8 @@ class LocalDenunciaPage extends StatelessWidget {
     required VoidCallback onPressed,
   }) {
     return Container(
-      width: MediaQuery.of(context).size.width * 0.85, // Responsivo
-      height: 70, // Mais alto para facilitar o clique
+      width: MediaQuery.of(context).size.width * 0.85, 
+      height: 70, 
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
         boxShadow: [

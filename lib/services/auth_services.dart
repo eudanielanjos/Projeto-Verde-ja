@@ -3,18 +3,41 @@ import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  
-  // Criar a instância aqui fora evita erros de inicialização múltipla
   final GoogleSignIn _googleSignIn = GoogleSignIn();
 
+  /// 1. LOGIN COM EMAIL E SENHA
+  Future<User?> signInWithEmail(String email, String password) async {
+    try {
+      UserCredential credential = await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      return credential.user;
+    } on FirebaseAuthException catch (e) {
+      // Traduz os erros mais comuns do Firebase para o usuário
+      if (e.code == 'user-not-found' || e.code == 'wrong-password') {
+        throw 'E-mail ou senha incorretos.';
+      } else if (e.code == 'invalid-email') {
+        throw 'O formato do e-mail digitado é inválido.';
+      } else if (e.code == 'user-disabled') {
+        throw 'Este usuário foi desativado.';
+      }
+      throw e.message ?? 'Erro desconhecido ao fazer login.';
+    } catch (e) {
+      throw 'Erro de conexão: $e';
+    }
+  }
+
+  /// 2. LOGIN COM GOOGLE
   Future<User?> signInWithGoogle() async {
     try {
-      // Inicia o processo de login
+      // Inicia o fluxo de login do Google
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      
+      // Se o usuário cancelar, retorna nulo
+      if (googleUser == null) return null;
 
-      if (googleUser == null) return null; // Usuário cancelou
-
-      // Obtém os dados de autenticação
+      // Obtém os dados de autenticação da conta Google
       final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
 
       // Cria a credencial para o Firebase
@@ -23,19 +46,20 @@ class AuthService {
         idToken: googleAuth.idToken,
       );
 
-      // Faz o login no Firebase e retorna o usuário
-      final UserCredential userCredential = await _auth.signInWithCredential(credential);
+      // Autentica no Firebase com a credencial obtida
+      UserCredential userCredential = await _auth.signInWithCredential(credential);
       return userCredential.user;
       
+    } on FirebaseAuthException catch (e) {
+      throw e.message ?? 'Erro ao autenticar com o Firebase.';
     } catch (e) {
-      print("Erro detalhado no login: $e");
-      return null;
+      throw 'Erro ao conectar com a conta Google: $e';
     }
   }
 
-  // Método para deslogar (importante ter aqui)
+  /// 3. FUNÇÃO DE LOGOUT (SAIR DA CONTA)
   Future<void> signOut() async {
-    await _googleSignIn.signOut();
     await _auth.signOut();
+    await _googleSignIn.signOut();
   }
 }

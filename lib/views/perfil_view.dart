@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // 1. IMPORTADO O AUTH
+import 'package:cloud_firestore/cloud_firestore.dart'; // 2. IMPORTADO O FIRESTORE
 import 'package:flutter_app/views/coleta_view.dart';
 import 'tela_inicial_view.dart';
 import 'config_view.dart';
@@ -14,108 +16,161 @@ class PerfilPage extends StatefulWidget {
 }
 
 class _PerfilPageState extends State<PerfilPage> {
-  // Dados simulados que podem ser alterados
-  String telefone = "+55 11 99999-9999";
-  String endereco = "Rua Exemplo, 123 - São Paulo, SP";
-  String nome = "Usuário Admin";
+  // Pegamos a instância do usuário logado atualmente no app
+  final User? _usuarioAtual = FirebaseAuth.instance.currentUser;
+
+  // Variável para controlar o estado de salvamento no modal
+  bool _isSaving = false;
+
+  // Função para deslogar do Firebase Auth com segurança
+  Future<void> _fazerLogout(BuildContext context) async {
+    await FirebaseAuth.instance.signOut();
+    if (context.mounted) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const HomeView()),
+        (route) => false,
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    // Se o usuário não estiver logado por algum motivo, exibe um aviso ou redireciona
+    if (_usuarioAtual == null) {
+      return const Scaffold(
+        body: Center(child: Text("Nenhum usuário logado.")),
+      );
+    }
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAF9),
       endDrawer: _buildMenuDrawer(context),
-      body: Column(
-        children: [
-          // --- HEADER CURVADO ---
-          Stack(
+      // 🔥 O StreamBuilder escuta as alterações do Firestore em tempo real
+      body: StreamBuilder<DocumentSnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('usuarios')
+            .doc(_usuarioAtual.uid) // Busca o documento com o UID do usuário logado
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return const Center(child: Text("Erro ao carregar os dados de perfil."));
+          }
+
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF1F5C3A)),
+              ),
+            );
+          }
+
+          // Se o documento não existir no Firestore, define valores padrão vazios
+          Map<String, dynamic> dadosDoBanco = {};
+          if (snapshot.hasData && snapshot.data!.exists) {
+            dadosDoBanco = snapshot.data!.data() as Map<String, dynamic>;
+          }
+
+          // Mapeia os campos retornados ou define strings padrão caso ainda não existam no banco
+          String nome = dadosDoBanco['nome'] ?? "Sem Nome";
+          String email = dadosDoBanco['email'] ?? _usuarioAtual.email ?? "Sem Email";
+          String telefone = dadosDoBanco['telefone'] ?? "Não cadastrado";
+          String endereco = dadosDoBanco['endereco'] ?? "Não cadastrado";
+
+          return Column(
             children: [
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.only(top: 60, bottom: 40),
-                decoration: const BoxDecoration(
-                  color: Color(0xFF1F5C3A),
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(50),
-                    bottomRight: Radius.circular(50),
-                  ),
-                ),
-                child: Column(
-                  children: [
-                    _buildAvatarComFoto(),
-                    const SizedBox(height: 15),
-                    Text(
-                      nome,
-                      style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+              // --- HEADER CURVADO ---
+              Stack(
+                children: [
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.only(top: 60, bottom: 40),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF1F5C3A),
+                      borderRadius: BorderRadius.only(
+                        bottomLeft: Radius.circular(50),
+                        bottomRight: Radius.circular(50),
+                      ),
                     ),
-                    const Text(
-                      "admin123@email.com",
-                      style: TextStyle(color: Colors.white70, fontSize: 14),
+                    child: Column(
+                      children: [
+                        _buildAvatarComFoto(),
+                        const SizedBox(height: 15),
+                        Text(
+                          nome,
+                          style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+                          textAlign: TextAlign.center,
+                        ),
+                        Text(
+                          email,
+                          style: const TextStyle(color: Colors.white70, fontSize: 14),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Positioned(
+                    top: 40,
+                    right: 15,
+                    child: Builder(
+                      builder: (context) => IconButton(
+                        icon: const Icon(Icons.menu, color: Colors.white, size: 30),
+                        onPressed: () => Scaffold.of(context).openEndDrawer(),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              // --- CONTEÚDO (CARDS DINÂMICOS) ---
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
+                  children: [
+                    _buildInfoCard(
+                      icon: Icons.phone_android_rounded,
+                      title: "Telefone",
+                      value: telefone,
+                    ),
+                    _buildInfoCard(
+                      icon: Icons.location_on_outlined,
+                      title: "Endereço",
+                      value: endereco,
+                    ),
+                    _buildInfoCard(
+                      icon: Icons.lock_outline_rounded,
+                      title: "Senha",
+                      value: "********",
+                    ),
+                    const SizedBox(height: 20),
+                    
+                    // Botão Editar que passa os dados atuais para o modal
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 40),
+                      child: ElevatedButton.icon(
+                        onPressed: () => _abrirModalEdicao(context, telefone, endereco),
+                        icon: const Icon(Icons.edit_note_rounded, color: Colors.white),
+                        label: const Text("EDITAR PERFIL", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF1F5C3A),
+                          fixedSize: const Size(double.infinity, 50),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                        ),
+                      ),
                     ),
                   ],
                 ),
               ),
-              Positioned(
-                top: 40,
-                right: 15,
-                child: Builder(
-                  builder: (context) => IconButton(
-                    icon: const Icon(Icons.menu, color: Colors.white, size: 30),
-                    onPressed: () => Scaffold.of(context).openEndDrawer(),
-                  ),
-                ),
-              ),
             ],
-          ),
-
-          // --- CONTEÚDO (CARDS) ---
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
-              children: [
-                _buildInfoCard(
-                  icon: Icons.phone_android_rounded,
-                  title: "Telefone",
-                  value: telefone,
-                ),
-                _buildInfoCard(
-                  icon: Icons.location_on_outlined,
-                  title: "Endereço",
-                  value: endereco,
-                ),
-                _buildInfoCard(
-                  icon: Icons.lock_outline_rounded,
-                  title: "Senha",
-                  value: "********",
-                ),
-                const SizedBox(height: 20),
-                
-                // Botão Editar que abre o Modal
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 40),
-                  child: ElevatedButton.icon(
-                    onPressed: () => _abrirModalEdicao(context),
-                    icon: const Icon(Icons.edit_note_rounded, color: Colors.white),
-                    label: const Text("EDITAR PERFIL", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF1F5C3A),
-                      fixedSize: const Size(double.infinity, 50),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
 
-  // --- FUNCIONALIDADE: MODAL DE EDIÇÃO ---
-  void _abrirModalEdicao(BuildContext context) {
-    // Controladores para pegar os novos textos
-    final teledoneController = TextEditingController(text: telefone);
-    final enderecoController = TextEditingController(text: endereco);
+  // --- FUNCIONALIDADE: MODAL DE EDIÇÃO INTEGRADO AO FIRESTORE ---
+  void _abrirModalEdicao(BuildContext context, String telefoneAtual, String enderecoAtual) {
+    final telefoneController = TextEditingController(text: telefoneAtual == "Não cadastrado" ? "" : telefoneAtual);
+    final enderecoController = TextEditingController(text: enderecoAtual == "Não cadastrado" ? "" : enderecoAtual);
 
     showModalBottomSheet(
       context: context,
@@ -124,41 +179,66 @@ class _PerfilPageState extends State<PerfilPage> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
       ),
       builder: (context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-            left: 25,
-            right: 25,
-            top: 15,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(10))),
-              const SizedBox(height: 20),
-              const Text("Editar Informações", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1F5C3A))),
-              const SizedBox(height: 25),
-              _buildCampoEdicao(label: "Telefone", controller: teledoneController, icon: Icons.phone),
-              const SizedBox(height: 15),
-              _buildCampoEdicao(label: "Endereço", controller: enderecoController, icon: Icons.map),
-              const SizedBox(height: 30),
-              ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    telefone = teledoneController.text;
-                    endereco = enderecoController.text;
-                  });
-                  Navigator.pop(context);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF1F5C3A),
-                  minimumSize: const Size(double.infinity, 55),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                ),
-                child: const Text("SALVAR ALTERAÇÕES", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        return StatefulBuilder( // StatefulBuilder serve para atualizar o loading interno do modal
+          builder: (context, setModalState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+                left: 25,
+                right: 25,
+                top: 15,
               ),
-            ],
-          ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(10))),
+                  const SizedBox(height: 20),
+                  const Text("Editar Informações", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1F5C3A))),
+                  const SizedBox(height: 25),
+                  _buildCampoEdicao(label: "Telefone", controller: telefoneController, icon: Icons.phone),
+                  const SizedBox(height: 15),
+                  _buildCampoEdicao(label: "Endereço", controller: enderecoController, icon: Icons.map),
+                  const SizedBox(height: 30),
+                  ElevatedButton(
+                    onPressed: _isSaving
+                        ? null
+                        : () async {
+                            setModalState(() => _isSaving = true);
+
+                            try {
+                              // 🔥 ATUALIZA OS DADOS DIRETAMENTE NO FIRESTORE
+                              await FirebaseFirestore.instance
+                                  .collection('usuarios')
+                                  .doc(_usuarioAtual!.uid)
+                                  .update({
+                                'telefone': telefoneController.text.trim(),
+                                'endereco': enderecoController.text.trim(),
+                              });
+
+                              if (context.mounted) Navigator.pop(context);
+                            } catch (e) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text("Erro ao salvar: $e"), backgroundColor: Colors.red),
+                                );
+                              }
+                            } finally {
+                              setModalState(() => _isSaving = false);
+                            }
+                          },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF1F5C3A),
+                      minimumSize: const Size(double.infinity, 55),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                    ),
+                    child: _isSaving
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text("SALVAR ALTERAÇÕES", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              ),
+            );
+          },
         );
       },
     );
@@ -241,11 +321,12 @@ class _PerfilPageState extends State<PerfilPage> {
                   backgroundColor: Colors.white,
                   child: Padding(
                     padding: const EdgeInsets.all(6),
-                    child: Image.asset('assets/images/logo.png', fit: BoxFit.contain),
+                    child: Image.asset('assets/images/logo.png', fit: BoxFit.contain, errorBuilder: (context, error, stackTrace) => const Icon(Icons.eco, color: Color(0xFF1F5C3A))),
                   ),
                 ),
                 const SizedBox(height: 10),
-                const Text("Olá, Usuario", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                // Exibe o e-mail abreviado ou uma saudação simples no cabeçalho do menu
+                Text(_usuarioAtual?.email?.split('@')[0] ?? "Usuário", style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
               ],
             ),
           ),
@@ -306,7 +387,7 @@ class _PerfilPageState extends State<PerfilPage> {
     return Padding(
       padding: const EdgeInsets.all(16),
       child: InkWell(
-        onTap: () => Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => const HomeView()), (route) => false),
+        onTap: () => _fazerLogout(context), // Alterado para fazer o SignOut correto do Firebase
         child: Container(
           height: 55,
           decoration: BoxDecoration(color: Colors.red, borderRadius: BorderRadius.circular(14)),

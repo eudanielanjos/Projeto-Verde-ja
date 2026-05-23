@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; 
 
 // Importações das suas views
 import 'perfil_view.dart';
@@ -20,31 +22,11 @@ class HistoricoDenunciasView extends StatefulWidget {
 class _HistoricoDenunciasViewState extends State<HistoricoDenunciasView> {
   final Color greenPrimary = const Color(0xFF1F5C3A);
 
-  final List<Map<String, String>> denuncias = [
-    {
-      "nome": "José Geraldo",
-      "titulo": "Lixo em área verde",
-      "local": "Parque da Cidade",
-      "data": "08/03/2026",
-      "motivo": "Descarte irregular de lixo em área protegida. O acúmulo está gerando mau cheiro e atraindo insetos.",
-      "status": "Em análise",
-      "foto": "assets/images/descarte.png"
-    },
-    {
-      "nome": "José Geraldo",
-      "titulo": "Queimada ilegal",
-      "local": "Área rural bairro X",
-      "data": "05/03/2026",
-      "motivo": "Queimada de resíduos orgânicos e plásticos sem autorização durante a noite.",
-      "status": "Resolvido",
-      "foto": "assets/images/queimada.png"
-    },
-  ];
-
   Color _getStatusColor(String status) {
     switch (status) {
       case "Resolvido": return const Color(0xFF59BA15);
-      case "Em análise": return Colors.orange;
+      case "Em análise": 
+      case "Pendente": return Colors.orange;
       case "Recusado": return Colors.red;
       default: return Colors.grey;
     }
@@ -53,15 +35,22 @@ class _HistoricoDenunciasViewState extends State<HistoricoDenunciasView> {
   IconData _getStatusIcon(String status) {
     switch (status) {
       case "Resolvido": return Icons.check_circle_rounded;
-      case "Em análise": return Icons.pending_actions_rounded;
+      case "Em análise":
+      case "Pendente": return Icons.pending_actions_rounded;
       case "Recusado": return Icons.cancel_rounded;
       default: return Icons.info_rounded;
     }
   }
 
-  // --- PAINEL DE INSPEÇÃO (FONTES AUMENTADAS) ---
-  void _abrirInspecaoDenuncia(Map<String, String> denuncia) {
-    final statusColor = _getStatusColor(denuncia["status"]!);
+  // --- PAINEL DE INSPEÇÃO ---
+  void _abrirInspecaoDenuncia(Map<String, dynamic> denuncia, String dataFormatada) {
+    final statusColor = _getStatusColor(denuncia["status"] ?? "Pendente");
+
+    String localFormatado = "Local não informado";
+    if (denuncia["endereco"] != null) {
+      var end = denuncia["endereco"];
+      localFormatado = "${end['rua'] ?? ''}, Nº ${end['numero'] ?? 'S/N'} - ${end['bairro'] ?? ''}";
+    }
 
     showModalBottomSheet(
       context: context,
@@ -94,8 +83,8 @@ class _HistoricoDenunciasViewState extends State<HistoricoDenunciasView> {
                       decoration: BoxDecoration(
                         color: Colors.grey[200],
                         borderRadius: BorderRadius.circular(20),
-                        image: DecorationImage(
-                          image: AssetImage(denuncia["foto"]!),
+                        image: const DecorationImage(
+                          image: AssetImage("assets/images/descarte.png"), 
                           fit: BoxFit.cover,
                         ),
                       ),
@@ -110,7 +99,7 @@ class _HistoricoDenunciasViewState extends State<HistoricoDenunciasView> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(
-                              denuncia["status"]!.toUpperCase(),
+                              (denuncia["status"] ?? "PENDENTE").toUpperCase(),
                               style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
                             ),
                           ),
@@ -118,28 +107,39 @@ class _HistoricoDenunciasViewState extends State<HistoricoDenunciasView> {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    Text(denuncia["titulo"]!, 
-                      style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: greenPrimary)), // Aumentado
+                    Text(
+                      denuncia["tipo"] ?? "Denúncia Sem Tipo", 
+                      style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: greenPrimary),
+                    ),
                     const SizedBox(height: 8),
                     Row(
                       children: [
                         const Icon(Icons.location_on, size: 20, color: Colors.grey),
                         const SizedBox(width: 4),
-                        Text(denuncia["local"]!, style: const TextStyle(color: Colors.grey, fontSize: 16, fontWeight: FontWeight.w500)), // Aumentado
+                        Expanded(
+                          child: Text(
+                            localFormatado, 
+                            style: const TextStyle(color: Colors.grey, fontSize: 16, fontWeight: FontWeight.w500),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
                       ],
                     ),
                     const Divider(height: 40),
                     Row(
                       children: [
-                        Expanded(child: _buildInfoRow(Icons.person_outline, "Relator", denuncia["nome"]!)),
-                        Expanded(child: _buildInfoRow(Icons.calendar_today_outlined, "Data do Registro", denuncia["data"]!)),
+                        // Mostra o email do usuário que gerou a denúncia
+                        Expanded(child: _buildInfoRow(Icons.person_outline, "Relator", denuncia["usuarioEmail"] ?? "Usuário")),
+                        Expanded(child: _buildInfoRow(Icons.calendar_today_outlined, "Data do Registro", dataFormatada)),
                       ],
                     ),
                     const SizedBox(height: 25),
-                    _buildInfoRow(Icons.info_outline, "STATUS DO PROTOCOLO", denuncia["status"]!, customColor: statusColor),
+                    _buildInfoRow(Icons.info_outline, "STATUS DO PROTOCOLO", denuncia["status"] ?? "Pendente", customColor: statusColor),
                     const SizedBox(height: 30),
-                    const Text("DETALHES TÉCNICOS / MOTIVO", 
-                      style: TextStyle(fontWeight: FontWeight.w800, color: Colors.grey, fontSize: 13, letterSpacing: 1.1)),
+                    const Text(
+                      "DETALHES TÉCNICOS / MOTIVO", 
+                      style: TextStyle(fontWeight: FontWeight.w800, color: Colors.grey, fontSize: 13, letterSpacing: 1.1),
+                    ),
                     const SizedBox(height: 10),
                     Container(
                       width: double.infinity,
@@ -149,8 +149,12 @@ class _HistoricoDenunciasViewState extends State<HistoricoDenunciasView> {
                         borderRadius: BorderRadius.circular(18),
                         border: Border.all(color: Colors.grey.shade200),
                       ),
-                      child: Text(denuncia["motivo"]!, 
-                        style: const TextStyle(fontSize: 17, height: 1.6, color: Colors.black87)), // Aumentado
+                      child: Text(
+                        denuncia["detalhes"] == null || denuncia["detalhes"].toString().isEmpty 
+                            ? "Nenhum detalhe adicional fornecido." 
+                            : denuncia["detalhes"], 
+                        style: const TextStyle(fontSize: 17, height: 1.6, color: Colors.black87),
+                      ),
                     ),
                     const SizedBox(height: 40),
                   ],
@@ -169,13 +173,24 @@ class _HistoricoDenunciasViewState extends State<HistoricoDenunciasView> {
       children: [
         Row(children: [Icon(icon, size: 16, color: greenPrimary), const SizedBox(width: 5), Text(label, style: const TextStyle(fontSize: 13, color: Colors.grey, fontWeight: FontWeight.bold))]),
         const SizedBox(height: 5),
-        Text(value, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: customColor ?? Colors.black87)), // Aumentado
+        Text(value, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: customColor ?? Colors.black87)),
       ],
     );
   }
 
+  String _formatarData(dynamic timestamp) {
+    if (timestamp == null) return "Sem data";
+    if (timestamp is Timestamp) {
+      DateTime dataUtc = timestamp.toDate();
+      return "${dataUtc.day.toString().padLeft(2, '0')}/${dataUtc.month.toString().padLeft(2, '0')}/${dataUtc.year}";
+    }
+    return timestamp.toString();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final User? usuarioLogado = FirebaseAuth.instance.currentUser;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAF9),
       endDrawer: Drawer(
@@ -196,8 +211,10 @@ class _HistoricoDenunciasViewState extends State<HistoricoDenunciasView> {
                     ),
                   ),
                   const SizedBox(height: 10),
-                  const Text("Olá, Usuario", 
-                    style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
+                  Text(
+                    usuarioLogado?.displayName ?? "Olá, Usuário", 
+                    style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+                  ),
                 ],
               ),
             ),
@@ -248,8 +265,8 @@ class _HistoricoDenunciasViewState extends State<HistoricoDenunciasView> {
                   children: [
                     Icon(Icons.history_edu_rounded, size: 55, color: Colors.white70),
                     SizedBox(height: 10),
-                    Text("HISTÓRICO", style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 1.2)), // Aumentado
-                    Text("Acompanhe suas solicitações", style: TextStyle(color: Colors.white70, fontSize: 16)), // Aumentado
+                    Text("HISTÓRICO", style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+                    Text("Acompanhe todas as solicitações", style: TextStyle(color: Colors.white70, fontSize: 16)),
                   ],
                 ),
               ),
@@ -266,52 +283,84 @@ class _HistoricoDenunciasViewState extends State<HistoricoDenunciasView> {
             ],
           ),
           Expanded(
-            child: ListView.builder(
-              physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(20, 30, 20, 20),
-              itemCount: denuncias.length,
-              itemBuilder: (context, index) {
-                final item = denuncias[index];
-                final statusColor = _getStatusColor(item["status"]!);
-                
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(22),
-                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))],
-                  ),
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15), // Aumentado
-                    leading: CircleAvatar(
-                      radius: 32, // Aumentado
-                      backgroundColor: const Color(0xFFF1F5F2),
-                      backgroundImage: AssetImage(item["foto"]!),
+            // STREAM MODIFICADO: Removeu-se o '.where()' para trazer absolutamente todas as denúncias criadas no app
+            child: StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('denuncias')
+                  .orderBy('criadoEm', descending: true)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return Center(child: Text("Erro ao carregar dados: ${snapshot.error}"));
+                }
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator(color: Color(0xFF1F5C3A)));
+                }
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return const Center(
+                    child: Text(
+                      "Nenhuma denúncia registrada no sistema.",
+                      style: TextStyle(fontSize: 16, color: Colors.grey),
                     ),
-                    title: Text(item["titulo"]!, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF2D312E))), // Aumentado
-                    subtitle: Padding(
-                      padding: const EdgeInsets.only(top: 6),
-                      child: Text(item["data"]!, style: TextStyle(color: Colors.grey.shade600, fontSize: 15)), // Aumentado
-                    ),
-                    
-                    // --- ALTERAÇÃO: FRASE COM ÍCONE ---
-                    trailing: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(_getStatusIcon(item["status"]!), color: statusColor, size: 24),
-                        const SizedBox(height: 4),
-                        Text(
-                          item["status"]!,
-                          style: TextStyle(
-                            color: statusColor,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 11,
+                  );
+                }
+
+                final listaDocs = snapshot.data!.docs;
+
+                return ListView.builder(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(20, 30, 20, 20),
+                  itemCount: listaDocs.length,
+                  itemBuilder: (context, index) {
+                    final item = listaDocs[index].data() as Map<String, dynamic>;
+                    final statusAtual = item["status"] ?? "Pendente";
+                    final statusColor = _getStatusColor(statusAtual);
+                    final dataReg = _formatarData(item["criadoEm"]);
+
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(22),
+                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))],
+                      ),
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+                        leading: const CircleAvatar(
+                          radius: 32,
+                          backgroundColor: Color(0xFFF1F5F2),
+                          backgroundImage: AssetImage("assets/images/descarte.png"),
+                        ),
+                        title: Text(
+                          item["tipo"] ?? "Denúncia Sem Tipo", 
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF2D312E)),
+                        ),
+                        subtitle: Padding(
+                          padding: const EdgeInsets.only(top: 6),
+                          child: Text(
+                            "$dataReg • Por: ${item["usuarioEmail"]?.split('@')[0] ?? 'Usuário'}", 
+                            style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
                           ),
                         ),
-                      ],
-                    ),
-                    onTap: () => _abrirInspecaoDenuncia(item), 
-                  ),
+                        trailing: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(_getStatusIcon(statusAtual), color: statusColor, size: 24),
+                            const SizedBox(height: 4),
+                            Text(
+                              statusAtual,
+                              style: TextStyle(
+                                color: statusColor,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 11,
+                              ),
+                            ),
+                          ],
+                        ),
+                        onTap: () => _abrirInspecaoDenuncia(item, dataReg), 
+                      ),
+                    );
+                  },
                 );
               },
             ),

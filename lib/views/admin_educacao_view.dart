@@ -45,7 +45,10 @@ class _EducacaoAdminViewState extends State<EducacaoAdminView> {
             stretch: true,
             backgroundColor: greenDark,
             leading: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+              icon: const Icon(
+                Icons.arrow_back_ios_new,
+                color: Colors.white,
+              ),
               onPressed: () => Navigator.pop(context),
             ),
             flexibleSpace: FlexibleSpaceBar(

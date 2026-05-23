@@ -171,8 +171,8 @@ class _ColetaViewState extends State<ColetaView> {
 
   Widget _buildCalendar() {
     final months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
+      'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+      'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
     ];
     String mesAtual = months[focusedDay.month - 1];
     String anoAtual = focusedDay.year.toString();
@@ -207,8 +207,8 @@ class _ColetaViewState extends State<ColetaView> {
             child: const Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _WeekLabel('S'), _WeekLabel('M'), _WeekLabel('T'),
-                _WeekLabel('W'), _WeekLabel('T'), _WeekLabel('F'), _WeekLabel('S'),
+                _WeekLabel('S'), _WeekLabel('T'), _WeekLabel('Q'),
+                _WeekLabel('Q'), _WeekLabel('S'), _WeekLabel('S'), _WeekLabel('D'),
               ],
             ),
           ),
