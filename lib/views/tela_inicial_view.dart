@@ -35,7 +35,6 @@ class _TelaInicialViewState extends State<TelaInicialView> {
     carregarAcessibilidade();
   }
 
-  // Carrega as configurações salvas pelo SharedPreferences
   Future<void> carregarAcessibilidade() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
@@ -48,7 +47,6 @@ class _TelaInicialViewState extends State<TelaInicialView> {
     });
   }
 
-  // Função para executar a vibração tátil
   void vibrar() async {
     if (vibracao) {
       if (await Vibration.hasVibrator() ?? false) {
@@ -57,17 +55,15 @@ class _TelaInicialViewState extends State<TelaInicialView> {
     }
   }
 
-  // Auxiliar para atualizar as configurações ao retornar de outra tela
   void navegarParaTela(Widget tela) async {
     vibrar();
     await Navigator.push(context, MaterialPageRoute(builder: (context) => tela));
-    // Quando o usuário volta para esta tela (ex: vindo da tela de acessibilidade), recarrega os dados
     carregarAcessibilidade();
   }
 
   @override
   Widget build(BuildContext context) {
-    // --- DEFINIÇÃO DE CORES BASEADA NO TEMA ---
+    // --- DEFINIÇÃO DE CORES DINÂMICAS ---
     Color corTema;
     Color corCards;
     Color corTextoCard = Colors.white;
@@ -76,15 +72,14 @@ class _TelaInicialViewState extends State<TelaInicialView> {
       corTema = Colors.black;
       corCards = Colors.black;
     } else if (daltonismo) {
-      corTema = const Color(0xFF455A64); // Mesma paleta usada na sua tela de acessibilidade
+      corTema = const Color(0xFF455A64);
       corCards = const Color(0xFF37474F);
     } else {
-      corTema = const Color(0xFF1F5C3A); // Verde Padrão do app
-      corCards = const Color.fromRGBO(137, 186, 21, 1); // Verde limão dos cards
+      corTema = const Color(0xFF1F5C3A);
+      corCards = const Color.fromRGBO(137, 186, 21, 1);
     }
 
     // --- ZOOM DA INTERFACE ---
-    // Se zoomInterface estiver ativo, aumenta a altura e os textos dos cards principais
     double alturaCard = zoomInterface ? 135 : 110;
     double tamanhoTituloCard = zoomInterface ? 24 : 22;
     double tamanhoSubCard = zoomInterface ? 17 : 15;
@@ -108,19 +103,13 @@ class _TelaInicialViewState extends State<TelaInicialView> {
                       backgroundColor: Colors.white,
                       child: Padding(
                         padding: const EdgeInsets.all(12),
-                        child: Image.asset(
-                          'assets/images/logo.png',
-                          fit: BoxFit.contain,
-                        ),
+                        child: Image.asset('assets/images/logo.png', fit: BoxFit.contain),
                       ),
                     ),
                     const SizedBox(height: 10),
                     const Text(
                       "Olá, Usuario",
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold),
+                      style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
@@ -192,8 +181,6 @@ class _TelaInicialViewState extends State<TelaInicialView> {
                   borderRadius: BorderRadius.circular(14),
                   onTap: () async {
                     vibrar();
-                    PaintingBinding.instance.imageCache.clear();
-                    PaintingBinding.instance.imageCache.clearLiveImages();
                     await FirebaseAuth.instance.signOut();
                     await GoogleSignIn().signOut();
                     if (context.mounted) {
@@ -217,8 +204,7 @@ class _TelaInicialViewState extends State<TelaInicialView> {
                         SizedBox(width: 10),
                         Text(
                           "Sair da conta",
-                          style: TextStyle(
-                              color: Colors.white, fontWeight: FontWeight.bold),
+                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
@@ -236,10 +222,11 @@ class _TelaInicialViewState extends State<TelaInicialView> {
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                altoContraste ? Colors.black26 : const Color.fromRGBO(120, 159, 130, 1),
+                // FUNDO CORRIGIDO: Agora usa a corTema dinâmica com opacidade
+                altoContraste ? Colors.black : corTema.withOpacity(0.7),
                 Colors.white
               ],
-              stops: const [0.0, 0.2],
+              stops: const [0.0, 0.35], // Gradiente mais visível
             ),
           ),
           child: SingleChildScrollView(
@@ -261,27 +248,19 @@ class _TelaInicialViewState extends State<TelaInicialView> {
                     ),
                   ),
                 ),
-                Center(child: Image.asset('assets/images/logo3.png', width: 200)),
+                Center(child: Image.asset('assets/images/logo3.png', width: zoomInterface ? 240 : 200)),
                 const SizedBox(height: 15),
-                
                 const Center(
                   child: Text(
                     "Bem-vindo ao VerdeJá 🌿",
-                    style: TextStyle(
-                      fontSize: 24, 
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                   ),
                 ),
-                
                 const SizedBox(height: 10),
                 const Text(
                   "Explore as funcionalidades do aplicativo, informe-se e faça parte dessa mudança!",
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 18, 
-                    color: Colors.black54, 
-                  ),
+                  style: TextStyle(fontSize: 18, color: Colors.black54),
                 ),
                 const SizedBox(height: 25),
                 _buildMainCard(
@@ -307,9 +286,7 @@ class _TelaInicialViewState extends State<TelaInicialView> {
                   altura: alturaCard,
                   tamTitulo: tamanhoTituloCard,
                   tamSub: tamanhoSubCard,
-                  onTap: () => navegarParaTela(
-                    Scaffold(body: const MapaView()),
-                  ),
+                  onTap: () => navegarParaTela(const MapaView()),
                 ),
                 const SizedBox(height: 15),
                 _buildMainCard(
@@ -333,19 +310,19 @@ class _TelaInicialViewState extends State<TelaInicialView> {
     );
   }
 
-  Widget _buildMenuCard({
-    required IconData icon, 
-    required String title, 
-    required Color corIcone,
-    required VoidCallback onTap
-  }) {
+  // --- WIDGETS ORIGINAIS PRESERVADOS ---
+
+  Widget _buildMenuCard({required IconData icon, required String title, required Color corIcone, required VoidCallback onTap}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Card(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: altoContraste ? const BorderSide(color: Colors.black, width: 2) : BorderSide.none,
+          ),
           elevation: 4,
           child: Padding(
             padding: const EdgeInsets.all(16),

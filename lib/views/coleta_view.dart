@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:vibration/vibration.dart';
 
 // Importações das suas views
 import 'perfil_view.dart';
@@ -20,6 +22,14 @@ class ColetaView extends StatefulWidget {
 }
 
 class _ColetaViewState extends State<ColetaView> {
+  // --- ESTADOS DE ACESSIBILIDADE ---
+  bool daltonismo = false;
+  bool fonteGrande = false;
+  bool altoContraste = false;
+  bool vibracao = false;
+  bool zoomInterface = false;
+  double escalaFonte = 1.0;
+
   DateTime? dataInicial;
   DateTime? dataFinal;
   DateTime focusedDay = DateTime.now();
@@ -33,24 +43,46 @@ class _ColetaViewState extends State<ColetaView> {
   ];
 
   final List<String> nomesMateriais = [
-    'Vidro',
-    'Plástico',
-    'Papel',
-    'Metal',
-    'Entulho',
+    'Vidro', 'Plástico', 'Papel', 'Metal', 'Entulho',
   ];
 
   final Map<int, Color> coresMateriais = {
-    0: const Color(0xFF00C853), // Vidro
-    1: const Color(0xFFF44336), // Plástico
-    2: const Color(0xFF2196F3), // Papel
-    3: const Color(0xFFFFD600), // Metal
-    4: const Color(0xFF1B5E20), // Entulho
+    0: const Color(0xFF00C853), 
+    1: const Color(0xFFF44336), 
+    2: const Color(0xFF2196F3), 
+    3: const Color(0xFFFFD600), 
+    4: const Color(0xFF1B5E20), 
   };
 
   List<bool> selecionados = [false, false, false, false, false];
 
-  // --- LÓGICA DO CALENDÁRIO ---
+  @override
+  void initState() {
+    super.initState();
+    _carregarConfiguracoes();
+  }
+
+  // --- LÓGICA DE ACESSIBILIDADE ---
+  Future<void> _carregarConfiguracoes() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      daltonismo = prefs.getBool('daltonismo') ?? false;
+      fonteGrande = prefs.getBool('fonteGrande') ?? false;
+      altoContraste = prefs.getBool('altoContraste') ?? false;
+      vibracao = prefs.getBool('vibracao') ?? false;
+      zoomInterface = prefs.getBool('zoomInterface') ?? false;
+      escalaFonte = fonteGrande ? 1.25 : 1.0;
+    });
+  }
+
+  void _vibrar() async {
+    if (vibracao) {
+      if (await Vibration.hasVibrator() ?? false) {
+        Vibration.vibrate(duration: 40);
+      }
+    }
+  }
+
   bool _deveMostrarEvento(DateTime day, int index) {
     if (!selecionados[index]) return false;
     int semanaDoMes = ((day.day - 1) / 7).floor() + 1;
@@ -75,87 +107,92 @@ class _ColetaViewState extends State<ColetaView> {
     return Colors.transparent;
   }
 
-  // Função centralizada para exibir a mensagem "Em breve" inserida com sucesso
   void _mostrarMensagemEmBreve(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Text(
-          "Funcionalidade em breve!",
-          textAlign: TextAlign.center,
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
+        content: const Text("Funcionalidade em breve!", textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: const Color(0xFF1F5C3A),
         duration: const Duration(seconds: 2),
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      endDrawer: _buildDrawer(context),
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color.fromRGBO(120, 159, 130, 1), Colors.white],
-            stops: [0.0, 0.2],
+    Color corTema;
+    if (altoContraste) {
+      corTema = Colors.black;
+    } else if (daltonismo) {
+      corTema = const Color(0xFF455A64);
+    } else {
+      corTema = const Color(0xFF1F5C3A);
+    }
+
+    return MediaQuery(
+      data: MediaQuery.of(context).copyWith(
+        textScaler: TextScaler.linear(escalaFonte),
+      ),
+      child: Scaffold(
+        endDrawer: _buildDrawer(context, corTema),
+        body: Container(
+          width: double.infinity,
+          height: double.infinity,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [corTema.withOpacity(0.6), Colors.white],
+              stops: const [0.0, 0.2],
+            ),
           ),
-        ),
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 40),
-              _buildMenuButton(context),
-              const Text(
-                'Cronograma de coleta',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Color(0xFF1F5C3A), letterSpacing: -0.5),
-              ),
-              const SizedBox(height: 15),
-              Row(
-                children: [
-                  Expanded(child: _buildDataButton(context, true)),
-                  const SizedBox(width: 10),
-                  Expanded(child: _buildDataButton(context, false)),
-                ],
-              ),
-              _buildFiltroLimparButtons(),
-              _buildCalendar(), 
-              const SizedBox(height: 25),
-              const Text('Filtrar por tipo:', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black54)),
-              const SizedBox(height: 15),
-              _buildImageFilters(),
-              const SizedBox(height: 30),
-              _buildBottomButton('Pontos de coleta', 'assets/images/icon_reciclagem.png', () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const MapaView()),
-                );
-              }),
-              const SizedBox(height: 15),
-              // Chamando a função _mostrarMensagemEmBreve no clique do botão abaixo
-              _buildBottomButton('Caminhões próximos', null, () {
-                _mostrarMensagemEmBreve(context);
-              }),
-              const SizedBox(height: 30),
-            ],
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 40),
+                _buildMenuButton(context),
+                Text(
+                  'Cronograma de coleta',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: corTema, letterSpacing: -0.5),
+                ),
+                const SizedBox(height: 15),
+                Row(
+                  children: [
+                    Expanded(child: _buildDataButton(context, true, corTema)),
+                    const SizedBox(width: 10),
+                    Expanded(child: _buildDataButton(context, false, corTema)),
+                  ],
+                ),
+                _buildFiltroLimparButtons(),
+                _buildCalendar(corTema), 
+                const SizedBox(height: 25),
+                const Text('Filtrar por tipo:', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black54)),
+                const SizedBox(height: 15),
+                _buildImageFilters(corTema),
+                const SizedBox(height: 30),
+                _buildBottomButton('Pontos de coleta', 'assets/images/icon_reciclagem.png', corTema, () {
+                  _vibrar();
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => const MapaView()));
+                }),
+                const SizedBox(height: 15),
+                _buildBottomButton('Caminhões próximos', null, corTema, () {
+                  _vibrar();
+                  _mostrarMensagemEmBreve(context);
+                }),
+                const SizedBox(height: 30),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  // --- WIDGETS COMPONENTIZADOS ---
+  // --- WIDGETS ---
 
   Widget _buildMenuButton(BuildContext context) {
     return Builder(
@@ -163,30 +200,29 @@ class _ColetaViewState extends State<ColetaView> {
         alignment: Alignment.topRight,
         child: IconButton(
           icon: const Icon(Icons.menu, size: 30, color: Colors.black87),
-          onPressed: () => Scaffold.of(context).openEndDrawer(),
+          onPressed: () {
+            _vibrar();
+            Scaffold.of(context).openEndDrawer();
+          },
         ),
       ),
     );
   }
 
-  Widget _buildCalendar() {
-    final months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
-    ];
-    String mesAtual = months[focusedDay.month - 1];
-    String anoAtual = focusedDay.year.toString();
-
-    return Container(
+  Widget _buildCalendar(Color corTema) {
+    final months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      transform: zoomInterface ? Matrix4.diagonal3Values(1.05, 1.05, 1.0) : Matrix4.identity(),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 20, offset: const Offset(0, 10))],
+        border: altoContraste ? Border.all(color: Colors.black, width: 2) : null,
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(
         children: [
-          // Box do Mês
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 12),
@@ -195,15 +231,14 @@ class _ColetaViewState extends State<ColetaView> {
               border: Border(bottom: BorderSide(color: Colors.grey.withOpacity(0.1))),
             ),
             child: Text(
-              "$mesAtual $anoAtual",
+              "${months[focusedDay.month - 1]} ${focusedDay.year}",
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1F5C3A)),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: corTema),
             ),
           ),
-          // Cabeçalho dos Dias (D, S, T...)
           Container(
             height: 40,
-            color: const Color(0xFF1F5C3A),
+            color: corTema,
             child: const Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
@@ -218,45 +253,29 @@ class _ColetaViewState extends State<ColetaView> {
             lastDay: DateTime(2100),
             headerVisible: false,
             daysOfWeekVisible: false,
-            rowHeight: 52,
+            rowHeight: zoomInterface ? 58 : 52,
             sixWeekMonthsEnforced: true,
-            selectedDayPredicate: (day) {
-              if (dataInicial != null && isSameDay(day, dataInicial)) return true;
-              if (dataFinal != null && isSameDay(day, dataFinal)) return true;
-              return false;
-            },
             calendarStyle: CalendarStyle(
               cellMargin: EdgeInsets.zero, 
               outsideDaysVisible: false,
-              selectedDecoration: BoxDecoration(
-                color: const Color(0xFF1F5C3A).withOpacity(0.3),
-                shape: BoxShape.rectangle,
-              ),
+              selectedDecoration: BoxDecoration(color: corTema.withOpacity(0.3), shape: BoxShape.rectangle),
             ),
             calendarBuilders: CalendarBuilders(
               defaultBuilder: (context, day, fDay) => _buildCustomCell(day, const Color(0xFF9FB1A3)),
               todayBuilder: (context, day, fDay) => _buildCustomCell(day, const Color(0xFF9FB1A3), isToday: true),
             ),
             onDaySelected: (selectedDay, focusedDayNew) {
+              _vibrar();
               setState(() {
                 focusedDay = focusedDayNew;
-                if (dataInicial == null) {
-                  dataInicial = selectedDay;
-                } else if (dataFinal == null) {
-                  if (selectedDay.isBefore(dataInicial!)) {
-                    dataInicial = selectedDay;
-                  } else {
-                    dataFinal = selectedDay;
-                  }
-                } else {
-                  dataInicial = selectedDay;
-                  dataFinal = null;
-                }
+                if (dataInicial == null) { dataInicial = selectedDay; } 
+                else if (dataFinal == null) {
+                  if (selectedDay.isBefore(dataInicial!)) { dataInicial = selectedDay; } 
+                  else { dataFinal = selectedDay; }
+                } else { dataInicial = selectedDay; dataFinal = null; }
               });
             },
-            onPageChanged: (focusedDayNew) {
-              setState(() => focusedDay = focusedDayNew);
-            },
+            onPageChanged: (focusedDayNew) => setState(() => focusedDay = focusedDayNew),
           ),
         ],
       ),
@@ -281,7 +300,7 @@ class _ColetaViewState extends State<ColetaView> {
               '${day.day}',
               style: TextStyle(
                 fontSize: 12,
-                color: temEvento ? Colors.white.withOpacity(0.8) : Colors.black45,
+                color: temEvento ? Colors.white : Colors.black45,
                 fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
               ),
             ),
@@ -301,14 +320,17 @@ class _ColetaViewState extends State<ColetaView> {
     );
   }
 
-  Widget _buildImageFilters() {
+  Widget _buildImageFilters(Color corTema) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       physics: const BouncingScrollPhysics(),
       child: Row(
         children: List.generate(caminhosImagens.length, (index) {
           return GestureDetector(
-            onTap: () => setState(() => selecionados[index] = !selecionados[index]),
+            onTap: () {
+              _vibrar();
+              setState(() => selecionados[index] = !selecionados[index]);
+            },
             child: Column(
               children: [
                 AnimatedContainer(
@@ -316,14 +338,12 @@ class _ColetaViewState extends State<ColetaView> {
                   margin: const EdgeInsets.only(right: 12),
                   padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
-                    color: selecionados[index] ? Colors.green.withOpacity(0.1) : Colors.white,
+                    color: selecionados[index] ? corTema.withOpacity(0.1) : Colors.white,
                     borderRadius: BorderRadius.circular(50),
-                    boxShadow: [
-                      BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 4)),
-                    ],
-                    border: selecionados[index] ? Border.all(color: Colors.green, width: 2) : null,
+                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 4))],
+                    border: selecionados[index] ? Border.all(color: corTema, width: 2) : (altoContraste ? Border.all(color: Colors.grey) : null),
                   ),
-                  child: Image.asset(caminhosImagens[index], width: 60, height: 60, fit: BoxFit.contain),
+                  child: Image.asset(caminhosImagens[index], width: zoomInterface ? 70 : 60, height: zoomInterface ? 70 : 60, fit: BoxFit.contain),
                 ),
                 const SizedBox(height: 8),
                 Padding(
@@ -333,7 +353,7 @@ class _ColetaViewState extends State<ColetaView> {
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: selecionados[index] ? FontWeight.bold : FontWeight.w500,
-                      color: selecionados[index] ? Colors.green[800] : Colors.black54,
+                      color: selecionados[index] ? corTema : Colors.black54,
                     ),
                   ),
                 ),
@@ -345,21 +365,27 @@ class _ColetaViewState extends State<ColetaView> {
     );
   }
 
-  Widget _buildDataButton(BuildContext context, bool isInicial) {
+  Widget _buildDataButton(BuildContext context, bool isInicial, Color corTema) {
     DateTime? data = isInicial ? dataInicial : dataFinal;
     return ElevatedButton(
-      onPressed: () => isInicial ? _selecionarDataInicial(context) : _selecionarDataFinal(context),
+      onPressed: () {
+        _vibrar();
+        isInicial ? _selecionarDataInicial(context) : _selecionarDataFinal(context);
+      },
       style: ElevatedButton.styleFrom(
         backgroundColor: Colors.white,
         foregroundColor: Colors.black87,
         elevation: 0,
         padding: const EdgeInsets.symmetric(vertical: 12),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: Colors.grey.withOpacity(0.2))),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12), 
+          side: BorderSide(color: altoContraste ? Colors.black : Colors.grey.withOpacity(0.2), width: altoContraste ? 2 : 1)
+        ),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.calendar_month_outlined, size: 18, color: Colors.green[700]),
+          Icon(Icons.calendar_month_outlined, size: 18, color: corTema),
           const SizedBox(width: 8),
           Text(data == null ? (isInicial ? 'Data Inicial' : 'Data Final') : '${data.day}/${data.month}/${data.year % 100}', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
         ],
@@ -367,21 +393,29 @@ class _ColetaViewState extends State<ColetaView> {
     );
   }
 
-  Widget _buildBottomButton(String label, String? asset, VoidCallback onTap) {
+  Widget _buildBottomButton(String label, String? asset, Color corFundo, VoidCallback onTap) {
     return Container(
       width: double.infinity,
-      height: 56,
+      height: zoomInterface ? 65 : 56,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(15),
-        boxShadow: [const BoxShadow(color: Color.fromRGBO(137, 186, 21, 0.3), blurRadius: 12, offset: Offset(0, 5))],
+        boxShadow: [
+          BoxShadow(
+            color: altoContraste ? Colors.transparent : corFundo.withOpacity(0.3), 
+            blurRadius: 12, offset: const Offset(0, 5)
+          )
+        ],
       ),
       child: ElevatedButton.icon(
         onPressed: onTap, 
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color.fromRGBO(137, 186, 21, 1),
+          backgroundColor: corFundo,
           foregroundColor: Colors.white,
           elevation: 0,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+            side: altoContraste ? const BorderSide(color: Colors.white, width: 2) : BorderSide.none,
+          ),
         ),
         icon: asset != null ? Image.asset(asset, width: 22, height: 22) : const Icon(Icons.location_on_rounded, size: 22),
         label: Text(label, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
@@ -393,57 +427,38 @@ class _ColetaViewState extends State<ColetaView> {
     return Align(
       alignment: Alignment.centerRight,
       child: TextButton.icon(
-        onPressed: () => setState(() {
-          dataInicial = null;
-          dataFinal = null;
-          selecionados = List.filled(caminhosImagens.length, false);
-        }),
+        onPressed: () {
+          _vibrar();
+          setState(() {
+            dataInicial = null; dataFinal = null;
+            selecionados = List.filled(caminhosImagens.length, false);
+          });
+        },
         icon: const Icon(Icons.refresh, size: 16, color: Colors.grey),
         label: const Text('Limpar filtros', style: TextStyle(color: Colors.grey, fontSize: 12)),
       ),
     );
   }
 
-  // --- FUNÇÕES DE DATA ---
   Future<void> _selecionarDataInicial(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: dataInicial ?? DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
-    );
-    if (picked != null) {
-      setState(() {
-        dataInicial = picked;
-        focusedDay = picked; 
-      });
-    }
+    final DateTime? picked = await showDatePicker(context: context, initialDate: dataInicial ?? DateTime.now(), firstDate: DateTime(2000), lastDate: DateTime(2100));
+    if (picked != null) setState(() { dataInicial = picked; focusedDay = picked; });
   }
 
   Future<void> _selecionarDataFinal(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: dataFinal ?? dataInicial ?? DateTime.now(),
-      firstDate: dataInicial ?? DateTime(2000), 
-      lastDate: DateTime(2100),
-    );
-    if (picked != null) {
-      setState(() {
-        dataFinal = picked;
-        focusedDay = picked;
-      });
-    }
+    final DateTime? picked = await showDatePicker(context: context, initialDate: dataFinal ?? dataInicial ?? DateTime.now(), firstDate: dataInicial ?? DateTime(2000), lastDate: DateTime(2100));
+    if (picked != null) setState(() { dataFinal = picked; focusedDay = picked; });
   }
 
-  // --- DRAWER (MENU LATERAL) ---
-  Widget _buildDrawer(BuildContext context) {
+  // --- DRAWER (MENU LATERAL) COMPLETO ---
+  Widget _buildDrawer(BuildContext context, Color corTema) {
     return Drawer(
       child: Column(
         children: [
           Container(
             width: double.infinity,
             padding: const EdgeInsets.only(top: 50, bottom: 25),
-            decoration: const BoxDecoration(color: Color(0xFF1F5C3A)),
+            decoration: BoxDecoration(color: corTema),
             child: Column(
               children: [
                 CircleAvatar(
@@ -463,24 +478,32 @@ class _ColetaViewState extends State<ColetaView> {
             child: ListView(
               padding: const EdgeInsets.symmetric(vertical: 20),
               children: [
-                _buildMenuCard(icon: Icons.home, title: "Início", onTap: () {
+                _buildMenuCard(icon: Icons.home, title: "Início", cor: corTema, onTap: () {
+                  _vibrar();
                   Navigator.pop(context);
                   Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const TelaInicialView()));
                 }),
-                _buildMenuCard(icon: Icons.calendar_month, title: "Coleta Regular", onTap: () => Navigator.pop(context)),
-                _buildMenuCard(icon: Icons.school, title: "Educação", onTap: () {
+                _buildMenuCard(icon: Icons.calendar_month, title: "Coleta Regular", cor: corTema, onTap: () {
+                  _vibrar();
+                  Navigator.pop(context);
+                }),
+                _buildMenuCard(icon: Icons.school, title: "Educação", cor: corTema, onTap: () {
+                  _vibrar();
                   Navigator.pop(context);
                   Navigator.push(context, MaterialPageRoute(builder: (context) => const EducacaoView()));
                 }),
-                _buildMenuCard(icon: Icons.history_edu, title: "Histórico de Denúncias", onTap: () {
+                _buildMenuCard(icon: Icons.history_edu, title: "Histórico de Denúncias", cor: corTema, onTap: () {
+                  _vibrar();
                   Navigator.pop(context);
                   Navigator.push(context, MaterialPageRoute(builder: (context) => const HistoricoDenunciasView()));
                 }),
-                _buildMenuCard(icon: Icons.person, title: "Perfil", onTap: () {
+                _buildMenuCard(icon: Icons.person, title: "Perfil", cor: corTema, onTap: () {
+                  _vibrar();
                   Navigator.pop(context);
                   Navigator.push(context, MaterialPageRoute(builder: (context) => const PerfilPage()));
                 }),
-                _buildMenuCard(icon: Icons.settings, title: "Configurações", onTap: () {
+                _buildMenuCard(icon: Icons.settings, title: "Configurações", cor: corTema, onTap: () {
+                  _vibrar();
                   Navigator.pop(context);
                   Navigator.push(context, MaterialPageRoute(builder: (context) => const ConfiguracaoPage()));
                 }),
@@ -493,23 +516,26 @@ class _ColetaViewState extends State<ColetaView> {
     );
   }
 
-  Widget _buildMenuCard({required IconData icon, required String title, required VoidCallback onTap}) {
+  Widget _buildMenuCard({required IconData icon, required String title, required Color cor, required VoidCallback onTap}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Card(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: altoContraste ? const BorderSide(color: Colors.black, width: 2) : BorderSide.none,
+          ),
           elevation: 4,
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
-                Icon(icon, color: const Color(0xFF1F5C3A)),
+                Icon(icon, color: cor),
                 const SizedBox(width: 16),
                 Expanded(child: Text(title, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold))),
-                const Icon(Icons.arrow_forward_ios, color: Color(0xFF1F5C3A), size: 16),
+                Icon(Icons.arrow_forward_ios, color: cor, size: 16),
               ],
             ),
           ),
@@ -523,6 +549,7 @@ class _ColetaViewState extends State<ColetaView> {
       padding: const EdgeInsets.all(16),
       child: InkWell(
         onTap: () async {
+          _vibrar();
           await FirebaseAuth.instance.signOut();
           await GoogleSignIn().signOut();
           if (context.mounted) {
