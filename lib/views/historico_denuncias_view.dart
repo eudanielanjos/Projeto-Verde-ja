@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'; 
 
-// Importações das suas views
+// Importações das suas views (ajuste os caminhos conforme seu projeto)
 import 'perfil_view.dart';
 import 'educacao_view.dart';
 import 'config_view.dart';
-import 'home_view.dart';
 import 'tela_inicial_view.dart';
 import 'coleta_view.dart';
 
@@ -21,28 +18,45 @@ class HistoricoDenunciasView extends StatefulWidget {
 
 class _HistoricoDenunciasViewState extends State<HistoricoDenunciasView> {
   final Color greenPrimary = const Color(0xFF1F5C3A);
+  bool _tempoLimiteAtingido = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Força o Firestore a reativar as requisições de rede e ignorar caches travados
+    FirebaseFirestore.instance.enableNetwork().catchError((e) => print("Erro ao ativar rede: $e"));
+    
+    // Se o Firebase não responder em 5 segundos, avisa o usuário em vez de travar a tela
+    Future.delayed(const Duration(seconds: 5), () {
+      if (mounted) {
+        setState(() {
+          _tempoLimiteAtingido = true;
+        });
+      }
+    });
+  }
 
   Color _getStatusColor(String status) {
-    switch (status) {
-      case "Resolvido": return const Color(0xFF59BA15);
-      case "Em análise": 
-      case "Pendente": return Colors.orange;
-      case "Recusado": return Colors.red;
+    switch (status.toLowerCase()) {
+      case "resolvido": return const Color(0xFF59BA15);
+      case "em análise": 
+      case "pendente": return Colors.orange;
+      case "recusado": return Colors.red;
       default: return Colors.grey;
     }
   }
 
   IconData _getStatusIcon(String status) {
-    switch (status) {
-      case "Resolvido": return Icons.check_circle_rounded;
-      case "Em análise":
-      case "Pendente": return Icons.pending_actions_rounded;
-      case "Recusado": return Icons.cancel_rounded;
+    switch (status.toLowerCase()) {
+      case "resolvido": return Icons.check_circle_rounded;
+      case "em análise":
+      case "pendente": return Icons.pending_actions_rounded;
+      case "recusado": return Icons.cancel_rounded;
       default: return Icons.info_rounded;
     }
   }
 
-  // --- PAINEL DE INSPEÇÃO ---
+  // --- PAINEL DE INSPEÇÃO DA DENÚNCIA ---
   void _abrirInspecaoDenuncia(Map<String, dynamic> denuncia, String dataFormatada) {
     final statusColor = _getStatusColor(denuncia["status"] ?? "Pendente");
 
@@ -50,6 +64,12 @@ class _HistoricoDenunciasViewState extends State<HistoricoDenunciasView> {
     if (denuncia["endereco"] != null) {
       var end = denuncia["endereco"];
       localFormatado = "${end['rua'] ?? ''}, Nº ${end['numero'] ?? 'S/N'} - ${end['bairro'] ?? ''}";
+    }
+
+    // Se houver uma foto vinda do Firebase, carrega ela por URL, senão usa a imagem padrão
+    ImageProvider fotoDenuncia = const AssetImage("assets/images/descarte.png");
+    if (denuncia["imageUrl"] != null && denuncia["imageUrl"].toString().isNotEmpty) {
+      fotoDenuncia = NetworkImage(denuncia["imageUrl"]);
     }
 
     showModalBottomSheet(
@@ -83,8 +103,8 @@ class _HistoricoDenunciasViewState extends State<HistoricoDenunciasView> {
                       decoration: BoxDecoration(
                         color: Colors.grey[200],
                         borderRadius: BorderRadius.circular(20),
-                        image: const DecorationImage(
-                          image: AssetImage("assets/images/descarte.png"), 
+                        image: DecorationImage(
+                          image: fotoDenuncia, 
                           fit: BoxFit.cover,
                         ),
                       ),
@@ -128,7 +148,6 @@ class _HistoricoDenunciasViewState extends State<HistoricoDenunciasView> {
                     const Divider(height: 40),
                     Row(
                       children: [
-                        // Mostra o email do usuário que gerou a denúncia
                         Expanded(child: _buildInfoRow(Icons.person_outline, "Relator", denuncia["usuarioEmail"] ?? "Usuário")),
                         Expanded(child: _buildInfoRow(Icons.calendar_today_outlined, "Data do Registro", dataFormatada)),
                       ],
@@ -187,6 +206,35 @@ class _HistoricoDenunciasViewState extends State<HistoricoDenunciasView> {
     return timestamp.toString();
   }
 
+  Widget _buildMenuCard({required IconData icon, required String title, required VoidCallback onTap}) {
+    return ListTile(
+      leading: Icon(icon, color: greenPrimary),
+      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
+      onTap: onTap,
+    );
+  }
+
+  Widget _buildSairButton(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(20),
+      child: ElevatedButton.icon(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.redAccent,
+          minimumSize: const Size(double.infinity, 50),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+        onPressed: () async {
+          await FirebaseAuth.instance.signOut();
+          if (context.mounted) {
+            Navigator.of(context).popUntil((route) => route.isFirst);
+          }
+        },
+        icon: const Icon(Icons.logout, color: Colors.white),
+        label: const Text("Sair da Conta", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final User? usuarioLogado = FirebaseAuth.instance.currentUser;
@@ -198,7 +246,7 @@ class _HistoricoDenunciasViewState extends State<HistoricoDenunciasView> {
           children: [
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.only(top: 50, bottom: 25),
+              padding: const EdgeInsets.only(top: 60, bottom: 25),
               decoration: const BoxDecoration(color: Color(0xFF1F5C3A)),
               child: Column(
                 children: [
@@ -283,81 +331,99 @@ class _HistoricoDenunciasViewState extends State<HistoricoDenunciasView> {
             ],
           ),
           Expanded(
-            // STREAM MODIFICADO: Removeu-se o '.where()' para trazer absolutamente todas as denúncias criadas no app
             child: StreamBuilder<QuerySnapshot>(
+              // Filtro adicionado aqui para obedecer à regra de segurança do Firebase
               stream: FirebaseFirestore.instance
                   .collection('denuncias')
+                  .where('usuarioId', isEqualTo: usuarioLogado?.uid) 
                   .orderBy('criadoEm', descending: true)
                   .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
-                  return Center(child: Text("Erro ao carregar dados: ${snapshot.error}"));
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Text(
+                        "Erro do Firebase:\n${snapshot.error}",
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  );
                 }
+                
                 if (snapshot.connectionState == ConnectionState.waiting) {
+                  if (_tempoLimiteAtingido) {
+                    return const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(25.0),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.cloud_off, size: 50, color: Colors.orange),
+                            SizedBox(height: 10),
+                            Text(
+                              "Sem resposta do servidor.\nVerifique sua conexão com a internet ou se você criou o índice composto exigido no log do terminal.",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(color: Colors.black54, fontWeight: FontWeight.w500),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }
                   return const Center(child: CircularProgressIndicator(color: Color(0xFF1F5C3A)));
                 }
+                
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                   return const Center(
-                    child: Text(
-                      "Nenhuma denúncia registrada no sistema.",
-                      style: TextStyle(fontSize: 16, color: Colors.grey),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.assignment_late_outlined,
+                          size: 60,
+                          color: Colors.grey,
+                        ),
+                        SizedBox(height: 15),
+                        Text(
+                          "Não há nenhuma denúncia registrada.",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
                     ),
                   );
                 }
 
-                final listaDocs = snapshot.data!.docs;
-
                 return ListView.builder(
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.fromLTRB(20, 30, 20, 20),
-                  itemCount: listaDocs.length,
+                  padding: const EdgeInsets.all(15),
+                  itemCount: snapshot.data!.docs.length,
                   itemBuilder: (context, index) {
-                    final item = listaDocs[index].data() as Map<String, dynamic>;
-                    final statusAtual = item["status"] ?? "Pendente";
-                    final statusColor = _getStatusColor(statusAtual);
-                    final dataReg = _formatarData(item["criadoEm"]);
+                    var doc = snapshot.data!.docs[index];
+                    var denuncia = doc.data() as Map<String, dynamic>;
+                    String dataFormatada = _formatarData(denuncia['criadoEm']);
+                    String status = denuncia['status'] ?? 'Pendente';
 
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 16),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(22),
-                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))],
-                      ),
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                       child: ListTile(
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
-                        leading: const CircleAvatar(
-                          radius: 32,
-                          backgroundColor: Color(0xFFF1F5F2),
-                          backgroundImage: AssetImage("assets/images/descarte.png"),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                        leading: CircleAvatar(
+                          backgroundColor: _getStatusColor(status).withOpacity(0.2),
+                          child: Icon(_getStatusIcon(status), color: _getStatusColor(status)),
                         ),
                         title: Text(
-                          item["tipo"] ?? "Denúncia Sem Tipo", 
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF2D312E)),
+                          denuncia['tipo'] ?? 'Sem Tipo',
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                         ),
-                        subtitle: Padding(
-                          padding: const EdgeInsets.only(top: 6),
-                          child: Text(
-                            "$dataReg • Por: ${item["usuarioEmail"]?.split('@')[0] ?? 'Usuário'}", 
-                            style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
-                          ),
-                        ),
-                        trailing: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(_getStatusIcon(statusAtual), color: statusColor, size: 24),
-                            const SizedBox(height: 4),
-                            Text(
-                              statusAtual,
-                              style: TextStyle(
-                                color: statusColor,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 11,
-                              ),
-                            ),
-                          ],
-                        ),
-                        onTap: () => _abrirInspecaoDenuncia(item, dataReg), 
+                        subtitle: Text("Registrado em: $dataFormatada"),
+                        trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+                        onTap: () => _abrirInspecaoDenuncia(denuncia, dataFormatada),
                       ),
                     );
                   },
@@ -366,60 +432,6 @@ class _HistoricoDenunciasViewState extends State<HistoricoDenunciasView> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildMenuCard({required IconData icon, required String title, required VoidCallback onTap}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Card(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          elevation: 4,
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Icon(icon, color: const Color(0xFF1F5C3A)),
-                const SizedBox(width: 16),
-                Expanded(child: Text(title, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold))),
-                const Icon(Icons.arrow_forward_ios, color: Color(0xFF1F5C3A), size: 16),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSairButton(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(14),
-        onTap: () async {
-          PaintingBinding.instance.imageCache.clear();
-          await FirebaseAuth.instance.signOut();
-          await GoogleSignIn().signOut();
-          if (context.mounted) {
-            Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => const HomeView()), (route) => false);
-          }
-        },
-        child: Container(
-          height: 55,
-          decoration: BoxDecoration(color: Colors.red, borderRadius: BorderRadius.circular(14)),
-          child: const Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.logout, color: Colors.white),
-              SizedBox(width: 10),
-              Text("Sair da conta", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-            ],
-          ),
-        ),
       ),
     );
   }

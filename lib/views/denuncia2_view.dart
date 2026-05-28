@@ -72,6 +72,8 @@ class _Denuncias2State extends State<Denuncias2> {
         categoriaFinal = _outroTipoController.text.trim();
       }
 
+      // CORREÇÃO: Alterado de FieldValue.serverTimestamp() para Timestamp.now()
+      // Isso evita o valor nulo temporário local que quebrava o orderBy do Histórico.
       await FirebaseFirestore.instance.collection('denuncias').add({
         'usuarioId': usuarioId,
         'usuarioEmail': usuarioEmail,
@@ -85,12 +87,12 @@ class _Denuncias2State extends State<Denuncias2> {
         },
         'detalhes': _detalhesController.text.trim(),
         'status': 'Pendente',
-        'criadoEm': FieldValue.serverTimestamp(),
+        'criadoEm': Timestamp.now(), 
       });
 
       if (!mounted) return;
 
-      // Chama o Splash Screen de envio que estava faltando
+      // Avança para a Splash Screen de envio
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const EnvioDenunciaSplash()),
@@ -327,9 +329,6 @@ class _Denuncias2State extends State<Denuncias2> {
   }
 }
 
-// -----------------------------------------------------------------------------
-// TELA DE CARREGAMENTO (SPLASH DE ENVIO)
-// -----------------------------------------------------------------------------
 class EnvioDenunciaSplash extends StatefulWidget {
   const EnvioDenunciaSplash({super.key});
 
@@ -341,7 +340,6 @@ class _EnvioDenunciaSplashState extends State<EnvioDenunciaSplash> {
   @override
   void initState() {
     super.initState();
-    // Simula um tempo de processamento visual de 2.5 segundos antes de ir para o sucesso
     Future.delayed(const Duration(milliseconds: 2500), () {
       if (mounted) {
         Navigator.pushReplacement(
@@ -381,9 +379,6 @@ class _EnvioDenunciaSplashState extends State<EnvioDenunciaSplash> {
   }
 }
 
-// -----------------------------------------------------------------------------
-// TELA DE CONFIRMAÇÃO DE SUCESSO
-// -----------------------------------------------------------------------------
 class ConfirmacaoDenunciaView extends StatelessWidget {
   const ConfirmacaoDenunciaView({super.key});
 
@@ -448,7 +443,6 @@ class ConfirmacaoDenunciaView extends StatelessWidget {
                   height: 55,
                   child: ElevatedButton(
                     onPressed: () {
-                      // Limpa a pilha de telas e abre o histórico de denúncias
                       Navigator.pushAndRemoveUntil(
                         context,
                         MaterialPageRoute(builder: (context) => const HistoricoDenunciasView()),
