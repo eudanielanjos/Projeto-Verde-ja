@@ -4,7 +4,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vibration/vibration.dart';
 
-// Suas importações existentes
+// Importações das suas views
 import 'acessibilidade_view.dart'; 
 import 'privacidade_view.dart';
 import 'idiomas_view.dart';
@@ -15,6 +15,7 @@ import 'educacao_view.dart';
 import 'perfil_view.dart';
 import 'historico_denuncias_view.dart';
 import 'notificacoes_view.dart';
+import 'sobre_app_view.dart'; // <--- IMPORTAÇÃO ADICIONADA
 
 class ConfiguracaoPage extends StatefulWidget {
   const ConfiguracaoPage({super.key});
@@ -24,7 +25,6 @@ class ConfiguracaoPage extends StatefulWidget {
 }
 
 class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
-  // --- ESTADOS DE ACESSIBILIDADE ---
   bool daltonismo = false;
   bool fonteGrande = false;
   bool altoContraste = false;
@@ -38,7 +38,6 @@ class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
     carregarAcessibilidade();
   }
 
-  // Carrega as configurações guardadas no dispositivo
   Future<void> carregarAcessibilidade() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
@@ -51,7 +50,6 @@ class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
     });
   }
 
-  // Lógica de vibração sutil para feedback do usuário
   void vibrar() async {
     if (vibracao) {
       if (await Vibration.hasVibrator() ?? false) {
@@ -60,7 +58,6 @@ class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
     }
   }
 
-  // Gerencia a navegação atualizando o estado assim que o usuário retornar à tela
   void navegarParaTela(Widget tela, {bool replacement = false}) async {
     vibrar();
     if (replacement) {
@@ -68,10 +65,9 @@ class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
     } else {
       await Navigator.push(context, MaterialPageRoute(builder: (context) => tela));
     }
-    carregarAcessibilidade(); // Força a atualização visual caso mudado na tela de Acessibilidade
+    carregarAcessibilidade(); 
   }
 
-  // Função centralizada para exibir a mensagem "Em breve"
   void _mostrarMensagemEmBreve(BuildContext context) {
     vibrar();
     ScaffoldMessenger.of(context).showSnackBar(
@@ -84,16 +80,13 @@ class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
         backgroundColor: const Color(0xFF1F5C3A),
         duration: const Duration(seconds: 2),
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    // --- TEMAS ADAPTATIVOS DE COR E FUNDO ---
     Color corTema;
     Color corFundoTela;
 
@@ -101,14 +94,13 @@ class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
       corTema = Colors.black;
       corFundoTela = Colors.white;
     } else if (daltonismo) {
-      corTema = const Color(0xFF455A64); // Azul acinzentado
+      corTema = const Color(0xFF455A64); 
       corFundoTela = const Color(0xFFECEFF1);
     } else {
-      corTema = const Color(0xFF1F5C3A); // Verde padrão
+      corTema = const Color(0xFF1F5C3A); 
       corFundoTela = const Color(0xFFF8FAF9);
     }
 
-    // Adaptando o espaçamento da grade com o Zoom de Interface
     double proporcaoAspectoGrid = zoomInterface ? 0.85 : 1.0;
 
     return MediaQuery(
@@ -117,10 +109,7 @@ class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
       ),
       child: Scaffold(
         backgroundColor: corFundoTela,
-        
-        // --- MENU LATERAL (DRAWER) ---
         endDrawer: _buildMenuDrawer(context, corTema),
-
         appBar: AppBar(
           title: const Text("CONFIGURAÇÕES", style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 18, letterSpacing: 2)),
           centerTitle: true,
@@ -137,10 +126,8 @@ class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
             )),
           ],
         ),
-
         body: Column(
           children: [
-            // Header Curvado adaptável
             Container(
               width: double.infinity,
               padding: const EdgeInsets.only(bottom: 35, top: 10),
@@ -156,8 +143,6 @@ class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
                 ],
               ),
             ),
-
-            // --- GRADE DE BOTÕES (GRID) ---
             Expanded(
               child: GridView.count(
                 crossAxisCount: 2,
@@ -206,7 +191,7 @@ class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
                     icon: Icons.info_outline, 
                     label: "Sobre o App", 
                     corTema: corTema,
-                    onTap: () => _mostrarMensagemEmBreve(context)
+                    onTap: () => navegarParaTela(const SobreAppView()) // <--- CONECTADO AQUI
                   ),
                   _buildGridButton(
                     icon: Icons.delete_forever_outlined, 
@@ -214,7 +199,6 @@ class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
                     corTema: corTema,
                     onTap: () {
                       vibrar();
-                      // Implementação futura de exclusão de conta
                     }, 
                     color: Colors.red.shade50
                   ),
@@ -227,7 +211,6 @@ class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
     );
   }
 
-  // --- BOTÃO DA GRADE (GRID) ---
   Widget _buildGridButton({required IconData icon, required String label, required Color corTema, required VoidCallback onTap, Color? color}) {
     return InkWell(
       onTap: onTap,
@@ -264,7 +247,6 @@ class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
     );
   }
 
-  // --- DRAWER (MENU LATERAL) ---
   Widget _buildMenuDrawer(BuildContext context, Color corTema) {
     return Drawer(
       child: Column(
@@ -366,8 +348,8 @@ class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(Icons.logout, color: Colors.white),
-              SizedBox(width: 10),
-              Text("Sair da conta", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              const SizedBox(width: 10),
+              const Text("Sair da conta", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
             ],
           ),
         ),
