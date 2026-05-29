@@ -1,9 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:vibration/vibration.dart';
-
+import 'package:firebase_auth/firebase_auth.dart'; // 1. IMPORTADO O AUTH
+import 'package:cloud_firestore/cloud_firestore.dart'; // 2. IMPORTADO O FIRESTORE
 import 'package:flutter_app/views/coleta_view.dart';
 import 'tela_inicial_view.dart';
 import 'config_view.dart';
@@ -19,11 +17,23 @@ class PerfilPage extends StatefulWidget {
 }
 
 class _PerfilPageState extends State<PerfilPage> {
-  // --- DADOS SIMULADOS ---
-  String telefone = "+55 11 99999-9999";
-  String endereco = "Rua Exemplo, 123";
-  String bairro = "Centro";
-  String nome = "Usuário Admin";
+  // Pegamos a instância do usuário logado atualmente no app
+  final User? _usuarioAtual = FirebaseAuth.instance.currentUser;
+
+  // Variável para controlar o estado de salvamento no modal
+  bool _isSaving = false;
+
+  // Função para deslogar do Firebase Auth com segurança
+  Future<void> _fazerLogout(BuildContext context) async {
+    await FirebaseAuth.instance.signOut();
+    if (context.mounted) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const HomeView()),
+        (route) => false,
+      );
+    }
+  }
 
   File? _imagemPerfil;
   final ImagePicker _picker = ImagePicker();
@@ -37,289 +47,142 @@ class _PerfilPageState extends State<PerfilPage> {
   double escalaFonte = 1.0;
 
   @override
-  void initState() {
-    super.initState();
-    carregarAcessibilidade();
-  }
-
-  // Carrega as configurações guardadas no dispositivo
-  Future<void> carregarAcessibilidade() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      daltonismo = prefs.getBool('daltonismo') ?? false;
-      fonteGrande = prefs.getBool('fonteGrande') ?? false;
-      altoContraste = prefs.getBool('altoContraste') ?? false;
-      vibracao = prefs.getBool('vibracao') ?? false;
-      zoomInterface = prefs.getBool('zoomInterface') ?? false;
-      escalaFonte = fonteGrande ? 1.25 : 1.0;
-    });
-  }
-
-  // Lógica de vibração baseada nas preferências do usuário
-  void vibrar() async {
-    if (vibracao) {
-      if (await Vibration.hasVibrator() ?? false) {
-        Vibration.vibrate(duration: 40);
-      }
-    }
-  }
-
-  // Intercepta a navegação para atualizar o visual quando o usuário retorna
-  void navegarParaTela(Widget tela, {bool replacement = false}) async {
-    vibrar();
-    if (replacement) {
-      await Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => tela));
-    } else {
-      await Navigator.push(context, MaterialPageRoute(builder: (context) => tela));
-    }
-    carregarAcessibilidade();
-  }
-
-  Future<void> _escolherImagem(ImageSource source) async {
-    try {
-      final XFile? imagemSelecionada = await _picker.pickImage(
-        source: source,
-        imageQuality: 70,
-        maxWidth: 500,
-      );
-
-      if (imagemSelecionada != null) {
-        setState(() {
-          _imagemPerfil = File(imagemSelecionada.path);
-        });
-        vibrar();
-      }
-    } catch (e) {
-      debugPrint("Erro ao selecionar imagem: $e");
-    }
-  }
-
-  void _tirarFotoOuSelecionarGaleria(Color corTema) {
-    vibrar();
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 15),
-                child: Text(
-                  "Foto de Perfil",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-              ),
-              ListTile(
-                leading: Icon(Icons.camera_alt, color: corTema),
-                title: const Text("Tirar Foto com a Câmera"),
-                onTap: () {
-                  Navigator.pop(context);
-                  _escolherImagem(ImageSource.camera);
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.image, color: corTema),
-                title: const Text("Escolher da Galeria"),
-                onTap: () {
-                  Navigator.pop(context);
-                  _escolherImagem(ImageSource.gallery);
-                },
-              ),
-              const SizedBox(height: 10),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  void _visualizarFotoPerfil(Color corTema) {
-    vibrar();
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-          backgroundColor: Colors.transparent,
-          insetPadding: const EdgeInsets.all(15),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Align(
-                alignment: Alignment.centerRight,
-                child: IconButton(
-                  icon: const Icon(Icons.close, color: Colors.white, size: 30),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ),
-              const SizedBox(height: 10),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(20),
-                child: Container(
-                  width: double.infinity,
-                  constraints: BoxConstraints(
-                    maxHeight: MediaQuery.of(context).size.height * 0.6,
-                  ),
-                  color: const Color(0xFFF1F5F2),
-                  child: _imagemPerfil != null
-                      ? Image.file(
-                          _imagemPerfil!,
-                          fit: BoxFit.contain,
-                        )
-                      : Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 60),
-                          child: Icon(
-                            Icons.person,
-                            size: 200,
-                            color: corTema,
-                          ),
-                        ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  @override
   Widget build(BuildContext context) {
-    // --- TEMAS ADAPTATIVOS DE COR ---
-    Color corTema;
-    if (altoContraste) {
-      corTema = Colors.black;
-    } else if (daltonismo) {
-      corTema = const Color(0xFF455A64);
-    } else {
-      corTema = const Color(0xFF1F5C3A);
+    // Se o usuário não estiver logado por algum motivo, exibe um aviso ou redireciona
+    if (_usuarioAtual == null) {
+      return const Scaffold(
+        body: Center(child: Text("Nenhum usuário logado.")),
+      );
     }
 
-    // --- SE ADAPTANDO AO ZOOM DE INTERFACE ---
-    double paddingVerticalCard = zoomInterface ? 16 : 8;
-    double alturaBotaoEditar = zoomInterface ? 60 : 50;
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8FAF9),
+      endDrawer: _buildMenuDrawer(context),
+      // 🔥 O StreamBuilder escuta as alterações do Firestore em tempo real
+      body: StreamBuilder<DocumentSnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('usuarios')
+            .doc(_usuarioAtual.uid) // Busca o documento com o UID do usuário logado
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return const Center(child: Text("Erro ao carregar os dados de perfil."));
+          }
 
-    return MediaQuery(
-      data: MediaQuery.of(context).copyWith(
-        textScaler: TextScaler.linear(escalaFonte),
-      ),
-      child: Scaffold(
-        backgroundColor: const Color(0xFFF8FAF9),
-        endDrawer: _buildMenuDrawer(context, corTema),
-        body: Column(
-          children: [
-            // --- HEADER CURVADO ---
-            Stack(
-              children: [
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.only(top: 60, bottom: 40),
-                  decoration: BoxDecoration(
-                    color: corTema,
-                    borderRadius: const BorderRadius.only(
-                      bottomLeft: Radius.circular(50),
-                      bottomRight: Radius.circular(50),
-                    ),
-                  ),
-                  child: Column(
-                    children: [
-                      _buildAvatarComFoto(corTema),
-                      const SizedBox(height: 15),
-                      Text(
-                        nome,
-                        style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
-                      ),
-                      const Text(
-                        "admin123@email.com",
-                        style: TextStyle(color: Colors.white70, fontSize: 14),
-                      ),
-                    ],
-                  ),
-                ),
-                Positioned(
-                  top: 40,
-                  right: 15,
-                  child: Builder(
-                    builder: (context) => IconButton(
-                      icon: const Icon(Icons.menu, color: Colors.white, size: 30),
-                      onPressed: () {
-                        vibrar();
-                        Scaffold.of(context).openEndDrawer();
-                      },
-                    ),
-                  ),
-                ),
-              ],
-            ),
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF1F5C3A)),
+              ),
+            );
+          }
 
-            // --- LISTA DE INFORMAÇÕES DO PERFIL ---
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
+          // Se o documento não existir no Firestore, define valores padrão vazios
+          Map<String, dynamic> dadosDoBanco = {};
+          if (snapshot.hasData && snapshot.data!.exists) {
+            dadosDoBanco = snapshot.data!.data() as Map<String, dynamic>;
+          }
+
+          // Mapeia os campos retornados ou define strings padrão caso ainda não existam no banco
+          String nome = dadosDoBanco['nome'] ?? "Sem Nome";
+          String email = dadosDoBanco['email'] ?? _usuarioAtual.email ?? "Sem Email";
+          String telefone = dadosDoBanco['telefone'] ?? "Não cadastrado";
+          String endereco = dadosDoBanco['endereco'] ?? "Não cadastrado";
+
+          return Column(
+            children: [
+              // --- HEADER CURVADO ---
+              Stack(
                 children: [
-                  _buildInfoCard(
-                    icon: Icons.phone_android_rounded,
-                    title: "Telefone (com código internacional)",
-                    value: telefone,
-                    corIcone: corTema,
-                    paddingVertical: paddingVerticalCard,
-                  ),
-                  _buildInfoCard(
-                    icon: Icons.location_on_outlined,
-                    title: "Endereço",
-                    value: endereco,
-                    corIcone: corTema,
-                    paddingVertical: paddingVerticalCard,
-                  ),
-                  _buildInfoCard(
-                    icon: Icons.holiday_village_outlined,
-                    title: "Bairro",
-                    value: bairro,
-                    corIcone: corTema,
-                    paddingVertical: paddingVerticalCard,
-                  ),
-                  _buildInfoCard(
-                    icon: Icons.lock_outline_rounded,
-                    title: "Senha",
-                    value: "********",
-                    corIcone: corTema,
-                    paddingVertical: paddingVerticalCard,
-                  ),
-                  const SizedBox(height: 20),
-                  
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 40),
-                    child: ElevatedButton.icon(
-                      onPressed: () => _abrirModalEdicao(context, corTema),
-                      icon: const Icon(Icons.edit_note_rounded, color: Colors.white),
-                      label: const Text("EDITAR PERFIL", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: corTema,
-                        fixedSize: Size(double.infinity, alturaBotaoEditar),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                          side: altoContraste ? const BorderSide(color: Colors.white, width: 2) : BorderSide.none,
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.only(top: 60, bottom: 40),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF1F5C3A),
+                      borderRadius: BorderRadius.only(
+                        bottomLeft: Radius.circular(50),
+                        bottomRight: Radius.circular(50),
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        _buildAvatarComFoto(),
+                        const SizedBox(height: 15),
+                        Text(
+                          nome,
+                          style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+                          textAlign: TextAlign.center,
                         ),
+                        Text(
+                          email,
+                          style: const TextStyle(color: Colors.white70, fontSize: 14),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Positioned(
+                    top: 40,
+                    right: 15,
+                    child: Builder(
+                      builder: (context) => IconButton(
+                        icon: const Icon(Icons.menu, color: Colors.white, size: 30),
+                        onPressed: () => Scaffold.of(context).openEndDrawer(),
                       ),
                     ),
                   ),
                 ],
               ),
-            ),
-          ],
-        ),
+
+              // --- CONTEÚDO (CARDS DINÂMICOS) ---
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
+                  children: [
+                    _buildInfoCard(
+                      icon: Icons.phone_android_rounded,
+                      title: "Telefone",
+                      value: telefone,
+                    ),
+                    _buildInfoCard(
+                      icon: Icons.location_on_outlined,
+                      title: "Endereço",
+                      value: endereco,
+                    ),
+                    _buildInfoCard(
+                      icon: Icons.lock_outline_rounded,
+                      title: "Senha",
+                      value: "********",
+                    ),
+                    const SizedBox(height: 20),
+                    
+                    // Botão Editar que passa os dados atuais para o modal
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 40),
+                      child: ElevatedButton.icon(
+                        onPressed: () => _abrirModalEdicao(context, telefone, endereco),
+                        icon: const Icon(Icons.edit_note_rounded, color: Colors.white),
+                        label: const Text("EDITAR PERFIL", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF1F5C3A),
+                          fixedSize: const Size(double.infinity, 50),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
 
-  void _abrirModalEdicao(BuildContext context, Color corTema) {
-    vibrar();
-    final telefoneController = TextEditingController(text: telefone);
-    final enderecoController = TextEditingController(text: endereco);
-    final bairroController = TextEditingController(text: bairro);
+  // --- FUNCIONALIDADE: MODAL DE EDIÇÃO INTEGRADO AO FIRESTORE ---
+  void _abrirModalEdicao(BuildContext context, String telefoneAtual, String enderecoAtual) {
+    final telefoneController = TextEditingController(text: telefoneAtual == "Não cadastrado" ? "" : telefoneAtual);
+    final enderecoController = TextEditingController(text: enderecoAtual == "Não cadastrado" ? "" : enderecoAtual);
 
     showModalBottomSheet(
       context: context,
@@ -328,59 +191,66 @@ class _PerfilPageState extends State<PerfilPage> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
       ),
       builder: (context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-            left: 25,
-            right: 25,
-            top: 15,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(10))),
-              const SizedBox(height: 20),
-              Text("Editar Informações", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: corTema)),
-              const SizedBox(height: 25),
-              _buildCampoEdicao(label: "Telefone (Obrigatório Ex: +55...)", controller: telefoneController, icon: Icons.phone, corFoco: corTema),
-              const SizedBox(height: 15),
-              _buildCampoEdicao(label: "Endereço", controller: enderecoController, icon: Icons.map, corFoco: corTema),
-              const SizedBox(height: 15),
-              _buildCampoEdicao(label: "Bairro", controller: bairroController, icon: Icons.holiday_village_outlined, corFoco: corTema),
-              const SizedBox(height: 30),
-              ElevatedButton(
-                onPressed: () {
-                  vibrar();
-                  String textoTelefone = telefoneController.text.trim();
-                  RegExp ddiRegex = RegExp(r'^\+\d+');
-
-                  if (!ddiRegex.hasMatch(textoTelefone)) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("Erro: O código internacional (Ex: +55) é obrigatório!"),
-                        backgroundColor: Colors.red,
-                        duration: Duration(seconds: 3),
-                      ),
-                    );
-                    return;
-                  }
-
-                  setState(() {
-                    telefone = textoTelefone;
-                    endereco = enderecoController.text;
-                    bairro = bairroController.text;
-                  });
-                  Navigator.pop(context);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: corTema,
-                  minimumSize: const Size(double.infinity, 55),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                ),
-                child: const Text("SALVAR ALTERAÇÕES", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        return StatefulBuilder( // StatefulBuilder serve para atualizar o loading interno do modal
+          builder: (context, setModalState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+                left: 25,
+                right: 25,
+                top: 15,
               ),
-            ],
-          ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(10))),
+                  const SizedBox(height: 20),
+                  const Text("Editar Informações", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1F5C3A))),
+                  const SizedBox(height: 25),
+                  _buildCampoEdicao(label: "Telefone", controller: telefoneController, icon: Icons.phone),
+                  const SizedBox(height: 15),
+                  _buildCampoEdicao(label: "Endereço", controller: enderecoController, icon: Icons.map),
+                  const SizedBox(height: 30),
+                  ElevatedButton(
+                    onPressed: _isSaving
+                        ? null
+                        : () async {
+                            setModalState(() => _isSaving = true);
+
+                            try {
+                              // 🔥 ATUALIZA OS DADOS DIRETAMENTE NO FIRESTORE
+                              await FirebaseFirestore.instance
+                                  .collection('usuarios')
+                                  .doc(_usuarioAtual!.uid)
+                                  .update({
+                                'telefone': telefoneController.text.trim(),
+                                'endereco': enderecoController.text.trim(),
+                              });
+
+                              if (context.mounted) Navigator.pop(context);
+                            } catch (e) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text("Erro ao salvar: $e"), backgroundColor: Colors.red),
+                                );
+                              }
+                            } finally {
+                              setModalState(() => _isSaving = false);
+                            }
+                          },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF1F5C3A),
+                      minimumSize: const Size(double.infinity, 55),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                    ),
+                    child: _isSaving
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text("SALVAR ALTERAÇÕES", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              ),
+            );
+          },
         );
       },
     );
@@ -480,11 +350,12 @@ class _PerfilPageState extends State<PerfilPage> {
                   backgroundColor: Colors.white,
                   child: Padding(
                     padding: const EdgeInsets.all(6),
-                    child: Image.asset('assets/images/logo.png', fit: BoxFit.contain),
+                    child: Image.asset('assets/images/logo.png', fit: BoxFit.contain, errorBuilder: (context, error, stackTrace) => const Icon(Icons.eco, color: Color(0xFF1F5C3A))),
                   ),
                 ),
                 const SizedBox(height: 10),
-                const Text("Olá, Usuario", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                // Exibe o e-mail abreviado ou uma saudação simples no cabeçalho do menu
+                Text(_usuarioAtual?.email?.split('@')[0] ?? "Usuário", style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
               ],
             ),
           ),
@@ -545,10 +416,7 @@ class _PerfilPageState extends State<PerfilPage> {
     return Padding(
       padding: const EdgeInsets.all(16),
       child: InkWell(
-        onTap: () {
-          vibrar();
-          Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => const HomeView()), (route) => false);
-        },
+        onTap: () => _fazerLogout(context), // Alterado para fazer o SignOut correto do Firebase
         child: Container(
           height: 55,
           decoration: BoxDecoration(color: Colors.red, borderRadius: BorderRadius.circular(14)),

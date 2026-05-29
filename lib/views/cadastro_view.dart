@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-// Importa a sua Tela Inicial exatamente como fornecida
+import 'package:cloud_firestore/cloud_firestore.dart'; // 1. IMPORTADO O FIRESTORE
 import 'tela_inicial_view.dart'; 
 
 class CadastroView extends StatefulWidget {
@@ -42,12 +42,10 @@ class _CadastroViewState extends State<CadastroView> {
     }
   }
 
-  // 🔥 FUNÇÃO QUE MOSTRA O SPLASH E DEPOIS LEVA PARA A TELA INICIAL
   void _mostrarSplashSucesso() {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) {
-          // Executa o redirecionamento automático após 3 segundos
           Future.delayed(const Duration(seconds: 3), () {
             if (context.mounted) {
               Navigator.pushAndRemoveUntil(
@@ -58,7 +56,6 @@ class _CadastroViewState extends State<CadastroView> {
             }
           });
 
-          // Retorna o Layout do Splash de Sucesso baseado no seu tema de cores
           return Scaffold(
             body: Container(
               width: double.infinity,
@@ -120,11 +117,11 @@ class _CadastroViewState extends State<CadastroView> {
     );
   }
 
+  // 🔥 ALTERADO: FUNÇÃO DE CADASTRO SALVANDO NO AUTH E NO FIRESTORE
   Future<void> _cadastrar() async {
     setState(() => _autoValidate = true);
     if (!_formKey.currentState!.validate()) return;
 
-    // Validação: as senhas precisam coincidir
     if (_senhaController.text != _confirmarSenhaController.text) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -144,14 +141,27 @@ class _CadastroViewState extends State<CadastroView> {
         password: _senhaController.text.trim(),
       );
 
-      // 2. Salva o nome digitado dentro do perfil do Firebase
+      // 2. Garante que o usuário foi criado para rodar os próximos passos
       if (userCredential.user != null) {
+        String uid = userCredential.user!.uid;
+
+        // Atualiza o DisplayName nativo do Auth (bom ter por garantia)
         await userCredential.user!.updateDisplayName(_nomeController.text.trim());
+
+        // 3. SALVA OS DADOS COMPLEMENTARES NO FIRESTORE
+        // Cria um documento dentro de 'usuarios' onde o ID do documento é o próprio UID do Auth
+        await FirebaseFirestore.instance.collection('usuarios').doc(uid).set({
+          'uid': uid,
+          'nome': _nomeController.text.trim(),
+          'email': _emailController.text.trim(),
+          'criadoEm': FieldValue.serverTimestamp(), // Guarda a data/hora exata do servidor do Firebase
+          'ativo': true, // Exemplo de metadado útil
+        });
       }
 
       if (!mounted) return;
 
-      // 3. CHAMA O SPLASH DE SUCESSO COORDENADO
+      // 4. CHAMA O SPLASH DE SUCESSO COORDENADO
       _mostrarSplashSucesso();
 
     } on FirebaseAuthException catch (e) {
@@ -171,7 +181,7 @@ class _CadastroViewState extends State<CadastroView> {
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Erro: ${e.toString()}"), backgroundColor: Colors.red)
+        SnackBar(content: Text("Erro ao salvar dados: ${e.toString()}"), backgroundColor: Colors.red)
       );
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -193,7 +203,6 @@ class _CadastroViewState extends State<CadastroView> {
         ),
         child: Stack(
           children: [
-            // CONTEÚDO PRINCIPAL
             Center(
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
@@ -204,7 +213,7 @@ class _CadastroViewState extends State<CadastroView> {
                   child: Column(
                     children: [
                       const SizedBox(height: 100),
-                      Image.asset("assets/images/logo.png", height: 165),
+                      Image.asset("assets/images/logo.png", height: 165, errorBuilder: (context, error, stackTrace) => const Icon(Icons.eco, size: 100, color: Color(0xFF305D3C))),
                       const SizedBox(height: 10),
                       const Text(
                         'Viva verde, viva melhor!',
@@ -275,8 +284,6 @@ class _CadastroViewState extends State<CadastroView> {
                 ),
               ),
             ),
-
-            // BOTÃO VOLTAR
             Positioned(
               top: 50,
               left: 10,

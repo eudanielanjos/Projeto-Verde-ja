@@ -209,11 +209,15 @@ class _ColetaViewState extends State<ColetaView> {
     );
   }
 
-  Widget _buildCalendar(Color corTema) {
-    final months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      transform: zoomInterface ? Matrix4.diagonal3Values(1.05, 1.05, 1.0) : Matrix4.identity(),
+  Widget _buildCalendar() {
+    final months = [
+      'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+      'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+    ];
+    String mesAtual = months[focusedDay.month - 1];
+    String anoAtual = focusedDay.year.toString();
+
+    return Container(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
@@ -242,8 +246,8 @@ class _ColetaViewState extends State<ColetaView> {
             child: const Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _WeekLabel('S'), _WeekLabel('M'), _WeekLabel('T'),
-                _WeekLabel('W'), _WeekLabel('T'), _WeekLabel('F'), _WeekLabel('S'),
+                _WeekLabel('S'), _WeekLabel('T'), _WeekLabel('Q'),
+                _WeekLabel('Q'), _WeekLabel('S'), _WeekLabel('S'), _WeekLabel('D'),
               ],
             ),
           ),

@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:geolocator/geolocator.dart';
 
 class MapaView extends StatefulWidget {
   const MapaView({super.key});
@@ -12,8 +14,11 @@ class MapaView extends StatefulWidget {
 class _MapaViewState extends State<MapaView> {
   final MapController _mapController = MapController();
   final LatLng _centroBelem = const LatLng(-1.4558, -48.4902);
+  
+  LatLng? _posicaoAtual;
+  StreamSubscription<Position>? _positionStreamSubscription;
 
-  // Lista com os 15 pontos de coleta com coordenadas corrigidas em terra firme
+  // Lista tipada estritamente para evitar erros de casting em tempo de execução
   final List<Map<String, dynamic>> _pontosColeta = [
     // --- PLÁSTICO (Vermelho) ---
     {
@@ -56,7 +61,7 @@ class _MapaViewState extends State<MapaView> {
       "cor": Colors.blueGrey,
       "icone": Icons.construction,
       "detalhe": "Aceita pequenas quantidades de resíduos de construção civil e restos de azulejos.",
-      "coordenadas": const LatLng(-1.4235, -48.4842), // CORRIGIDO: Agora na Av. Senador Lemos
+      "coordenadas": const LatLng(-1.4235, -48.4842),
     },
     {
       "nome": "Depósito de Resíduos de Obras - Cremação",
@@ -82,7 +87,7 @@ class _MapaViewState extends State<MapaView> {
       "cor": Colors.greenAccent,
       "icone": Icons.hourglass_bottom,
       "detalhe": "Aceita frascos de vidro vazios, copos quebrados e garrafas de bebidas em geral.",
-      "coordenadas": const LatLng(-1.4468, -48.4925), // CORRIGIDO: Agora na Av. Visconde de Souza Franco
+      "coordenadas": const LatLng(-1.4468, -48.4925),
     },
     {
       "nome": "Ecoponto Vidros - Nazaré",
@@ -126,7 +131,7 @@ class _MapaViewState extends State<MapaView> {
       "cor": Colors.orange,
       "icone": Icons.gavel,
       "detalhe": "Aceita latinhas de alumínio, tampas de metal, panelas velhas e fios de cobre.",
-      "coordenadas": const LatLng(-1.4425, -48.4945), // CORRIGIDO: Movido para perto da Doca
+      "coordenadas": const LatLng(-1.4425, -48.4945),
     },
     {
       "nome": "Ponto de Sucatas e Metais - Pedreira",
@@ -146,7 +151,67 @@ class _MapaViewState extends State<MapaView> {
     },
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    _iniciarMonitoramentoLocalizacao();
+  }
+
+  @override
+  void dispose() {
+    _positionStreamSubscription?.cancel();
+    _mapController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _iniciarMonitoramentoLocalizacao() async {
+    bool servicoAtivo;
+    LocationPermission permissao;
+
+    servicoAtivo = await Geolocator.isLocationServiceEnabled();
+    if (!servicoAtivo) return;
+
+    permissao = await Geolocator.checkPermission();
+    if (permissao == LocationPermission.denied) {
+      permissao = await Geolocator.requestPermission();
+      if (permissao == LocationPermission.denied) return;
+    }
+    
+    if (permissao == LocationPermission.deniedForever) return;
+
+    _positionStreamSubscription = Geolocator.getPositionStream(
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: 10,
+      ),
+    ).listen((Position position) {
+      if (mounted) {
+        setState(() {
+          _posicaoAtual = LatLng(position.latitude, position.longitude);
+        });
+      }
+    });
+  }
+
+  void _centralizarNoUsuario() {
+    if (_posicaoAtual != null) {
+      _mapController.move(_posicaoAtual!, 15);
+    } else {
+      _mapController.move(_centroBelem, 13);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Buscando sinal do GPS..."),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    }
+  }
+
   void _mostrarCardModerno(BuildContext context, Map<String, dynamic> ponto) {
+    final Color corBase = ponto["cor"] as Color;
+    
     showDialog(
       context: context,
       barrierDismissible: true, 
@@ -165,7 +230,7 @@ class _MapaViewState extends State<MapaView> {
                   padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [ponto["cor"], ponto["cor"].withAlpha(180)],
+                      colors: [corBase, corBase.withAlpha(180)],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
@@ -178,23 +243,18 @@ class _MapaViewState extends State<MapaView> {
                           color: Colors.white.withOpacity(0.25),
                           borderRadius: BorderRadius.circular(16),
                         ),
-                        child: Icon(ponto["icone"], color: Colors.white, size: 28),
+                        child: Icon(ponto["icone"] as IconData, color: Colors.white, size: 28),
                       ),
                       const SizedBox(width: 16),
                       Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              ponto["tipo"].toString().toUpperCase(),
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 22, 
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                          ],
+                        child: Text(
+                          ponto["tipo"].toString().toUpperCase(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 22, 
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.5,
+                          ),
                         ),
                       ),
                     ],
@@ -206,7 +266,7 @@ class _MapaViewState extends State<MapaView> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        ponto["nome"],
+                        ponto["nome"].toString(),
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -224,7 +284,7 @@ class _MapaViewState extends State<MapaView> {
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        ponto["detalhe"],
+                        ponto["detalhe"].toString(),
                         style: const TextStyle(
                           fontSize: 14,
                           color: Color(0xFF475569),
@@ -244,6 +304,69 @@ class _MapaViewState extends State<MapaView> {
 
   @override
   Widget build(BuildContext context) {
+    // 1. Mapeia a lista base de pontos de coleta garantindo cast estrito de tipo
+    final List<Marker> listMarkers = _pontosColeta.map<Marker>((ponto) {
+      final Color corPonto = ponto["cor"] as Color;
+      return Marker(
+        point: ponto["coordenadas"] as LatLng,
+        width: 55,
+        height: 55,
+        child: GestureDetector(
+          onTap: () => _mostrarCardModerno(context, ponto),
+          child: Container(
+            decoration: BoxDecoration(
+              color: corPonto,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 3),
+              boxShadow: [
+                BoxShadow(
+                  color: corPonto.withOpacity(0.4),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Icon(
+              ponto["icone"] as IconData,
+              color: Colors.white,
+              size: 24,
+            ),
+          ),
+        ),
+      );
+    }).toList();
+
+    // 2. Adiciona dinamicamente o ponto azul do usuário se o GPS estiver ativo
+    if (_posicaoAtual != null) {
+      listMarkers.add(
+        Marker(
+          point: _posicaoAtual!,
+          width: 30,
+          height: 30,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.blue.withOpacity(0.3),
+                  shape: BoxShape.circle,
+                ),
+              ),
+              Container(
+                width: 16,
+                height: 16,
+                decoration: BoxDecoration(
+                  color: Colors.blue,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 2.5),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -271,41 +394,11 @@ class _MapaViewState extends State<MapaView> {
             urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
             userAgentPackageName: 'com.example.flutter_app_base',
           ),
-          MarkerLayer(
-            markers: _pontosColeta.map((ponto) {
-              return Marker(
-                point: ponto["coordenadas"],
-                width: 55,
-                height: 55,
-                child: GestureDetector(
-                  onTap: () => _mostrarCardModerno(context, ponto),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: ponto["cor"],
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 3),
-                      boxShadow: [
-                        BoxShadow(
-                          color: ponto["cor"].withOpacity(0.4),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Icon(
-                      ponto["icone"],
-                      color: Colors.white,
-                      size: 24,
-                    ),
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
+          MarkerLayer(markers: listMarkers),
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _mapController.move(_centroBelem, 13), 
+        onPressed: _centralizarNoUsuario, 
         backgroundColor: const Color(0xFF1E293B),
         elevation: 4,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
