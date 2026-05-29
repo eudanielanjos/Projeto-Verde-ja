@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'; 
@@ -114,13 +115,18 @@ class _Denuncias2State extends State<Denuncias2> {
   InputDecoration campo(String texto, IconData icon) {
     return InputDecoration(
       labelText: texto,
-      prefixIcon: Icon(icon, color: const Color(0xFF1F5C3A)),
+      labelStyle: TextStyle(color: altoContraste ? Colors.black : Colors.black54),
+      prefixIcon: Icon(icon, color: corIcone),
       filled: true,
       fillColor: Colors.white,
       contentPadding: const EdgeInsets.symmetric(vertical: 10),
-      border: OutlineInputBorder(
+      enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: BorderSide.none,
+        borderSide: altoContraste ? const BorderSide(color: Colors.black, width: 2) : BorderSide.none,
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: BorderSide(color: corIcone, width: 2),
       ),
     );
   }
@@ -169,9 +175,12 @@ class _Denuncias2State extends State<Denuncias2> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        "Selecione o tipo de denúncia:",
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      IconButton(
+                        icon: Icon(Icons.arrow_back, color: corPrincipal),
+                        onPressed: () {
+                          vibrar();
+                          Navigator.pop(context);
+                        },
                       ),
                       const SizedBox(height: 10),
                       Wrap(
@@ -269,31 +278,46 @@ class _Denuncias2State extends State<Denuncias2> {
                             contentPadding: EdgeInsets.all(15),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 20),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: ElevatedButton.icon(
-                              onPressed: () {},
-                              icon: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
-                              label: const Text("Câmera", style: TextStyle(color: Colors.white)),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF63866C),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        
+                        const SizedBox(height: 12),
+                        TextField(decoration: campo("Rua", Icons.map, corPrincipal)),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                decoration: campo("Número", Icons.pin, corPrincipal),
+                                keyboardType: TextInputType.number,
+                                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                               ),
                             ),
+                            const SizedBox(width: 10),
+                            Expanded(child: TextField(decoration: campo("Bairro", Icons.place, corPrincipal))),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        TextField(decoration: campo("Complemento", Icons.apartment, corPrincipal)),
+                        
+                        const SizedBox(height: 25),
+                        const Text(
+                          "Detalhes",
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 10),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: corSecundaria,
+                            borderRadius: BorderRadius.circular(12),
+                            border: altoContraste ? Border.all(color: Colors.black, width: 2) : null,
                           ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: ElevatedButton.icon(
-                              onPressed: () {},
-                              icon: const Icon(Icons.photo, color: Colors.white, size: 20),
-                              label: const Text("Galeria", style: TextStyle(color: Colors.white)),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF63866C),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                              ),
+                          child: const TextField(
+                            maxLines: 4,
+                            style: TextStyle(color: Colors.white),
+                            decoration: InputDecoration(
+                              hintText: "Descreva o que está acontecendo...",
+                              hintStyle: TextStyle(color: Colors.white70),
+                              border: InputBorder.none,
+                              contentPadding: EdgeInsets.all(15),
                             ),
                           ),
                         ],
@@ -320,8 +344,8 @@ class _Denuncias2State extends State<Denuncias2> {
                     ],
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -330,7 +354,9 @@ class _Denuncias2State extends State<Denuncias2> {
 }
 
 class EnvioDenunciaSplash extends StatefulWidget {
-  const EnvioDenunciaSplash({super.key});
+  final bool altoContraste;
+  final Color corFundo;
+  const EnvioDenunciaSplash({super.key, required this.altoContraste, required this.corFundo});
 
   @override
   State<EnvioDenunciaSplash> createState() => _EnvioDenunciaSplashState();
@@ -344,7 +370,10 @@ class _EnvioDenunciaSplashState extends State<EnvioDenunciaSplash> {
       if (mounted) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const ConfirmacaoDenunciaView()),
+          MaterialPageRoute(builder: (context) => ConfirmacaoDenunciaView(
+            altoContraste: widget.altoContraste,
+            corDestaque: widget.corFundo,
+          )),
         );
       }
     });
@@ -380,7 +409,9 @@ class _EnvioDenunciaSplashState extends State<EnvioDenunciaSplash> {
 }
 
 class ConfirmacaoDenunciaView extends StatelessWidget {
-  const ConfirmacaoDenunciaView({super.key});
+  final bool altoContraste;
+  final Color corDestaque;
+  const ConfirmacaoDenunciaView({super.key, required this.altoContraste, required this.corDestaque});
 
   @override
   Widget build(BuildContext context) {

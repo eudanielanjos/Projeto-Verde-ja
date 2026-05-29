@@ -78,9 +78,10 @@ class _HistoricoDenunciasViewState extends State<HistoricoDenunciasView> {
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
         height: MediaQuery.of(context).size.height * 0.85,
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+          border: altoContraste ? Border.all(color: Colors.black, width: 2) : null,
         ),
         child: Column(
           children: [
@@ -103,6 +104,7 @@ class _HistoricoDenunciasViewState extends State<HistoricoDenunciasView> {
                       decoration: BoxDecoration(
                         color: Colors.grey[200],
                         borderRadius: BorderRadius.circular(20),
+                        border: altoContraste ? Border.all(color: Colors.black) : null,
                         image: DecorationImage(
                           image: fotoDenuncia, 
                           fit: BoxFit.cover,
@@ -166,7 +168,7 @@ class _HistoricoDenunciasViewState extends State<HistoricoDenunciasView> {
                       decoration: BoxDecoration(
                         color: const Color(0xFFF5F7F6),
                         borderRadius: BorderRadius.circular(18),
-                        border: Border.all(color: Colors.grey.shade200),
+                        border: Border.all(color: altoContraste ? Colors.black : Colors.grey.shade200),
                       ),
                       child: Text(
                         denuncia["detalhes"] == null || denuncia["detalhes"].toString().isEmpty 
@@ -186,7 +188,7 @@ class _HistoricoDenunciasViewState extends State<HistoricoDenunciasView> {
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String label, String value, {Color? customColor}) {
+  Widget _buildInfoRow(IconData icon, String label, String value, Color greenPrimary, {Color? customColor}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -304,12 +306,9 @@ class _HistoricoDenunciasViewState extends State<HistoricoDenunciasView> {
             children: [
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.only(top: 60, bottom: 40),
-                decoration: const BoxDecoration(
-                  color: Color(0xFF1F5C3A),
-                  borderRadius: BorderRadius.only(bottomLeft: Radius.circular(40), bottomRight: Radius.circular(40)),
-                ),
-                child: const Column(
+                padding: const EdgeInsets.only(top: 50, bottom: 25),
+                decoration: BoxDecoration(color: greenPrimary),
+                child: Column(
                   children: [
                     Icon(Icons.history_edu_rounded, size: 55, color: Colors.white70),
                     SizedBox(height: 10),
@@ -318,16 +317,35 @@ class _HistoricoDenunciasViewState extends State<HistoricoDenunciasView> {
                   ],
                 ),
               ),
-              Positioned(
-                top: 40,
-                right: 15,
-                child: Builder(
-                  builder: (context) => IconButton(
-                    icon: const Icon(Icons.menu, color: Colors.white, size: 30),
-                    onPressed: () => Scaffold.of(context).openEndDrawer(),
-                  ),
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  children: [
+                    _buildMenuCard(icon: Icons.home, title: "Início", greenPrimary: greenPrimary, onTap: () {
+                      vibrar();
+                      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const TelaInicialView()));
+                    }),
+                    _buildMenuCard(icon: Icons.calendar_month, title: "Coleta Regular", greenPrimary: greenPrimary, onTap: () {
+                      vibrar();
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => const ColetaView()));
+                    }),
+                    _buildMenuCard(icon: Icons.school, title: "Educação", greenPrimary: greenPrimary, onTap: () {
+                      vibrar();
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => const EducacaoView()));
+                    }),
+                    _buildMenuCard(icon: Icons.history_edu, title: "Histórico de Denúncias", greenPrimary: greenPrimary, onTap: () => Navigator.pop(context)),
+                    _buildMenuCard(icon: Icons.person, title: "Perfil", greenPrimary: greenPrimary, onTap: () {
+                      vibrar();
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => const PerfilPage()));
+                    }),
+                    _buildMenuCard(icon: Icons.settings, title: "Configurações", greenPrimary: greenPrimary, onTap: () {
+                      vibrar();
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => const ConfiguracaoPage())).then((_) => carregarAcessibilidade());
+                    }),
+                  ],
                 ),
               ),
+              _buildSairButton(context),
             ],
           ),
           Expanded(
@@ -393,8 +411,9 @@ class _HistoricoDenunciasViewState extends State<HistoricoDenunciasView> {
                             fontWeight: FontWeight.w500,
                             color: Colors.grey,
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
+                      onTap: () => _abrirInspecaoDenuncia(item, greenPrimary), 
                     ),
                   );
                 }
@@ -430,8 +449,8 @@ class _HistoricoDenunciasViewState extends State<HistoricoDenunciasView> {
                 );
               },
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

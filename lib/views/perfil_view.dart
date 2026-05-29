@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart'; // 1. IMPORTADO O AUTH
 import 'package:cloud_firestore/cloud_firestore.dart'; // 2. IMPORTADO O FIRESTORE
@@ -33,6 +34,17 @@ class _PerfilPageState extends State<PerfilPage> {
       );
     }
   }
+
+  File? _imagemPerfil;
+  final ImagePicker _picker = ImagePicker();
+
+  // --- ESTADOS DE ACESSIBILIDADE ---
+  bool daltonismo = false;
+  bool fonteGrande = false;
+  bool altoContraste = false;
+  bool vibracao = false;
+  bool zoomInterface = false;
+  double escalaFonte = 1.0;
 
   @override
   Widget build(BuildContext context) {
@@ -244,60 +256,78 @@ class _PerfilPageState extends State<PerfilPage> {
     );
   }
 
-  // --- WIDGETS AUXILIARES ---
-
-  Widget _buildAvatarComFoto() {
+  Widget _buildAvatarComFoto(Color corTema) {
     return Stack(
       alignment: Alignment.bottomRight,
       children: [
-        const CircleAvatar(
-          radius: 55,
-          backgroundColor: Colors.white,
+        GestureDetector(
+          onTap: () => _visualizarFotoPerfil(corTema),
           child: CircleAvatar(
-            radius: 52,
-            backgroundColor: Color(0xFFF1F5F2),
-            child: Icon(Icons.person, size: 65, color: Color(0xFF1F5C3A)),
+            radius: 55,
+            backgroundColor: Colors.white,
+            child: CircleAvatar(
+              radius: 52,
+              backgroundColor: const Color(0xFFF1F5F2),
+              backgroundImage: _imagemPerfil != null ? FileImage(_imagemPerfil!) : null,
+              child: _imagemPerfil == null
+                  ? Icon(Icons.person, size: 65, color: corTema)
+                  : null,
+            ),
           ),
         ),
-        Container(
-          padding: const EdgeInsets.all(4),
-          decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-          child: const CircleAvatar(
-            radius: 14,
-            backgroundColor: Color(0xFF1F5C3A),
-            child: Icon(Icons.camera_alt, size: 14, color: Colors.white),
+        Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () => _tirarFotoOuSelecionarGaleria(corTema),
+            customBorder: const CircleBorder(),
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+              child: CircleAvatar(
+                radius: 14,
+                backgroundColor: corTema,
+                child: const Icon(Icons.camera_alt, size: 14, color: Colors.white),
+              ),
+            ),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildCampoEdicao({required String label, required TextEditingController controller, required IconData icon}) {
+  Widget _buildCampoEdicao({required String label, required TextEditingController controller, required IconData icon, required Color corFoco}) {
     return TextFormField(
       controller: controller,
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(icon, color: const Color(0xFF1F5C3A)),
+        prefixIcon: Icon(icon, color: corFoco),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
-        focusedBorder: OutlineInputBorder(borderSide: const BorderSide(color: Color(0xFF1F5C3A)), borderRadius: BorderRadius.circular(15)),
+        focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: corFoco), borderRadius: BorderRadius.circular(15)),
       ),
     );
   }
 
-  Widget _buildInfoCard({required IconData icon, required String title, required String value}) {
+  Widget _buildInfoCard({
+    required IconData icon, 
+    required String title, 
+    required String value, 
+    required Color corIcone,
+    required double paddingVertical
+  }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(22),
+        border: altoContraste ? Border.all(color: Colors.black, width: 2) : null,
         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 4))],
       ),
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: paddingVertical),
         leading: Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(color: const Color(0xFFF1F5F2), borderRadius: BorderRadius.circular(15)),
-          child: Icon(icon, color: const Color(0xFF1F5C3A)),
+          child: Icon(icon, color: corIcone),
         ),
         title: Text(title, style: TextStyle(fontSize: 13, color: Colors.grey.shade600, fontWeight: FontWeight.w500)),
         subtitle: Text(value, style: const TextStyle(fontSize: 16, color: Color(0xFF2D312E), fontWeight: FontWeight.bold)),
@@ -305,15 +335,14 @@ class _PerfilPageState extends State<PerfilPage> {
     );
   }
 
-  // --- MENU LATERAL (DRAWER) ---
-  Widget _buildMenuDrawer(BuildContext context) {
+  Widget _buildMenuDrawer(BuildContext context, Color corTema) {
     return Drawer(
       child: Column(
         children: [
           Container(
             width: double.infinity,
             padding: const EdgeInsets.only(top: 50, bottom: 25),
-            decoration: const BoxDecoration(color: Color(0xFF1F5C3A)),
+            decoration: BoxDecoration(color: corTema),
             child: Column(
               children: [
                 CircleAvatar(
@@ -334,26 +363,26 @@ class _PerfilPageState extends State<PerfilPage> {
             child: ListView(
               padding: const EdgeInsets.symmetric(vertical: 20),
               children: [
-                _buildMenuCard(icon: Icons.home, title: "Início", onTap: () {
+                _buildMenuCard(icon: Icons.home, title: "Início", corTema: corTema, onTap: () {
                   Navigator.pop(context);
-                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const TelaInicialView()));
+                  navegarParaTela(const TelaInicialView(), replacement: true);
                 }),
-                _buildMenuCard(icon: Icons.calendar_today, title: "Coleta Regular", onTap: () {
+                _buildMenuCard(icon: Icons.calendar_today, title: "Coleta Regular", corTema: corTema, onTap: () {
                   Navigator.pop(context);
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => const ColetaView()));
+                  navegarParaTela(const ColetaView());
                 }),
-                _buildMenuCard(icon: Icons.school, title: "Educação", onTap: () {
+                _buildMenuCard(icon: Icons.school, title: "Educação", corTema: corTema, onTap: () {
                   Navigator.pop(context);
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => const EducacaoView()));
+                  navegarParaTela(const EducacaoView());
                 }),
-                _buildMenuCard(icon: Icons.person, title: "Perfil", onTap: () => Navigator.pop(context)),
-                _buildMenuCard(icon: Icons.history, title: "Histórico de Denúncias", onTap: () {
+                _buildMenuCard(icon: Icons.person, title: "Perfil", corTema: corTema, onTap: () => Navigator.pop(context)),
+                _buildMenuCard(icon: Icons.history, title: "Histórico de Denúncias", corTema: corTema, onTap: () {
                   Navigator.pop(context);
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => const HistoricoDenunciasView()));
+                  navegarParaTela(const HistoricoDenunciasView());
                 }),
-                _buildMenuCard(icon: Icons.settings, title: "Configurações", onTap: () {
+                _buildMenuCard(icon: Icons.settings, title: "Configurações", corTema: corTema, onTap: () {
                   Navigator.pop(context);
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => const ConfiguracaoPage()));
+                  navegarParaTela(const ConfiguracaoPage());
                 }),
               ],
             ),
@@ -364,7 +393,7 @@ class _PerfilPageState extends State<PerfilPage> {
     );
   }
 
-  Widget _buildMenuCard({required IconData icon, required String title, required VoidCallback onTap}) {
+  Widget _buildMenuCard({required IconData icon, required String title, required Color corTema, required VoidCallback onTap}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: InkWell(
@@ -374,9 +403,9 @@ class _PerfilPageState extends State<PerfilPage> {
           elevation: 4,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           child: ListTile(
-            leading: Icon(icon, color: const Color(0xFF1F5C3A)),
+            leading: Icon(icon, color: corTema),
             title: Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            trailing: const Icon(Icons.arrow_forward_ios, color: Color(0xFF1F5C3A), size: 16),
+            trailing: Icon(Icons.arrow_forward_ios, color: corTema, size: 16),
           ),
         ),
       ),

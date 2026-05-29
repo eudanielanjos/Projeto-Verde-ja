@@ -3,7 +3,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'denuncia2_view.dart'; 
 
-class LocalDenunciaPage extends StatelessWidget {
+class LocalDenunciaPage extends StatefulWidget {
   const LocalDenunciaPage({super.key});
 
   // Função interna para obter a localização atual e converter em endereço básico
@@ -86,6 +86,43 @@ class LocalDenunciaPage extends StatelessWidget {
   }
 
   @override
+  State<LocalDenunciaPage> createState() => _LocalDenunciaPageState();
+}
+
+class _LocalDenunciaPageState extends State<LocalDenunciaPage> {
+  // --- ESTADOS DE ACESSIBILIDADE ---
+  bool daltonismo = false;
+  bool fonteGrande = false;
+  bool altoContraste = false;
+  bool vibracao = false;
+  double escalaFonte = 1.0;
+
+  @override
+  void initState() {
+    super.initState();
+    carregarAcessibilidade();
+  }
+
+  Future<void> carregarAcessibilidade() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      daltonismo = prefs.getBool('daltonismo') ?? false;
+      fonteGrande = prefs.getBool('fonteGrande') ?? false;
+      altoContraste = prefs.getBool('altoContraste') ?? false;
+      vibracao = prefs.getBool('vibracao') ?? false;
+      escalaFonte = fonteGrande ? 1.25 : 1.0;
+    });
+  }
+
+  void vibrar() async {
+    if (vibracao) {
+      if (await Vibration.hasVibrator() ?? false) {
+        Vibration.vibrate(duration: 40);
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -97,19 +134,17 @@ class LocalDenunciaPage extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFFD2E1D4), 
-              Color(0xFFF2F2F2),
-              Color(0xFFF2F2F2),
-            ],
-            stops: [0.0, 0.4, 1.0],
+      child: Scaffold(
+        extendBodyBehindAppBar: true,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: corTextoDestaque),
+            onPressed: () {
+              vibrar();
+              Navigator.pop(context);
+            },
           ),
         ),
         child: SafeArea(
@@ -128,7 +163,6 @@ class LocalDenunciaPage extends StatelessWidget {
                     color: Color(0xFF1F5C3A),
                     letterSpacing: -0.8,
                   ),
-                  textAlign: TextAlign.center,
                 ),
               ),
 
@@ -170,7 +204,7 @@ class LocalDenunciaPage extends StatelessWidget {
     required BuildContext context,
     required IconData icon,
     required String text,
-    required bool isPrimary,
+    required Color corFundo,
     required VoidCallback onPressed,
   }) {
     return Container(
@@ -180,9 +214,7 @@ class LocalDenunciaPage extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: isPrimary 
-                ? const Color(0xFF59BA15).withOpacity(0.3) 
-                : Colors.black.withOpacity(0.1),
+            color: Colors.black.withOpacity(0.1),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -190,8 +222,11 @@ class LocalDenunciaPage extends StatelessWidget {
       ),
       child: ElevatedButton.icon(
         style: ElevatedButton.styleFrom(
-          backgroundColor: isPrimary ? const Color(0xFF59BA15) : const Color(0xFF63866C),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          backgroundColor: corFundo,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: altoContraste ? const BorderSide(color: Colors.black, width: 2) : BorderSide.none,
+          ),
           elevation: 0,
         ),
         onPressed: onPressed,
