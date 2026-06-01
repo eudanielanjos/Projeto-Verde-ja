@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // 🔹 Adicionado import que faltava
+import 'package:vibration/vibration.dart'; // 🔹 Adicionado import que faltava
 import 'denuncia2_view.dart'; 
 
 class LocalDenunciaPage extends StatefulWidget {
@@ -130,71 +132,61 @@ class _LocalDenunciaPageState extends State<LocalDenunciaPage> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF1F5C3A)),
-          onPressed: () => Navigator.pop(context),
+          icon: const Icon(Icons.arrow_back, color: Color(0xFF1F5C3A)), // 🔹 Removido variável inexistente corTextoDestaque
+          onPressed: () {
+            vibrar();
+            Navigator.pop(context);
+          },
         ),
       ),
-      child: Scaffold(
-        extendBodyBehindAppBar: true,
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back, color: corTextoDestaque),
-            onPressed: () {
-              vibrar();
-              Navigator.pop(context);
-            },
-          ),
-        ),
-        child: SafeArea(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center, 
-            children: [
-              const Spacer(flex: 2), 
+      body: SafeArea( // 🔹 Removido o segundo Scaffold que estava duplicado aqui
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center, 
+          children: [
+            const Spacer(flex: 2), 
 
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 40),
-                child: Text(
-                  "Defina o local de denúncia:",
-                  style: TextStyle(
-                    fontSize: 26, 
-                    fontWeight: FontWeight.w900,
-                    color: Color(0xFF1F5C3A),
-                    letterSpacing: -0.8,
-                  ),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 40),
+              child: Text(
+                "Defina o local de denúncia:",
+                style: TextStyle(
+                  fontSize: 26, 
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFF1F5C3A),
+                  letterSpacing: -0.8,
                 ),
               ),
+            ),
 
-              const SizedBox(height: 50),
+            const SizedBox(height: 50),
 
-              _buildCenterButton(
-                context: context,
-                icon: Icons.my_location_rounded,
-                text: "Usar Minha Localização",
-                isPrimary: true,
-                onPressed: () => _capturarLocalizacaoEAvancar(context), // 🔹 Nova lógica acoplada aqui
-              ),
+            _buildCenterButton(
+              context: context,
+              icon: Icons.my_location_rounded,
+              text: "Usar Minha Localização",
+              corFundo: const Color(0xFF1F5C3A), // 🔹 Ajustado para passar o parâmetro corFundo esperado pelo widget
+              onPressed: () => widget._capturarLocalizacaoEAvancar(context), 
+            ),
 
-              const SizedBox(height: 20),
+            const SizedBox(height: 20),
 
-              _buildCenterButton(
-                context: context,
-                icon: Icons.keyboard_rounded,
-                text: "Digitar endereço",
-                isPrimary: false,
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const Denuncias2()), // 🔹 Abre vazio por padrão
-                  );
-                },
-              ),
+            _buildCenterButton(
+              context: context,
+              icon: Icons.keyboard_rounded,
+              text: "Digitar endereço",
+              corFundo: Colors.grey.shade600, // 🔹 Ajustado para passar o parâmetro corFundo esperado pelo widget
+              onPressed: () {
+                vibrar();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const Denuncias2()), 
+                );
+              },
+            ),
 
-              const Spacer(flex: 3), 
-              const SizedBox(height: 40),
-            ],
-          ),
+            const Spacer(flex: 3), 
+            const SizedBox(height: 40),
+          ],
         ),
       ),
     );
@@ -233,8 +225,8 @@ class _LocalDenunciaPageState extends State<LocalDenunciaPage> {
         icon: Icon(icon, color: Colors.white, size: 28),
         label: Text(
           text,
-          style: const TextStyle(
-            fontSize: 18,
+          style: TextStyle(
+            fontSize: 18 * escalaFonte, // Aplicando seu controle de acessibilidade da fonte
             fontWeight: FontWeight.bold,
             color: Colors.white,
           ),

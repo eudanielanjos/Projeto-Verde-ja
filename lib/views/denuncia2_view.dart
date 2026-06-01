@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'; 
@@ -18,6 +17,13 @@ class Denuncias2 extends StatefulWidget {
 class _Denuncias2State extends State<Denuncias2> {
   String tipoSelecionado = "";
   bool _enviando = false;
+
+  // --- VARIÁVEIS DE CONTROLE DE ACESSIBILIDADE E DESIGN ---
+  // (Adicionadas para evitar erros de variáveis não declaradas)
+  final bool altoContraste = false; 
+  final Color corPrincipal = const Color(0xFF1F5C3A);
+  final Color corSecundaria = const Color(0xFF63866C);
+  final Color corIcone = const Color(0xFF1F5C3A);
 
   final TextEditingController _outroTipoController = TextEditingController();
   final TextEditingController _cepController = TextEditingController();
@@ -51,6 +57,10 @@ class _Denuncias2State extends State<Denuncias2> {
     }
   }
 
+  void vibrar() {
+    // Implemente a lógica de vibração aqui se necessário
+  }
+
   Future<void> _submeterDenuncia() async {
     if (tipoSelecionado.isEmpty) {
       _mostrarAlerta("Por favor, selecione um tipo de denúncia.");
@@ -73,8 +83,6 @@ class _Denuncias2State extends State<Denuncias2> {
         categoriaFinal = _outroTipoController.text.trim();
       }
 
-      // CORREÇÃO: Alterado de FieldValue.serverTimestamp() para Timestamp.now()
-      // Isso evita o valor nulo temporário local que quebrava o orderBy do Histórico.
       await FirebaseFirestore.instance.collection('denuncias').add({
         'usuarioId': usuarioId,
         'usuarioEmail': usuarioEmail,
@@ -93,10 +101,15 @@ class _Denuncias2State extends State<Denuncias2> {
 
       if (!mounted) return;
 
-      // Avança para a Splash Screen de envio
+      // Avança para a Splash Screen de envio passando os parâmetros requeridos
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => const EnvioDenunciaSplash()),
+        MaterialPageRoute(
+          builder: (context) => EnvioDenunciaSplash(
+            altoContraste: altoContraste, 
+            corFundo: corPrincipal,
+          ),
+        ),
       );
 
     } catch (e) {
@@ -164,7 +177,10 @@ class _Denuncias2State extends State<Denuncias2> {
                   children: [
                     IconButton(
                       icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF1F5C3A)),
-                      onPressed: () => Navigator.pop(context),
+                      onPressed: () {
+                        vibrar();
+                        Navigator.pop(context);
+                      },
                     ),
                   ],
                 ),
@@ -175,12 +191,9 @@ class _Denuncias2State extends State<Denuncias2> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      IconButton(
-                        icon: Icon(Icons.arrow_back, color: corPrincipal),
-                        onPressed: () {
-                          vibrar();
-                          Navigator.pop(context);
-                        },
+                      const Text(
+                        "Selecione o tipo de denúncia:",
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1F5C3A)),
                       ),
                       const SizedBox(height: 10),
                       Wrap(
@@ -264,8 +277,9 @@ class _Denuncias2State extends State<Denuncias2> {
                       const SizedBox(height: 10),
                       Container(
                         decoration: BoxDecoration(
-                          color: const Color(0xFF63866C),
+                          color: corSecundaria,
                           borderRadius: BorderRadius.circular(12),
+                          border: altoContraste ? Border.all(color: Colors.black, width: 2) : null,
                         ),
                         child: TextField(
                           controller: _detalhesController,
@@ -278,49 +292,6 @@ class _Denuncias2State extends State<Denuncias2> {
                             contentPadding: EdgeInsets.all(15),
                           ),
                         ),
-                        
-                        const SizedBox(height: 12),
-                        TextField(decoration: campo("Rua", Icons.map, corPrincipal)),
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: TextField(
-                                decoration: campo("Número", Icons.pin, corPrincipal),
-                                keyboardType: TextInputType.number,
-                                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(child: TextField(decoration: campo("Bairro", Icons.place, corPrincipal))),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        TextField(decoration: campo("Complemento", Icons.apartment, corPrincipal)),
-                        
-                        const SizedBox(height: 25),
-                        const Text(
-                          "Detalhes",
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 10),
-                        Container(
-                          decoration: BoxDecoration(
-                            color: corSecundaria,
-                            borderRadius: BorderRadius.circular(12),
-                            border: altoContraste ? Border.all(color: Colors.black, width: 2) : null,
-                          ),
-                          child: const TextField(
-                            maxLines: 4,
-                            style: TextStyle(color: Colors.white),
-                            decoration: InputDecoration(
-                              hintText: "Descreva o que está acontecendo...",
-                              hintStyle: TextStyle(color: Colors.white70),
-                              border: InputBorder.none,
-                              contentPadding: EdgeInsets.all(15),
-                            ),
-                          ),
-                        ],
                       ),
                       const SizedBox(height: 30),
                       Center(
@@ -344,8 +315,8 @@ class _Denuncias2State extends State<Denuncias2> {
                     ],
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

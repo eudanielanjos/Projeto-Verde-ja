@@ -27,6 +27,7 @@ dependencies:
   shared_preferences: ^2.5.4 # Movido para cá (produção)
   vibration: ^2.0.0           # Movido para cá e adicionada a versão correta
   geocoding: ^4.0.0
+  image_picker: ^1.1.2
 
 dev_dependencies:
   flutter_test:
