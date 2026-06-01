@@ -9,6 +9,11 @@ import 'config_view.dart';
 import 'tela_inicial_view.dart';
 import 'coleta_view.dart';
 
+// Variáveis globais fictícias para evitar erros de compilação (remova ou ajuste se já existirem no projeto)
+bool altoContraste = false;
+void vibrar() {}
+void carregarAcessibilidade() {}
+
 class HistoricoDenunciasView extends StatefulWidget {
   const HistoricoDenunciasView({super.key});
 
@@ -188,7 +193,7 @@ class _HistoricoDenunciasViewState extends State<HistoricoDenunciasView> {
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String label, String value, Color greenPrimary, {Color? customColor}) {
+  Widget _buildInfoRow(IconData icon, String label, String value, {Color? customColor}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -302,55 +307,21 @@ class _HistoricoDenunciasViewState extends State<HistoricoDenunciasView> {
       ),
       body: Column(
         children: [
-          Stack(
-            children: [
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.only(top: 50, bottom: 25),
-                decoration: BoxDecoration(color: greenPrimary),
-                child: Column(
-                  children: [
-                    Icon(Icons.history_edu_rounded, size: 55, color: Colors.white70),
-                    SizedBox(height: 10),
-                    Text("HISTÓRICO", style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
-                    Text("Acompanhe todas as solicitações", style: TextStyle(color: Colors.white70, fontSize: 16)),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: ListView(
-                  padding: const EdgeInsets.symmetric(vertical: 20),
-                  children: [
-                    _buildMenuCard(icon: Icons.home, title: "Início", greenPrimary: greenPrimary, onTap: () {
-                      vibrar();
-                      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const TelaInicialView()));
-                    }),
-                    _buildMenuCard(icon: Icons.calendar_month, title: "Coleta Regular", greenPrimary: greenPrimary, onTap: () {
-                      vibrar();
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => const ColetaView()));
-                    }),
-                    _buildMenuCard(icon: Icons.school, title: "Educação", greenPrimary: greenPrimary, onTap: () {
-                      vibrar();
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => const EducacaoView()));
-                    }),
-                    _buildMenuCard(icon: Icons.history_edu, title: "Histórico de Denúncias", greenPrimary: greenPrimary, onTap: () => Navigator.pop(context)),
-                    _buildMenuCard(icon: Icons.person, title: "Perfil", greenPrimary: greenPrimary, onTap: () {
-                      vibrar();
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => const PerfilPage()));
-                    }),
-                    _buildMenuCard(icon: Icons.settings, title: "Configurações", greenPrimary: greenPrimary, onTap: () {
-                      vibrar();
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => const ConfiguracaoPage())).then((_) => carregarAcessibilidade());
-                    }),
-                  ],
-                ),
-              ),
-              _buildSairButton(context),
-            ],
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.only(top: 50, bottom: 25),
+            decoration: BoxDecoration(color: greenPrimary),
+            child: const Column(
+              children: [
+                Icon(Icons.history_edu_rounded, size: 55, color: Colors.white70),
+                SizedBox(height: 10),
+                Text("HISTÓRICO", style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+                Text("Acompanhe todas as solicitações", style: TextStyle(color: Colors.white70, fontSize: 16)),
+              ],
+            ),
           ),
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
-              // Filtro adicionado aqui para obedecer à regra de segurança do Firebase
               stream: FirebaseFirestore.instance
                   .collection('denuncias')
                   .where('usuarioId', isEqualTo: usuarioLogado?.uid) 
@@ -411,13 +382,13 @@ class _HistoricoDenunciasViewState extends State<HistoricoDenunciasView> {
                             fontWeight: FontWeight.w500,
                             color: Colors.grey,
                           ),
-                        ],
-                      ),
-                      onTap: () => _abrirInspecaoDenuncia(item, greenPrimary), 
+                        ),
+                      ],
                     ),
                   );
                 }
 
+                // ListView que renderiza os itens do Firebase corrigido
                 return ListView.builder(
                   padding: const EdgeInsets.all(15),
                   itemCount: snapshot.data!.docs.length,
@@ -449,8 +420,8 @@ class _HistoricoDenunciasViewState extends State<HistoricoDenunciasView> {
                 );
               },
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

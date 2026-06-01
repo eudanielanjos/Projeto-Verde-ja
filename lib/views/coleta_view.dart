@@ -209,13 +209,12 @@ class _ColetaViewState extends State<ColetaView> {
     );
   }
 
-  Widget _buildCalendar() {
+  // CORREÇÃO: Adicionado o parâmetro 'corTema' necessário para o cabeçalho do calendário
+  Widget _buildCalendar(Color corTema) {
     final months = [
       'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
       'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
     ];
-    String mesAtual = months[focusedDay.month - 1];
-    String anoAtual = focusedDay.year.toString();
 
     return Container(
       decoration: BoxDecoration(
