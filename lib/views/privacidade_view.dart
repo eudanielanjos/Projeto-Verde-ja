@@ -240,7 +240,7 @@ class _PrivacidadeViewState extends State<PrivacidadeView> {
       child: SwitchListTile(
         value: value,
         onChanged: onChanged,
-        activeColor: altoContraste ? Colors.black : corTema,
+        activeThumbColor: altoContraste ? Colors.black : corTema,
         activeTrackColor: altoContraste ? Colors.grey.shade400 : corTema.withOpacity(0.3),
         secondary: Container(
           height: 45, width: 45,
