@@ -7,15 +7,13 @@ import 'package:vibration/vibration.dart';
 // Importações das suas views
 import 'acessibilidade_view.dart'; 
 import 'privacidade_view.dart';
-import 'idiomas_view.dart';
 import 'home_view.dart';
 import 'tela_inicial_view.dart';
 import 'coleta_view.dart';
 import 'educacao_view.dart';
 import 'perfil_view.dart';
 import 'historico_denuncias_view.dart';
-import 'notificacoes_view.dart';
-import 'sobre_app_view.dart'; // <--- IMPORTAÇÃO ADICIONADA
+import 'sobre_app_view.dart';
 
 class ConfiguracaoPage extends StatefulWidget {
   const ConfiguracaoPage({super.key});
@@ -40,6 +38,7 @@ class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
 
   Future<void> carregarAcessibilidade() async {
     final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
     setState(() {
       daltonismo = prefs.getBool('daltonismo') ?? false;
       fonteGrande = prefs.getBool('fonteGrande') ?? false;
@@ -65,7 +64,11 @@ class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
     } else {
       await Navigator.push(context, MaterialPageRoute(builder: (context) => tela));
     }
-    carregarAcessibilidade(); 
+    if (mounted) {
+      setState(() {
+        carregarAcessibilidade(); 
+      });
+    }
   }
 
   void _mostrarMensagemEmBreve(BuildContext context) {
@@ -111,7 +114,10 @@ class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
         backgroundColor: corFundoTela,
         endDrawer: _buildMenuDrawer(context, corTema),
         appBar: AppBar(
-          title: const Text("CONFIGURAÇÕES", style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 18, letterSpacing: 2)),
+          title: const Text(
+            "CONFIGURAÇÕES", 
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 18, letterSpacing: 2)
+          ),
           centerTitle: true,
           backgroundColor: corTema,
           elevation: 0,
@@ -139,7 +145,10 @@ class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
                 children: [
                   Icon(Icons.settings_suggest_rounded, size: 55, color: Colors.white70),
                   SizedBox(height: 15),
-                  Text("Personalize sua experiência", style: TextStyle(color: Colors.white70, fontSize: 14)),
+                  Text(
+                    "Personalize sua experiência", 
+                    style: TextStyle(color: Colors.white70, fontSize: 14)
+                  ),
                 ],
               ),
             ),
@@ -164,18 +173,6 @@ class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
                     onTap: () => navegarParaTela(const AcessibilidadeView())
                   ),
                   _buildGridButton(
-                    icon: Icons.translate, 
-                    label: "Idiomas", 
-                    corTema: corTema,
-                    onTap: () => navegarParaTela(const IdiomasView())
-                  ),
-                  _buildGridButton(
-                    icon: Icons.notifications_none, 
-                    label: "Notificações", 
-                    corTema: corTema,
-                    onTap: () => navegarParaTela(const NotificacoesView())
-                  ), 
-                  _buildGridButton(
                     icon: Icons.dark_mode_outlined, 
                     label: "Tema", 
                     corTema: corTema,
@@ -191,7 +188,7 @@ class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
                     icon: Icons.info_outline, 
                     label: "Sobre o App", 
                     corTema: corTema,
-                    onTap: () => navegarParaTela(const SobreAppView()) // <--- CONECTADO AQUI
+                    onTap: () => navegarParaTela(const SobreAppView())
                   ),
                   _buildGridButton(
                     icon: Icons.delete_forever_outlined, 
@@ -266,7 +263,7 @@ class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
                   ),
                 ),
                 const SizedBox(height: 10),
-                const Text("Olá, Usuario", style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+                const Text("Olá, Usuário", style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
               ],
             ),
           ),
@@ -347,8 +344,8 @@ class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
           child: const Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.logout, color: Colors.white),
-              SizedBox(width: 10),
+              const Icon(Icons.logout, color: Colors.white),
+              const SizedBox(width: 10),
               Text("Sair da conta", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
             ],
           ),

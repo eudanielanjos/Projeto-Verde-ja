@@ -17,16 +17,18 @@ class _MapaViewState extends State<MapaView> {
   
   LatLng? _posicaoAtual;
   StreamSubscription<Position>? _positionStreamSubscription;
+  String _categoriaSelecionada = "Todos";
 
-  // Lista tipada estritamente para evitar erros de casting em tempo de execução
+  // Lista enriquecida com regras claras de descarte e horários
   final List<Map<String, dynamic>> _pontosColeta = [
-    // --- PLÁSTICO (Vermelho) ---
+    // --- PLÁSTICO ---
     {
       "nome": "Ecoponto de Plásticos - Umarizal",
       "tipo": "Plástico",
       "cor": Colors.redAccent,
       "icone": Icons.layers,
-      "detalhe": "Aceita garrafas PET, embalagens de shampoo, sacolas limpas e potes plásticos.",
+      "pode": "Garrafas PET, embalagens de shampoo, sacolas limpas, potes plásticos e frascos de detergente.",
+      "nao_pode": "Embalagens de óleo motor, isopores sujos, tomadas e plásticos metalizados (salgadinhos).",
       "coordenadas": const LatLng(-1.4558, -48.4902),
     },
     {
@@ -34,25 +36,19 @@ class _MapaViewState extends State<MapaView> {
       "tipo": "Plástico",
       "cor": Colors.redAccent,
       "icone": Icons.layers,
-      "detalhe": "Aceita embalagens plásticas variadas, tampinhas e garrafas de bebidas.",
+      "pode": "Garrafas de refrigerante/água, tampinhas plásticas e galões de água vazios.",
+      "nao_pode": "Brinquedos quebrados, canos de PVC e fraldas descartáveis.",
       "coordenadas": const LatLng(-1.4420, -48.4680),
     },
-    {
-      "nome": "Reciclagem de Plásticos - Jurunas",
-      "tipo": "Plástico",
-      "cor": Colors.redAccent,
-      "icone": Icons.layers,
-      "detalhe": "Focado em plásticos duros, engradados vazios e potes domésticos limpos.",
-      "coordenadas": const LatLng(-1.4710, -48.4930),
-    },
 
-    // --- ENTULHO (Cinza) ---
+    // --- ENTULHO ---
     {
       "nome": "Ponto de Descarte de Entulhos - Marco",
       "tipo": "Entulho",
       "cor": Colors.blueGrey,
       "icone": Icons.construction,
-      "detalhe": "Aceita restos de obras domésticas, tijolos, azulejos e restos de concreto ensacados.",
+      "pode": "Restos de obras domésticas, tijolos, azulejos quebrados, telhas e restos de concreto ensacados.",
+      "nao_pode": "Lixo eletrônico, tintas, solventes, amianto e lâmpadas fluorescentes.",
       "coordenadas": const LatLng(-1.4300, -48.4700),
     },
     {
@@ -60,94 +56,51 @@ class _MapaViewState extends State<MapaView> {
       "tipo": "Entulho",
       "cor": Colors.blueGrey,
       "icone": Icons.construction,
-      "detalhe": "Aceita pequenas quantidades de resíduos de construção civil e restos de azulejos.",
+      "pode": "Madeiras de obra, gesso ensacado, blocos de cerâmica e argamassa seca.",
+      "nao_pode": "Móveis inteiros, galhos de árvores e lixo doméstico orgânico.",
       "coordenadas": const LatLng(-1.4235, -48.4842),
     },
-    {
-      "nome": "Depósito de Resíduos de Obras - Cremação",
-      "tipo": "Entulho",
-      "cor": Colors.blueGrey,
-      "icone": Icons.construction,
-      "detalhe": "Ponto exclusivo para descarte de entulhos ensacados, madeiras de obras e tijolos.",
-      "coordenadas": const LatLng(-1.4650, -48.4750),
-    },
 
-    // --- VIDRO (Verde) ---
+    // --- VIDRO ---
     {
       "nome": "Ponto de Entrega de Vidros - Batista Campos",
       "tipo": "Vidro",
-      "cor": Colors.greenAccent,
+      "cor": Colors.green,
       "icone": Icons.hourglass_bottom,
-      "detalhe": "Aceita garrafas de vidro, potes de conserva e frascos de perfume. Não jogue espelhos.",
+      "pode": "Garrafas de vidro inteiras, potes de conserva lavados e frascos de perfume vazios.",
+      "nao_pode": "Espelhos, vidros de janela, cristais, lâmpadas e porcelanas/cerâmicas.",
       "coordenadas": const LatLng(-1.4600, -48.4850),
-    },
-    {
-      "nome": "Coleta de Vidros e Garrafas - Reduto",
-      "tipo": "Vidro",
-      "cor": Colors.greenAccent,
-      "icone": Icons.hourglass_bottom,
-      "detalhe": "Aceita frascos de vidro vazios, copos quebrados e garrafas de bebidas em geral.",
-      "coordenadas": const LatLng(-1.4468, -48.4925),
     },
     {
       "nome": "Ecoponto Vidros - Nazaré",
       "tipo": "Vidro",
-      "cor": Colors.greenAccent,
+      "cor": Colors.green,
       "icone": Icons.hourglass_bottom,
-      "detalhe": "Recipiente seguro para o descarte de potes de vidro, frascos planos e recipientes vazios.",
+      "pode": "Copos de vidro (mesmo quebrados, desde que protegidos), potes de papinha e frascos de remédio limpos.",
+      "nao_pode": "Tubos de TV, parabrisas de carros e cerâmicas em geral.",
       "coordenadas": const LatLng(-1.4535, -48.4810),
     },
 
-    // --- PAPEL (Azul) ---
+    // --- PAPEL ---
     {
       "nome": "Coleta de Papel e Papelão - Nazaré",
       "tipo": "Papel",
       "cor": Colors.blueAccent,
       "icone": Icons.description,
-      "detalhe": "Aceita caixas de papelão desmontadas, jornais, revistas, folhas de caderno e encartes.",
+      "pode": "Caixas de papelão desmontadas, jornais, revistas, folhas de caderno, listas telefônicas e envelopes.",
+      "nao_pode": "Papel higiênico, guardanapos sujos de gordura, fitas adesivas e fotografias.",
       "coordenadas": const LatLng(-1.4520, -48.4780),
     },
-    {
-      "nome": "Recicla Papelão e Revistas - Marco",
-      "tipo": "Papel",
-      "cor": Colors.blueAccent,
-      "icone": Icons.description,
-      "detalhe": "Aceita caixas de papelão limpas, aparas de papel, livros antigos e panfletos.",
-      "coordenadas": const LatLng(-1.4390, -48.4610),
-    },
-    {
-      "nome": "Ponto do Papel Seletivo - Umarizal",
-      "tipo": "Papel",
-      "cor": Colors.blueAccent,
-      "icone": Icons.description,
-      "detalhe": "Aceita folhas de papel de escritório, cartolinas, envelopes e caixas de papelão secas.",
-      "coordenadas": const LatLng(-1.4620, -48.4940),
-    },
 
-    // --- METAL (Amarelo/Laranja) ---
+    // --- METAL ---
     {
       "nome": "Reciclagem de Metais e Latinhas - Reduto",
       "tipo": "Metal",
-      "cor": Colors.orange,
+      "cor": Colors.orangeAccent,
       "icone": Icons.gavel,
-      "detalhe": "Aceita latinhas de alumínio, tampas de metal, panelas velhas e fios de cobre.",
+      "pode": "Latinhas de alumínio, tampas de metal de potes, panelas velhas sem cabo plástico e fios de cobre.",
+      "nao_pode": "Latas de tinta aerosol cheias, pilhas, baterias e embalagens de inseticidas.",
       "coordenadas": const LatLng(-1.4425, -48.4945),
-    },
-    {
-      "nome": "Ponto de Sucatas e Metais - Pedreira",
-      "tipo": "Metal",
-      "cor": Colors.orange,
-      "icone": Icons.gavel,
-      "detalhe": "Aceita esquadrias velhas de alumínio, ferro velho doméstico e tampas metálicas.",
-      "coordenadas": const LatLng(-1.4490, -48.4720),
-    },
-    {
-      "nome": "Centro de Coleta de Alumínio - Cremação",
-      "tipo": "Metal",
-      "cor": Colors.orange,
-      "icone": Icons.gavel,
-      "detalhe": "Especializado na coleta de latas de bebidas, lacres de alumínio e marmitas limpas.",
-      "coordenadas": const LatLng(-1.4590, -48.4690),
     },
   ];
 
@@ -203,99 +156,147 @@ class _MapaViewState extends State<MapaView> {
           const SnackBar(
             content: Text("Buscando sinal do GPS..."),
             duration: Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
           ),
         );
       }
     }
   }
 
-  void _mostrarCardModerno(BuildContext context, Map<String, dynamic> ponto) {
+  // Substituído por um Modal Inferior Estilo Google Maps (Mais limpo e profissional)
+  void _mostrarPainelInformativo(BuildContext context, Map<String, dynamic> ponto) {
     final Color corBase = ponto["cor"] as Color;
-    
-    showDialog(
+
+    showModalBottomSheet(
       context: context,
-      barrierDismissible: true, 
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-          clipBehavior: Clip.antiAlias,
-          elevation: 12,
-          child: Container(
-            width: MediaQuery.of(context).size.width * 0.85,
+        return Container(
+          decoration: const BoxDecoration(
             color: Colors.white,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          padding: const EdgeInsets.only(top: 12, left: 24, right: 24, bottom: 30),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Barra de arrastar do modal
+              Center(
+                child: Container(
+                  width: 45,
+                  height: 4.5,
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [corBase, corBase.withAlpha(180)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.25),
-                          borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Título e Categoria Tag
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          ponto["nome"].toString(),
+                          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
                         ),
-                        child: Icon(ponto["icone"] as IconData, color: Colors.white, size: 28),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Text(
-                          ponto["tipo"].toString().toUpperCase(),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 22, 
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 0.5,
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: corBase.withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            ponto["tipo"].toString().toUpperCase(),
+                            style: TextStyle(color: corBase, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 0.5),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        ponto["nome"].toString(),
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF1E293B),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        "O que descartar aqui?",
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        ponto["detalhe"].toString(),
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Color(0xFF475569),
-                          height: 1.4,
-                        ),
-                      ),
-                    ],
+                  const SizedBox(width: 10),
+                  CircleAvatar(
+                    backgroundColor: corBase,
+                    radius: 24,
+                    child: Icon(ponto["icone"] as IconData, color: Colors.white, size: 24),
                   ),
+                ],
+              ),
+              
+              const SizedBox(height: 16),
+              
+              const Divider(),
+
+
+              const SizedBox(height: 10),
+
+
+              const SizedBox(height: 20),
+
+              // Seção: O que PODE levar
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.green.shade50,
+                  borderRadius: BorderRadius.circular(16),
                 ),
-              ],
-            ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(Icons.check_circle, color: Colors.green, size: 20),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text("O QUE RECEBEMOS:", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.green, letterSpacing: 0.3)),
+                          const SizedBox(height: 4),
+                          Text(ponto["pode"].toString(), style: TextStyle(fontSize: 13, color: Colors.green.shade900, height: 1.4)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              // Seção: O que NÃO PODE levar
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(Icons.cancel, color: Colors.redAccent, size: 20),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text("O QUE NÃO LEVAR:", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.redAccent, letterSpacing: 0.3)),
+                          const SizedBox(height: 4),
+                          Text(ponto["nao_pode"].toString(), style: TextStyle(fontSize: 13, color: Colors.red.shade900, height: 1.4)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         );
       },
@@ -304,61 +305,65 @@ class _MapaViewState extends State<MapaView> {
 
   @override
   Widget build(BuildContext context) {
-    // 1. Mapeia a lista base de pontos de coleta garantindo cast estrito de tipo
-    final List<Marker> listMarkers = _pontosColeta.map<Marker>((ponto) {
+    // Lista de categorias para a barra de filtros superior
+    final List<String> categorias = ["Todos", "Plástico", "Vidro", "Papel", "Metal", "Entulho"];
+
+    // Aplica o filtro de categoria selecionada em tempo de execução
+    final List<Map<String, dynamic>> pontosFiltrados = _categoriaSelecionada == "Todos"
+        ? _pontosColeta
+        : _pontosColeta.where((p) => p["tipo"] == _categoriaSelecionada).toList();
+
+    // Transforma os dados filtrados em marcadores visuais para o OpenStreetMap
+    final List<Marker> listMarkers = pontosFiltrados.map<Marker>((ponto) {
       final Color corPonto = ponto["cor"] as Color;
       return Marker(
         point: ponto["coordenadas"] as LatLng,
-        width: 55,
-        height: 55,
+        width: 48,
+        height: 48,
         child: GestureDetector(
-          onTap: () => _mostrarCardModerno(context, ponto),
+          onTap: () => _mostrarPainelInformativo(context, ponto),
           child: Container(
             decoration: BoxDecoration(
               color: corPonto,
               shape: BoxShape.circle,
-              border: Border.all(color: Colors.white, width: 3),
+              border: Border.all(color: Colors.white, width: 2.5),
               boxShadow: [
                 BoxShadow(
-                  color: corPonto.withOpacity(0.4),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
+                  color: Colors.black.withOpacity(0.15),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
                 ),
               ],
             ),
-            child: Icon(
-              ponto["icone"] as IconData,
-              color: Colors.white,
-              size: 24,
-            ),
+            child: Icon(ponto["icone"] as IconData, color: Colors.white, size: 20),
           ),
         ),
       );
     }).toList();
 
-    // 2. Adiciona dinamicamente o ponto azul do usuário se o GPS estiver ativo
+    // Renderiza a localização em tempo real do dispositivo do usuário
     if (_posicaoAtual != null) {
       listMarkers.add(
         Marker(
           point: _posicaoAtual!,
-          width: 30,
-          height: 30,
+          width: 32,
+          height: 32,
           child: Stack(
             alignment: Alignment.center,
             children: [
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.blue.withOpacity(0.3),
+                  color: Colors.blue.withOpacity(0.25),
                   shape: BoxShape.circle,
                 ),
               ),
               Container(
-                width: 16,
-                height: 16,
+                width: 14,
+                height: 14,
                 decoration: BoxDecoration(
                   color: Colors.blue,
                   shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 2.5),
+                  border: Border.all(color: Colors.white, width: 2),
                 ),
               ),
             ],
@@ -370,31 +375,74 @@ class _MapaViewState extends State<MapaView> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          "Pontos de Coleta",
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-          ),
+          "Pontos de Coleta Ecológica",
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 19),
         ),
-        backgroundColor: Colors.green[700],
+        backgroundColor: const Color(0xFF1F5C3A),
         elevation: 0,
         centerTitle: true,
       ),
-      body: FlutterMap(
-        mapController: _mapController,
-        options: MapOptions(
-          initialCenter: _centroBelem,
-          initialZoom: 13, 
-          maxZoom: 18,
-          minZoom: 8,
-        ),
+      body: Stack(
         children: [
-          TileLayer(
-            urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-            userAgentPackageName: 'com.example.flutter_app_base',
+          // Camada do Mapa Integrada
+          FlutterMap(
+            mapController: _mapController,
+            options: MapOptions(
+              initialCenter: _centroBelem,
+              initialZoom: 13.5, 
+              maxZoom: 18,
+              minZoom: 8,
+            ),
+            children: [
+              TileLayer(
+                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                userAgentPackageName: 'com.example.flutter_app_base',
+              ),
+              MarkerLayer(markers: listMarkers),
+            ],
           ),
-          MarkerLayer(markers: listMarkers),
+
+          // Barra Superior de Filtros Rápidos (Chips)
+          Positioned(
+            top: 12,
+            left: 0,
+            right: 0,
+            child: SizedBox(
+              height: 40,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: categorias.length,
+                itemBuilder: (context, index) {
+                  final cat = categorias[index];
+                  final bool isSelected = _categoriaSelecionada == cat;
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: ChoiceChip(
+                      label: Text(cat),
+                      selected: isSelected,
+                      selectedColor: const Color(0xFF1F5C3A),
+                      backgroundColor: Colors.white,
+                      labelStyle: TextStyle(
+                        color: isSelected ? Colors.white : Colors.grey.shade700,
+                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                        fontSize: 13,
+                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                      side: BorderSide(color: isSelected ? Colors.transparent : Colors.grey.shade300),
+                      elevation: 2,
+                      pressElevation: 0,
+                      onSelected: (bool selected) {
+                        if (selected) {
+                          setState(() => _categoriaSelecionada = cat);
+                        }
+                      },
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
         ],
       ),
       floatingActionButton: FloatingActionButton(

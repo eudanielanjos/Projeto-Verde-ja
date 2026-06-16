@@ -190,15 +190,20 @@ class _PerfilPageState extends State<PerfilPage> {
               );
             }
 
-            Map<String, dynamic> dadosDoBanco = {};
-            if (snapshot.hasData && snapshot.data!.exists) {
-              dadosDoBanco = snapshot.data!.data() as Map<String, dynamic>;
-            }
+            // Valores padrão de segurança caso o documento não exista no Firestore ainda
+            String nome = "Sem Nome";
+            String email = _usuarioAtual.email ?? "Sem Email";
+            String telefone = "Não cadastrado";
+            String endereco = "Não cadastrado";
 
-            String nome = dadosDoBanco['nome'] ?? "Sem Nome";
-            String email = dadosDoBanco['email'] ?? _usuarioAtual.email ?? "Sem Email";
-            String telefone = dadosDoBanco['telefone'] ?? "Não cadastrado";
-            String endereco = dadosDoBanco['endereco'] ?? "Não cadastrado";
+            // Se o documento existe, extrai as informações atualizadas
+            if (snapshot.hasData && snapshot.data != null && snapshot.data!.exists) {
+              Map<String, dynamic> dadosDoBanco = snapshot.data!.data() as Map<String, dynamic>;
+              nome = dadosDoBanco['nome'] ?? "Sem Nome";
+              email = dadosDoBanco['email'] ?? _usuarioAtual.email ?? "Sem Email";
+              telefone = dadosDoBanco['telefone'] ?? "Não cadastrado";
+              endereco = dadosDoBanco['endereco'] ?? "Não cadastrado";
+            }
 
             return Column(
               children: [
@@ -338,13 +343,15 @@ class _PerfilPageState extends State<PerfilPage> {
                             setModalState(() => _isSaving = true);
 
                             try {
+                              // MODIFICAÇÃO: Usando set com merge: true para criar o documento caso ele não exista
                               await FirebaseFirestore.instance
                                   .collection('usuarios')
                                   .doc(_usuarioAtual!.uid)
-                                  .update({
-                                'telefone': telefoneController.text.trim(),
-                                'endereco': enderecoController.text.trim(),
-                              });
+                                  .set({
+                                    'telefone': telefoneController.text.trim(),
+                                    'endereco': enderecoController.text.trim(),
+                                    'email': _usuarioAtual.email, // Salva o e-mail preventivamente se for novo doc
+                                  }, SetOptions(merge: true));
 
                               if (context.mounted) Navigator.pop(context);
                             } catch (e) {
