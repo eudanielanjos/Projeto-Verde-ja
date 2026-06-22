@@ -1,16 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart'; 
+import 'package:firebase_auth/firebase_auth.dart'; 
+import 'package:shared_preferences/shared_preferences.dart';
 
-// Imports para a inicialização de formatação de data
+// Imports para a inicialização de formatação de data e internacionalização
 import 'package:intl/date_symbol_data_local.dart'; 
+import 'package:flutter_localizations/flutter_localizations.dart';
+
+// IMPORT CORRETO: Apontando para o arquivo gerado localmente na sua pasta l10n
+import 'l10n/app_localizations.dart'; 
 
 // Imports das Views
 import 'package:flutter_app/views/home_view.dart';
 import 'views/splash_view.dart';
 import 'views/login_view.dart';
 import 'views/cadastro_view.dart';
-import 'views/tela_inicial_view.dart';
+import 'views/tela_inicial_view.dart' hide AppLocalizations;
 import 'views/denuncia_view.dart';
 import 'views/educacao_view.dart';
 import 'views/admin_view.dart';
@@ -22,32 +28,74 @@ void main() async {
   // 1. Garante a inicialização dos bindings nativos do Flutter
   WidgetsFlutterBinding.ensureInitialized();
   
-  // 2. Inicializa as datas com idioma fixo para evitar travamentos por 'null'
+  // 2. Inicializa o Firebase ANTES do runApp de forma segura.
   try {
-    await initializeDateFormatting('pt_BR', null);
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    debugPrint("Firebase inicializado com sucesso!");
+
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: "admin@verdeja.com", 
+        password: "admin123", 
+      );
+      debugPrint("Login automático do Admin efetuado com sucesso!");
+    } catch (authError) {
+      debugPrint("Aviso de Login Automático: $authError");
+    }
+  } catch (e) {
+    debugPrint("Erro crítico ao inicializar Firebase: $e");
+  }
+
+  // 3. Carrega o idioma persistido via SharedPreferences antes de iniciar a UI
+  Locale localeInicial = const Locale('pt');
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final String idiomaSalvo = prefs.getString('idiomaSelecionado') ?? "Português";
+    
+    switch (idiomaSalvo) {
+      case "English":
+        localeInicial = const Locale('en');
+        break;
+      case "Español":
+        localeInicial = const Locale('es');
+        break;
+      case "Français":
+        localeInicial = const Locale('fr');
+        break;
+      default:
+        localeInicial = const Locale('pt');
+    }
+  } catch (e) {
+    debugPrint("Erro ao carregar SharedPreferences no main: $e");
+  }
+
+  // 4. Inicializa as datas baseando-se no idioma detectado de forma segura
+  try {
+    await initializeDateFormatting('${localeInicial.languageCode}_BR', null);
   } catch (e) {
     debugPrint("Erro ao inicializar formatação de datas: $e");
   }
   
-  // 3. Inicializa o Firebase em segundo plano para não congelar o app caso falte internet
-  Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  ).then((_) {
-    debugPrint("Firebase inicializado com sucesso!");
-  }).catchError((e) {
-    debugPrint("Erro ao inicializar Firebase: $e");
-  });
-  
-  // 4. Executa o app imediatamente, permitindo que a SplashView carregue
-  runApp(const MyApp());
+  // 5. Executa o app passando o idioma inicial detectado
+  runApp(MyApp(localeInicial: localeInicial));
 }
 
 class MyApp extends StatefulWidget {
-  const MyApp({super.key});
+  final Locale localeInicial; 
+  
+  const MyApp({super.key, required this.localeInicial});
 
   static void alterarDaltonismo(BuildContext context, bool ativo) {
     final state = context.findAncestorStateOfType<_MyAppState>();
     state?.setDaltonismo(ativo);
+  }
+
+  // 🔹 ESSA FUNÇÃO ATUALIZA O APP INTEIRO EM TEMPO REAL
+  static void setLocale(BuildContext context, Locale novoLocale) {
+    final state = context.findAncestorStateOfType<_MyAppState>();
+    state?.setLocale(novoLocale);
   }
 
   @override
@@ -56,10 +104,24 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   bool daltonismo = false;
+  Locale? _locale; 
+
+  @override
+  void initState() {
+    super.initState();
+    _locale = widget.localeInicial; 
+  }
 
   void setDaltonismo(bool valor) {
     setState(() {
       daltonismo = valor;
+    });
+  }
+
+  // Método que atualiza o estado local do main e força a reconstrução do MaterialApp
+  void setLocale(Locale locale) {
+    setState(() {
+      _locale = locale;
     });
   }
 
@@ -80,7 +142,27 @@ class _MyAppState extends State<MyApp> {
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'Seu App de Coleta',
+        
+        // 🔹 Vincula diretamente o Locale dinâmico da State
+        locale: _locale, 
+        localizationsDelegates: const [
+          AppLocalizations.delegate, 
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: const [
+          Locale('pt'), 
+          Locale('en'), 
+          Locale('es'), 
+          Locale('fr'), 
+        ],
+
         initialRoute: '/',
+        
+        // 🔹 MODIFICAÇÃO DE ROTAS: Usar rotas nomeadas com builders normais funciona, 
+        // mas certifique-se de que cada uma destas telas tenha o método "didChangeDependencies()" 
+        // implementado se elas precisarem traduzir em tempo real sem fechar e reabrir.
         routes: {
           '/': (context) => const SplashView(),
           '/home': (context) => const HomeView(),

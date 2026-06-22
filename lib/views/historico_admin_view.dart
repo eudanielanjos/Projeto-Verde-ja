@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class HistoricoAdminView extends StatefulWidget {
   const HistoricoAdminView({super.key});
@@ -12,63 +14,198 @@ class _HistoricoAdminViewState extends State<HistoricoAdminView> {
   final Color greenAccent = const Color(0xFF59BA15);
   String _filtroSelecionado = "Todas";
 
-  final List<Map<String, dynamic>> _denuncias = [
-    {
-      "id": "ORD-2026-001",
-      "nome": "José Geraldo",
-      "titulo": "Lixo em área verde",
-      "local": "Parque da Cidade",
-      "data": "08/03/2026",
-      "motivo": "Descarte irregular de entulho e móveis velhos em área protegida. O acúmulo está gerando mau cheiro e atraindo insetos nocivos.",
-      "status": "Em análise",
-      "foto_perfil": "https://i.pravatar.cc/150?img=11",
-      "foto_evidencia": "https://images.unsplash.com/photo-1530587191325-3db32d826c18?q=80&w=800",
-    },
-    {
-      "id": "ORD-2026-002",
-      "nome": "Maria Silva",
-      "titulo": "Queimada ilegal",
-      "local": "Área rural bairro X",
-      "data": "05/03/2026",
-      "motivo": "Queimada de resíduos orgânicos e plásticos sem autorização durante o período noturno, causando fumaça densa.",
-      "status": "Resolvido",
-      "foto_perfil": "https://i.pravatar.cc/150?img=5",
-      "foto_evidencia": "https://images.unsplash.com/photo-1565011523534-747a8601f10a?q=80&w=800",
-    },
-  ];
-
-  List<Map<String, dynamic>> get _denunciasFiltradas {
-    if (_filtroSelecionado == "Todas") return _denuncias;
-    return _denuncias.where((d) => d["status"] == _filtroSelecionado).toList();
-  }
-
   Color _getStatusColor(String status) {
-    switch (status) {
-      case "Resolvido": return greenAccent;
-      case "Em análise": return Colors.orange;
-      case "Recusado": return Colors.red;
+    switch (status.toLowerCase()) {
+      case "resolvido": return greenAccent;
+      case "em análise":
+      case "pendente": return Colors.orange;
+      case "recusado": return Colors.red;
       default: return Colors.grey;
     }
   }
 
+  String _formatarData(dynamic timestamp) {
+    if (timestamp == null) return "Sem data";
+    if (timestamp is Timestamp) {
+      DateTime dataUtc = timestamp.toDate();
+      return "${dataUtc.day.toString().padLeft(2, '0')}/${dataUtc.month.toString().padLeft(2, '0')}/${dataUtc.year}";
+    }
+    return timestamp.toString();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF5F7F6),
-      body: Column(
-        children: [
-          _buildHeader(),
-          Expanded(
-            child: _denunciasFiltradas.isEmpty 
-              ? const Center(child: Text("Nenhuma ocorrência encontrada.")) 
-              : ListView.builder(
-                  padding: const EdgeInsets.all(20),
-                  itemCount: _denunciasFiltradas.length,
-                  itemBuilder: (context, index) => _buildAdminCard(_denunciasFiltradas[index]),
+    // Escuta em tempo real o estado da autenticação (corrige o problema pós-logout)
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.idTokenChanges(),
+      builder: (context, authSnapshot) {
+        // Se o Firebase ainda estiver processando quem está logado na inicialização
+        if (authSnapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            backgroundColor: Colors.white,
+            body: Center(child: CircularProgressIndicator(color: Color(0xFF1B4D2E))),
+          );
+        }
+
+        final user = authSnapshot.data;
+
+        // VALIDAÇÃO SEGURA: Se não houver usuário OU se o email logado não for o admin
+        if (user == null || user.email != 'verdejaprojeto@gmail.com') {
+          return Scaffold(
+            backgroundColor: Colors.white,
+            body: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(25.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.lock_person_outlined, size: 80, color: Colors.red),
+                    const SizedBox(height: 20),
+                    const Text(
+                      "Acesso Restrito",
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      user == null 
+                        ? "Você precisa fazer login no aplicativo com o e-mail verdejaprojeto@gmail.com para acessar este painel."
+                        : "A conta '${user.email}' não tem permissão de administrador.\n\nPor favor, entre com a conta verdejaprojeto@gmail.com.",
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Colors.grey),
+                    ),
+                    const SizedBox(height: 30),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(backgroundColor: greenPrimary),
+                      onPressed: () async {
+                        // Se houver uma conta incorreta salva no cache, limpa ela
+                        if (user != null) {
+                          await FirebaseAuth.instance.signOut();
+                        }
+                        if (context.mounted) Navigator.pop(context);
+                      },
+                      child: const Text("Voltar para o Login", style: TextStyle(color: Colors.white)),
+                    ),
+                  ],
                 ),
+              ),
+            ),
+          );
+        }
+
+        // --- SE ESTIVER LOGADO COM SUCESSO, CARREGA O PAINEL ADMIN NORMALMENTE ---
+        debugPrint("====================================================");
+        debugPrint("EMAIL CONFIRMADO PELO STREAM: ${user.email}");
+        debugPrint("UID CONFIRMADO PELO STREAM: ${user.uid}");
+        debugPrint("====================================================");
+
+        // Consulta ordenando os dados pela data de criação
+        Query queryBase = FirebaseFirestore.instance.collection('denuncias').orderBy('criadoEm', descending: true);
+
+        return Scaffold(
+          backgroundColor: const Color(0xFFF5F7F6),
+          body: Column(
+            children: [
+              _buildHeader(),
+              Expanded(
+                child: StreamBuilder<QuerySnapshot>(
+                  stream: queryBase.snapshots(),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasError) {
+                      // Se o Firebase rejeitar por segurança, exibe o aviso na tela de forma amigável
+                      if (snapshot.error.toString().contains('permission-denied')) {
+                        return Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(25.0),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(Icons.lock_person_outlined, size: 60, color: Colors.red),
+                                const SizedBox(height: 15),
+                                Text(
+                                  "Acesso Negado (Firebase Rules)",
+                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.red.shade800),
+                                ),
+                                const SizedBox(height: 10),
+                                Text(
+                                  "O e-mail '${user.email}' não tem autorização para ler todas as denúncias.\n\nVerifique se as Regras de Segurança no console do Firebase liberam o e-mail exato dele.",
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(color: Colors.black54),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }
+                      // Fallback sem ordenação (caso o índice composto ainda não tenha sido criado)
+                      return _buildStreamSemOrdenacao();
+                    }
+                    
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Center(child: CircularProgressIndicator(color: greenPrimary));
+                    }
+                    
+                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                      return const Center(child: Text("Nenhuma ocorrência encontrada no banco."));
+                    }
+
+                    return _buildListaDenuncias(snapshot.data!.docs);
+                  },
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
+    );
+  }
+
+  Widget _buildStreamSemOrdenacao() {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance.collection('denuncias').snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Center(child: Text("Erro de Permissão: ${snapshot.error}"));
+        }
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator(color: greenPrimary));
+        }
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return const Center(child: Text("Nenhuma ocorrência encontrada."));
+        }
+        return _buildListaDenuncias(snapshot.data!.docs);
+      },
+    );
+  }
+
+  Widget _buildListaDenuncias(List<QueryDocumentSnapshot> docs) {
+    List<Map<String, dynamic>> listaCompleta = docs.map((doc) {
+      final dados = doc.data() as Map<String, dynamic>? ?? {};
+      final Map<String, dynamic> mapaTratado = Map<String, dynamic>.from(dados);
+      mapaTratado['docId'] = doc.id;
+      return mapaTratado;
+    }).toList();
+
+    // Filtro em memória baseado na seleção das pílulas no cabeçalho
+    List<Map<String, dynamic>> listaFiltrada = listaCompleta.where((denuncia) {
+      if (_filtroSelecionado == "Todas") return true;
+      String statusStr = (denuncia["status"] ?? "Pendente").toString().toLowerCase();
+      
+      if (_filtroSelecionado == "Em análise") {
+        return statusStr == "em análise" || statusStr == "pendente";
+      }
+      return statusStr == _filtroSelecionado.toLowerCase();
+    }).toList();
+
+    if (listaFiltrada.isEmpty) {
+      return const Center(child: Text("Nenhuma ocorrência neste filtro."));
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(20),
+      itemCount: listaFiltrada.length,
+      itemBuilder: (context, index) {
+        return _buildAdminCard(listaFiltrada[index]);
+      },
     );
   }
 
@@ -142,6 +279,11 @@ class _HistoricoAdminViewState extends State<HistoricoAdminView> {
   }
 
   Widget _buildAdminCard(Map<String, dynamic> item) {
+    String status = item["status"] ?? "Pendente";
+    String tipo = item["tipo"] ?? item["titulo"] ?? "Sem Tipo";
+    String dataFormatada = _formatarData(item['criadoEm'] ?? item['data']);
+    String fotoPerfil = item["usuarioFoto"] ?? "https://i.pravatar.cc/150?img=11"; 
+
     return Container(
       margin: const EdgeInsets.only(bottom: 15),
       decoration: BoxDecoration(
@@ -150,16 +292,37 @@ class _HistoricoAdminViewState extends State<HistoricoAdminView> {
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.all(15),
-        leading: CircleAvatar(radius: 25, backgroundImage: NetworkImage(item["foto_perfil"])),
-        title: Text(item["titulo"], style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text("${item["nome"]} • ${item["data"]}"),
-        trailing: Icon(Icons.circle, color: _getStatusColor(item["status"]), size: 12),
+        leading: CircleAvatar(
+          radius: 25, 
+          backgroundImage: NetworkImage(fotoPerfil),
+          backgroundColor: Colors.grey.shade200,
+        ),
+        title: Text(tipo, style: const TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: Text("${item["usuarioEmail"] ?? item["email"] ?? 'Usuário'} • $dataFormatada"),
+        trailing: Icon(Icons.circle, color: _getStatusColor(status), size: 12),
         onTap: () => _abrirDetalhesDenuncia(item),
       ),
     );
   }
 
   void _abrirDetalhesDenuncia(Map<String, dynamic> denuncia) {
+    String status = denuncia["status"] ?? "Pendente";
+    String dataFormatada = _formatarData(denuncia['criadoEm'] ?? denuncia['data']);
+    String tipo = denuncia["tipo"] ?? denuncia["titulo"] ?? "Sem Tipo";
+    
+    String localFormatado = "Local não informado";
+    if (denuncia["endereco"] != null) {
+      var end = denuncia["endereco"];
+      localFormatado = "${end['rua'] ?? ''}, Nº ${end['numero'] ?? 'S/N'} - ${end['bairro'] ?? ''}";
+    } else if (denuncia["localizacao"] != null) {
+      localFormatado = denuncia["localizacao"].toString();
+    }
+
+    String detalhesText = denuncia["detalhes"] ?? 
+                          denuncia["motivo"] ?? 
+                          denuncia["descricao"] ?? 
+                          "Nenhum detalhe fornecido.";
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -179,38 +342,61 @@ class _HistoricoAdminViewState extends State<HistoricoAdminView> {
                     Container(
                       width: double.infinity, height: 220,
                       decoration: BoxDecoration(
-                        color: Colors.grey[200], borderRadius: BorderRadius.circular(20),
-                        image: DecorationImage(image: NetworkImage(denuncia["foto_evidencia"]), fit: BoxFit.cover),
+                        color: const Color(0xFFE8ECE9), 
+                        borderRadius: BorderRadius.circular(20),
+                        image: denuncia["imageUrl"] != null && denuncia["imageUrl"].toString().isNotEmpty
+                            ? DecorationImage(image: NetworkImage(denuncia["imageUrl"]), fit: BoxFit.cover)
+                            : null,
                       ),
-                      child: Align(alignment: Alignment.topRight, child: Padding(padding: const EdgeInsets.all(12), child: _statusBadge(denuncia["status"]))),
+                      child: denuncia["imageUrl"] != null && denuncia["imageUrl"].toString().isNotEmpty
+                          ? Align(
+                              alignment: Alignment.topRight, 
+                              child: Padding(
+                                padding: const EdgeInsets.all(12), 
+                                child: _statusBadge(status),
+                              ),
+                            )
+                          : Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.image_not_supported_outlined, size: 45, color: greenPrimary.withOpacity(0.5)),
+                                  const SizedBox(height: 8),
+                                  Text("Sem imagem anexada", style: TextStyle(color: greenPrimary.withOpacity(0.6), fontWeight: FontWeight.w500)),
+                                ],
+                              ),
+                            ),
                     ),
                     const SizedBox(height: 20),
-                    Text(denuncia["titulo"], style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Color(0xFF1B4D2E))),
-                    Text(denuncia["local"], style: const TextStyle(color: Colors.grey, fontWeight: FontWeight.w500)),
+                    Text(tipo, style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: greenPrimary)),
+                    Text(localFormatado, style: const TextStyle(color: Colors.grey, fontWeight: FontWeight.w500)),
                     const Divider(height: 40),
                     
-                    // --- GRID DE INFORMAÇÕES COM STATUS INCLUÍDO ---
                     Row(
                       children: [
-                        Expanded(child: _infoDetail(Icons.person_outline, "Relator", denuncia["nome"])),
-                        Expanded(child: _infoDetail(Icons.calendar_today_outlined, "ID Registro", denuncia["id"])),
+                        Expanded(child: _infoDetail(Icons.person_outline, "Relator", denuncia["usuarioEmail"] ?? denuncia["email"] ?? "Usuário")),
+                        Expanded(child: _infoDetail(Icons.calendar_today_outlined, "Data Registro", dataFormatada)),
                       ],
                     ),
                     const SizedBox(height: 20),
                     _infoDetail(
                       Icons.info_outline, 
                       "STATUS ATUAL", 
-                      denuncia["status"], 
-                      customColor: _getStatusColor(denuncia["status"])
+                      status.toUpperCase(), 
+                      customColor: _getStatusColor(status)
                     ),
                     
                     const SizedBox(height: 25),
                     const Text("MOTIVO DA OCORRÊNCIA", style: TextStyle(fontWeight: FontWeight.w800, color: Colors.grey, fontSize: 11, letterSpacing: 1.1)),
                     const SizedBox(height: 10),
                     Container(
+                      width: double.infinity,
                       padding: const EdgeInsets.all(15),
                       decoration: BoxDecoration(color: const Color(0xFFF5F7F6), borderRadius: BorderRadius.circular(15), border: Border.all(color: Colors.grey.shade200)),
-                      child: Text(denuncia["motivo"], style: const TextStyle(fontSize: 15, height: 1.5, color: Colors.black87)),
+                      child: Text(
+                        detalhesText, 
+                        style: const TextStyle(fontSize: 15, height: 1.5, color: Colors.black87),
+                      ),
                     ),
                     
                     const SizedBox(height: 25),
@@ -245,6 +431,7 @@ class _HistoricoAdminViewState extends State<HistoricoAdminView> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            Center(child: Container(margin: const EdgeInsets.only(bottom: 15), width: 35, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(10)))),
             const Text("ALTERAR STATUS PARA:", style: TextStyle(fontWeight: FontWeight.w900, color: Colors.grey, fontSize: 12)),
             const SizedBox(height: 20),
             _statusOption(Icons.hourglass_empty, "Em análise", Colors.orange, denuncia),
@@ -261,13 +448,37 @@ class _HistoricoAdminViewState extends State<HistoricoAdminView> {
     return ListTile(
       leading: CircleAvatar(backgroundColor: color.withOpacity(0.1), child: Icon(icon, color: color, size: 20)),
       title: Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
-      onTap: () {
-        setState(() {
-          int idx = _denuncias.indexWhere((e) => e["id"] == denuncia["id"]);
-          _denuncias[idx]["status"] = label;
-        });
-        Navigator.pop(context); 
-        Navigator.pop(context); 
+      onTap: () async {
+        String? docId = denuncia['docId'];
+
+        if (docId != null) {
+          try {
+            await FirebaseFirestore.instance
+                .collection('denuncias')
+                .doc(docId)
+                .update({'status': label});
+
+            if (mounted) {
+              Navigator.of(context).pop(); 
+              Navigator.of(context).pop(); 
+              
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text("Status alterado para '$label' com sucesso!"),
+                  backgroundColor: greenPrimary,
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            }
+          } catch (e) {
+            if (mounted) {
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text("Erro ao atualizar: $e"), backgroundColor: Colors.red),
+              );
+            }
+          }
+        }
       },
     );
   }
@@ -280,7 +491,6 @@ class _HistoricoAdminViewState extends State<HistoricoAdminView> {
     );
   }
 
-  // --- HELPER COM SUPORTE A COR CUSTOMIZADA ---
   Widget _infoDetail(IconData icon, String label, String value, {Color? customColor}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

@@ -71,16 +71,41 @@ class AdminMenuView extends StatelessWidget {
                       
                       const SizedBox(height: 20),
                       
-                      // BOTÃO SAIR
-                      TextButton(
-                        onPressed: () => Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false),
-                        child: const Text(
-                          'Sair da conta',
-                          style: TextStyle(
-                            color: Colors.redAccent,
-                            fontSize: 16,
-                            decoration: TextDecoration.underline,
-                            fontWeight: FontWeight.w600,
+                      // 🔹 BOTÃO VOLTAR PERSONALIZADO
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(16),
+                          onTap: () => Navigator.pop(context), // Retorna para a TelaInicialView de forma limpa
+                          child: Container(
+                            height: 55,
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF1B4D2E),
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.arrow_back, color: Colors.white),
+                                SizedBox(width: 10),
+                                Text(
+                                  'Voltar para o Início',
+                                  style: TextStyle(
+                                    color: Colors.white, 
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
@@ -96,7 +121,7 @@ class AdminMenuView extends StatelessWidget {
     );
   }
 
-  // 🔹 Widget para os botões do Grid (Agora corrigido e dinâmico)
+  // 🔹 Widget para os botões do Grid
   Widget _buildGridItem(BuildContext context, String title, IconData icon, String route) {
     return Container(
       decoration: BoxDecoration(
@@ -114,7 +139,6 @@ class AdminMenuView extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(25),
-          // CORREÇÃO: Agora ele navega para a rota passada por parâmetro
           onTap: () => Navigator.pushNamed(context, route),
           child: Padding(
             padding: const EdgeInsets.all(15),
