@@ -84,9 +84,9 @@ class _TelaInicialViewState extends State<TelaInicialView> {
       corCards = const Color.fromRGBO(137, 186, 21, 1);
     }
 
-    double alturaCard = zoomInterface ? 135 : 110;
-    double tamanhoTituloCard = zoomInterface ? 24 : 22;
-    double tamanhoSubCard = zoomInterface ? 17 : 15;
+    double alturaCard = zoomInterface ? 125 : 105;
+    double tamanhoTituloCard = zoomInterface ? 21 : 19;
+    double tamanhoSubCard = zoomInterface ? 15 : 13;
 
     return MediaQuery(
       data: MediaQuery.of(context).copyWith(
@@ -120,7 +120,7 @@ class _TelaInicialViewState extends State<TelaInicialView> {
               ),
               Expanded(
                 child: ListView(
-                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  padding: const EdgeInsets.symmetric(vertical: 10),
                   children: [
                     _buildMenuCard(
                       icon: Icons.home,
@@ -232,15 +232,14 @@ class _TelaInicialViewState extends State<TelaInicialView> {
               stops: const [0.0, 0.35],
             ),
           ),
-          child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 40),
-                Builder(
-                  builder: (context) => Align(
+          child: SafeArea(
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Align(
                     alignment: Alignment.topRight,
                     child: IconButton(
                       icon: Icon(Icons.menu, size: 30, color: altoContraste ? Colors.black : Colors.black87),
@@ -250,85 +249,85 @@ class _TelaInicialViewState extends State<TelaInicialView> {
                       },
                     ),
                   ),
-                ),
-                Center(child: Image.asset('assets/images/logo3.png', width: zoomInterface ? 240 : 200)),
-                const SizedBox(height: 15),
-                const Center(
-                  child: Text(
-                    "Bem-vindo ao Verdeja",
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  Center(child: Image.asset('assets/images/logo3.png', width: zoomInterface ? 210 : 180)),
+                  const SizedBox(height: 10),
+                  const Center(
+                    child: Text(
+                      "Bem-vindo ao Verdeja",
+                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 10),
-                const Text(
-                  "Escolha uma das opções abaixo para interagir e ajudar a preservar o meio ambiente.",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 18, color: Colors.black54),
-                ),
-                const SizedBox(height: 25),
-                StreamBuilder<User?>(
-                  stream: FirebaseAuth.instance.authStateChanges(),
-                  builder: (context, snapshot) {
-                    if (snapshot.hasData && snapshot.data?.email == 'verdejaprojeto@gmail.com') {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 15),
-                        child: _buildMainCard(
-                          imagePath: 'assets/images/logo.png',
-                          title: "Painel de Admin", 
-                          subtitle: "Gerencie denúncias enviadas pelos usuários",
-                          icon: Icons.admin_panel_settings,
-                          corFundo: const Color(0xFF133621),
-                          corTexto: Colors.white,
-                          altura: alturaCard,
-                          tamTitulo: tamanhoTituloCard,
-                          tamSub: tamanhoSubCard,
-                          onTap: () => navegarParaTela(const AdminMenuView()),
-                        ),
-                      );
-                    }
-                    return const SizedBox.shrink();
-                  },
-                ),
-                _buildMainCard(
-                  imagePath: 'assets/images/lixo.png',
-                  title: "Fazer Denúncia",
-                  subtitle: "Denuncie descartes incorretos ou problemas de lixo",
-                  icon: Icons.arrow_forward_ios,
-                  corFundo: corCards,
-                  corTexto: corTextoCard,
-                  altura: alturaCard,
-                  tamTitulo: tamanhoTituloCard,
-                  tamSub: tamanhoSubCard,
-                  onTap: () => navegarParaTela(const LocalDenunciaPage()),
-                ),
-                const SizedBox(height: 15),
-                _buildMainCard(
-                  imagePath: 'assets/images/ponto.png',
-                  title: "Pontos de Coleta",
-                  subtitle: "Encontre os locais de descarte e ecopontos próximos",
-                  icon: Icons.arrow_forward_ios,
-                  corFundo: corCards,
-                  corTexto: corTextoCard,
-                  altura: alturaCard,
-                  tamTitulo: tamanhoTituloCard,
-                  tamSub: tamanhoSubCard,
-                  onTap: () => navegarParaTela(const MapaView()),
-                ),
-                const SizedBox(height: 15),
-                _buildMainCard(
-                  imagePath: 'assets/images/icon2.png',
-                  title: "Coleta Seletiva",
-                  subtitle: "Consulte os dias e horários das coletas em seu bairro",
-                  icon: Icons.calendar_month,
-                  corFundo: corCards,
-                  corTexto: corTextoCard,
-                  altura: alturaCard,
-                  tamTitulo: tamanhoTituloCard,
-                  tamSub: tamanhoSubCard,
-                  onTap: () => navegarParaTela(const ColetaView()),
-                ),
-                const SizedBox(height: 30),
-              ],
+                  const SizedBox(height: 8),
+                  const Text(
+                    "Escolha uma das opções abaixo para interagir e ajudar a preservar o meio ambiente.",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 16, color: Colors.black54),
+                  ),
+                  const SizedBox(height: 15),
+                  StreamBuilder<User?>(
+                    stream: FirebaseAuth.instance.authStateChanges(),
+                    builder: (context, snapshot) {
+                      if (snapshot.hasData && snapshot.data?.email == 'verdejaprojeto@gmail.com') {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 15),
+                          child: _buildMainCard(
+                            imagePath: 'assets/images/logo.png',
+                            title: "Painel de Admin", 
+                            subtitle: "Gerencie denúncias enviadas pelos usuários",
+                            icon: Icons.admin_panel_settings,
+                            corFundo: const Color(0xFF133621),
+                            corTexto: Colors.white,
+                            altura: alturaCard,
+                            tamTitulo: tamanhoTituloCard,
+                            tamSub: tamanhoSubCard,
+                            onTap: () => navegarParaTela(const AdminMenuView()),
+                          ),
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    },
+                  ),
+                  _buildMainCard(
+                    imagePath: 'assets/images/lixo.png',
+                    title: "Fazer Denúncia",
+                    subtitle: "Denuncie descartes incorretos ou problemas de lixo",
+                    icon: Icons.arrow_forward_ios,
+                    corFundo: corCards,
+                    corTexto: corTextoCard,
+                    altura: alturaCard,
+                    tamTitulo: tamanhoTituloCard,
+                    tamSub: tamanhoSubCard,
+                    onTap: () => navegarParaTela(const LocalDenunciaPage()),
+                  ),
+                  const SizedBox(height: 15),
+                  _buildMainCard(
+                    imagePath: 'assets/images/ponto.png',
+                    title: "Pontos de Coleta",
+                    subtitle: "Encontre os locais de descarte e ecopontos próximos",
+                    icon: Icons.arrow_forward_ios,
+                    corFundo: corCards,
+                    corTexto: corTextoCard,
+                    altura: alturaCard,
+                    tamTitulo: tamanhoTituloCard,
+                    tamSub: tamanhoSubCard,
+                    onTap: () => navegarParaTela(const MapaView()),
+                  ),
+                  const SizedBox(height: 15),
+                  _buildMainCard(
+                    imagePath: 'assets/images/icon2.png',
+                    title: "Coleta Seletiva",
+                    subtitle: "Consulte os dias e horários das coletas em seu bairro",
+                    icon: Icons.calendar_month,
+                    corFundo: corCards,
+                    corTexto: corTextoCard,
+                    altura: alturaCard,
+                    tamTitulo: tamanhoTituloCard,
+                    tamSub: tamanhoSubCard,
+                    onTap: () => navegarParaTela(const ColetaView()),
+                  ),
+                  const SizedBox(height: 20),
+                ],
+              ),
             ),
           ),
         ),
@@ -338,7 +337,7 @@ class _TelaInicialViewState extends State<TelaInicialView> {
 
   Widget _buildMenuCard({required IconData icon, required String title, required Color corIcone, required VoidCallback onTap}) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
@@ -390,11 +389,11 @@ class _TelaInicialViewState extends State<TelaInicialView> {
           ),
           elevation: 5,
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(12),
             child: Row(
               children: [
-                Image.asset(imagePath, width: zoomInterface ? 55 : 45),
-                const SizedBox(width: 16),
+                Image.asset(imagePath, width: zoomInterface ? 50 : 45),
+                const SizedBox(width: 14),
                 Expanded(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -403,15 +402,20 @@ class _TelaInicialViewState extends State<TelaInicialView> {
                       Text(
                         title, 
                         style: TextStyle(fontSize: tamTitulo, fontWeight: FontWeight.bold, color: corTexto),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
+                      const SizedBox(height: 2),
                       Text(
                         subtitle, 
                         style: TextStyle(color: corTexto.withOpacity(0.8), fontWeight: FontWeight.w600, fontSize: tamSub),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),
                 ),
-                Icon(icon, color: corTexto),
+                Icon(icon, color: corTexto, size: zoomInterface ? 20 : 18),
               ],
             ),
           ),
