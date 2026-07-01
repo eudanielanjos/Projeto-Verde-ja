@@ -93,7 +93,8 @@ class _TelaInicialViewState extends State<TelaInicialView> {
         textScaler: TextScaler.linear(escalaFonte),
       ),
       child: Scaffold(
-        endDrawer: Drawer(
+        // CORRIGIDO: Alterado de endDrawer para drawer (abre na esquerda)
+        drawer: Drawer(
           child: Column(
             children: [
               Container(
@@ -239,13 +240,14 @@ class _TelaInicialViewState extends State<TelaInicialView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // CORRIGIDO: Alinhamento para topLeft e função openDrawer()
                   Align(
-                    alignment: Alignment.topRight,
+                    alignment: Alignment.topLeft, 
                     child: IconButton(
                       icon: Icon(Icons.menu, size: 30, color: altoContraste ? Colors.black : Colors.black87),
                       onPressed: () {
                         vibrar();
-                        Scaffold.of(context).openEndDrawer();
+                        Scaffold.of(context).openDrawer();
                       },
                     ),
                   ),

@@ -344,8 +344,8 @@ class _ConfiguracaoPageState extends State<ConfiguracaoPage> {
           child: const Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.logout, color: Colors.white),
-              const SizedBox(width: 10),
+              Icon(Icons.logout, color: Colors.white),
+              SizedBox(width: 10),
               Text("Sair da conta", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
             ],
           ),
