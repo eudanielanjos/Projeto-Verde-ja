@@ -23,6 +23,9 @@ class TelaInicialView extends StatefulWidget {
 }
 
 class _TelaInicialViewState extends State<TelaInicialView> {
+  // CORREÇÃO: Chave global criada para controlar o Scaffold com segurança
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
   bool daltonismo = false;
   bool fonteGrande = false;
   bool altoContraste = false;
@@ -93,8 +96,9 @@ class _TelaInicialViewState extends State<TelaInicialView> {
         textScaler: TextScaler.linear(escalaFonte),
       ),
       child: Scaffold(
-        // CORRIGIDO: Alterado de endDrawer para drawer (abre na esquerda)
-        drawer: Drawer(
+        // CORREÇÃO: Associando a chave global ao Scaffold
+        key: _scaffoldKey,
+        endDrawer: Drawer(
           child: Column(
             children: [
               Container(
@@ -240,14 +244,14 @@ class _TelaInicialViewState extends State<TelaInicialView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // CORRIGIDO: Alinhamento para topLeft e função openDrawer()
                   Align(
-                    alignment: Alignment.topLeft, 
+                    alignment: Alignment.topRight, 
                     child: IconButton(
                       icon: Icon(Icons.menu, size: 30, color: altoContraste ? Colors.black : Colors.black87),
                       onPressed: () {
                         vibrar();
-                        Scaffold.of(context).openDrawer();
+                        // CORREÇÃO: Abre o menu lateral direito de forma segura sem depender do contexto direto do build
+                        _scaffoldKey.currentState?.openEndDrawer();
                       },
                     ),
                   ),
