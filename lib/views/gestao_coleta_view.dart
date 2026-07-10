@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:async';
 
-// Modelo de dados limpo para as linhas da tabela
 class ColetaLinha {
   DateTime data;
   TimeOfDay hora;
@@ -25,15 +26,125 @@ class _ColetaAdminState extends State<ColetaAdmin> {
   final Color backgroundGrey = const Color(0xFFF5F7F6);
   
   int indexSelecionado = 0;
-  final List<String> nomesMateriais = ['Papel', 'Metal', 'Plástico', 'Vidro', 'Entulho'];
+  
+  final List<String> nomesMateriais = ['Vidro', 'Plástico', 'Papel', 'Metal', 'Entulho'];
   final List<String> caminhosImagens = [
-    'assets/images/papel.png', 'assets/images/metal.png', 
-    'assets/images/plastico.png', 'assets/images/vidro.png', 'assets/images/entulho.png'
+    'assets/images/vidro.png', 'assets/images/plastico.png', 
+    'assets/images/papel.png', 'assets/images/metal.png', 'assets/images/entulho.png'
   ];
 
-  List<ColetaLinha> linhasTabela = [
-    ColetaLinha(data: DateTime.now(), hora: const TimeOfDay(hour: 17, minute: 0)),
-  ];
+  List<ColetaLinha> linhasTabela = [];
+  bool carregando = true;
+  StreamSubscription? _inscricaoFirebase;
+
+  @override
+  void initState() {
+    super.initState();
+    _escutarHorariosDoMaterial();
+  }
+
+  @override
+  void dispose() {
+    _inscricaoFirebase?.cancel(); 
+    super.dispose();
+  }
+
+  // 🛠️ ESCUTA EM TEMPO REAL COM METADATA_CHANGES (Instantâneo com Cache)
+  void _escutarHorariosDoMaterial() {
+    setState(() => carregando = true);
+    _inscricaoFirebase?.cancel(); 
+
+    String docId = nomesMateriais[indexSelecionado].toLowerCase();
+
+    // includeMetadataChanges: true força o snapshot a atualizar via cache local imediatamente
+    _inscricaoFirebase = FirebaseFirestore.instance
+        .collection('cronogramas')
+        .doc(docId)
+        .snapshots(includeMetadataChanges: true)
+        .listen((snapshot) {
+      if (snapshot.exists && snapshot.data() != null) {
+        List<dynamic> datasLista = snapshot.data()!['datas'] ?? [];
+        if (mounted) {
+          setState(() {
+            linhasTabela = datasLista.map((item) {
+              DateTime dataParsed = DateTime.parse(item['data']);
+              List<String> horaMinutos = (item['hora'] as String).split(':');
+              return ColetaLinha(
+                data: dataParsed,
+                hora: TimeOfDay(hour: int.parse(horaMinutos[0]), minute: int.parse(horaMinutos[1])),
+              );
+            }).toList();
+            carregando = false; 
+          });
+        }
+      } else {
+        _gerarHorarioPadrao();
+      }
+    }, onError: (error) {
+      debugPrint("Erro na escuta do Firestore: $error");
+      _mostrarSnackBar("Erro de permissão ou conexão!", Colors.redAccent);
+      _gerarHorarioPadrao();
+    });
+  }
+
+  void _gerarHorarioPadrao() {
+    if (!mounted) return;
+    setState(() {
+      linhasTabela = [ColetaLinha(data: DateTime.now(), hora: const TimeOfDay(hour: 17, minute: 0))];
+      carregando = false;
+    });
+  }
+
+  // 🚀 ENVIO OTIMIZADO PARA O FIREBASE (Roda inteiramente em Background Thread)
+  void _salvarNoFirebase() {
+    setState(() {
+      linhasTabela.removeWhere((l) => l.modoDeletar);
+      if (linhasTabela.isEmpty) {
+        linhasTabela.add(ColetaLinha(data: DateTime.now(), hora: const TimeOfDay(hour: 17, minute: 0)));
+      }
+      carregando = true; 
+    });
+
+    String docId = nomesMateriais[indexSelecionado].toLowerCase();
+    
+    List<Map<String, dynamic>> dadosParaSalvar = linhasTabela.map((linha) {
+      String ano = linha.data.year.toString().padLeft(4, '0');
+      String mes = linha.data.month.toString().padLeft(2, '0');
+      String dia = linha.data.day.toString().padLeft(2, '0');
+      
+      String hora = linha.hora.hour.toString().padLeft(2, '0');
+      String minuto = linha.hora.minute.toString().padLeft(2, '0');
+
+      return {
+        'data': '${ano}-${mes}-${dia}T00:00:00.000',
+        'hora': '$hora:$minuto',
+      };
+    }).toList();
+
+    // Executa sem usar 'await', liberando a Main Thread de imediato
+    FirebaseFirestore.instance.collection('cronogramas').doc(docId).set({
+      'material_index': indexSelecionado,
+      'datas': dadosParaSalvar,
+    }).then((_) {
+      _mostrarSnackBar("Dados salvos com sucesso!", greenPrimary);
+    }).catchError((error) {
+      debugPrint("Erro ao salvar no Firebase: $error");
+      _mostrarSnackBar("Falha ao salvar no banco!", Colors.red);
+      if (mounted) setState(() => carregando = false);
+    });
+  }
+
+  void _mostrarSnackBar(String texto, Color cor) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(texto, style: const TextStyle(fontWeight: FontWeight.bold)),
+        backgroundColor: cor,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,7 +169,6 @@ class _ColetaAdminState extends State<ColetaAdmin> {
             children: [
               const SizedBox(height: 50),
               
-              // BOTÃO DE VOLTAR E TÍTULO PRINCIPAL
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -86,7 +196,6 @@ class _ColetaAdminState extends State<ColetaAdmin> {
               ),
               const SizedBox(height: 25),
 
-              // PASSO 1: SELEÇÃO DO MATERIAL
               _buildLabel("1. SELECIONE O MATERIAL"),
               const SizedBox(height: 8),
               _buildCardBase(
@@ -102,7 +211,6 @@ class _ColetaAdminState extends State<ColetaAdmin> {
               ),
               const SizedBox(height: 25),
 
-              // PASSO 2: MODIFICAÇÃO DE HORÁRIOS
               _buildLabel("2. MODIFIQUE OS DIAS E HORÁRIOS"),
               const SizedBox(height: 8),
               Container(
@@ -116,7 +224,6 @@ class _ColetaAdminState extends State<ColetaAdmin> {
                 clipBehavior: Clip.antiAlias,
                 child: Column(
                   children: [
-                    // Cabeçalho interno ultra simplificado
                     Container(
                       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
                       color: greenPrimary.withOpacity(0.06),
@@ -124,17 +231,18 @@ class _ColetaAdminState extends State<ColetaAdmin> {
                         children: [
                           Expanded(child: Text("DATA DE COLETA", style: TextStyle(color: greenPrimary, fontWeight: FontWeight.bold, fontSize: 11))),
                           Expanded(child: Text("HORÁRIO", style: TextStyle(color: greenPrimary, fontWeight: FontWeight.bold, fontSize: 11))),
-                          const SizedBox(width: 40), // Alinhamento com botão deletar
+                          const SizedBox(width: 40),
                         ],
                       ),
                     ),
-                    _buildTableContent(),
+                    carregando 
+                      ? const Padding(padding: EdgeInsets.all(30), child: Center(child: CircularProgressIndicator()))
+                      : _buildTableContent(),
                   ],
                 ),
               ),
               const SizedBox(height: 25),
 
-              // VISUALIZAÇÃO PRÉVIA (PREVIEW)
               _buildLabel("PREVIEW EM TEMPO REAL"),
               const SizedBox(height: 8),
               Container(
@@ -144,29 +252,31 @@ class _ColetaAdminState extends State<ColetaAdmin> {
                   color: greenPrimary,
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                child: (linhasTabela.isEmpty || carregando)
+                  ? const Text("Carregando cronograma...", style: TextStyle(color: Colors.white))
+                  : Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          "Material: ${nomesMateriais[indexSelecionado]}", 
-                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Material: ${nomesMateriais[indexSelecionado]}", 
+                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              "Coleta agendada para às ${linhasTabela[0].hora.format(context)}", 
+                              style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 13)
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 2),
                         Text(
-                          "Coleta agendada para às ${linhasTabela[0].hora.format(context)}", 
-                          style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 13)
+                          "${linhasTabela[0].data.day.toString().padLeft(2, '0')}/${linhasTabela[0].data.month.toString().padLeft(2, '0')}", 
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)
                         ),
                       ],
                     ),
-                    Text(
-                      "${linhasTabela[0].data.day.toString().padLeft(2, '0')}/${linhasTabela[0].data.month.toString().padLeft(2, '0')}", 
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)
-                    ),
-                  ],
-                ),
               ),
               const SizedBox(height: 30),
             ],
@@ -215,21 +325,7 @@ class _ColetaAdminState extends State<ColetaAdmin> {
                 label: const Text("Nova Data", style: TextStyle(fontWeight: FontWeight.bold)),
               ),
               ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    linhasTabela.removeWhere((l) => l.modoDeletar);
-                    if (linhasTabela.isEmpty) {
-                      linhasTabela.add(ColetaLinha(data: DateTime.now(), hora: TimeOfDay.now()));
-                    }
-                  });
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: const Text("Dados atualizados com sucesso!"),
-                      backgroundColor: greenPrimary,
-                      behavior: SnackBarBehavior.floating,
-                    ),
-                  );
-                },
+                onPressed: _salvarNoFirebase,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: greenPrimary,
                   foregroundColor: Colors.white,
@@ -247,12 +343,12 @@ class _ColetaAdminState extends State<ColetaAdmin> {
   }
 
   Widget _rowInput(int index) {
-    final Sample = linhasTabela[index];
+    if (index >= linhasTabela.length) return const SizedBox.shrink();
+    final sample = linhasTabela[index];
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
-          // DATA
           Expanded(child: InkWell(
             onTap: () => _selecionarData(index),
             borderRadius: BorderRadius.circular(6),
@@ -260,13 +356,12 @@ class _ColetaAdminState extends State<ColetaAdmin> {
               height: 38,
               alignment: Alignment.center,
               decoration: BoxDecoration(color: backgroundGrey, borderRadius: BorderRadius.circular(6)),
-              child: Text("${Sample.data.day.toString().padLeft(2, '0')}/${Sample.data.month.toString().padLeft(2, '0')}", 
+              child: Text("${sample.data.day.toString().padLeft(2, '0')}/${sample.data.month.toString().padLeft(2, '0')}", 
                 style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
             ),
           )),
           const SizedBox(width: 8),
           
-          // HORA
           Expanded(child: InkWell(
             onTap: () => _selecionarHora(index),
             borderRadius: BorderRadius.circular(6),
@@ -274,26 +369,25 @@ class _ColetaAdminState extends State<ColetaAdmin> {
               height: 38,
               alignment: Alignment.center,
               decoration: BoxDecoration(color: backgroundGrey, borderRadius: BorderRadius.circular(6)),
-              child: Text(Sample.hora.format(context), 
+              child: Text(sample.hora.format(context), 
                 style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
             ),
           )),
           const SizedBox(width: 8),
           
-          // REMOVER HORÁRIO MARCADOR
           GestureDetector(
-            onTap: () => setState(() => Sample.modoDeletar = !Sample.modoDeletar),
+            onTap: () => setState(() => sample.modoDeletar = !sample.modoDeletar),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 150),
               width: 38,
               height: 38,
               decoration: BoxDecoration(
-                color: Sample.modoDeletar ? Colors.red.withOpacity(0.1) : backgroundGrey,
+                color: sample.modoDeletar ? Colors.red.withOpacity(0.1) : backgroundGrey,
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Icon(
-                Sample.modoDeletar ? Icons.delete_forever_rounded : Icons.delete_outline_rounded,
-                color: Sample.modoDeletar ? Colors.red : Colors.grey,
+                sample.modoDeletar ? Icons.delete_forever_rounded : Icons.delete_outline_rounded,
+                color: sample.modoDeletar ? Colors.red : Colors.grey,
                 size: 18,
               ),
             ),
@@ -326,7 +420,10 @@ class _ColetaAdminState extends State<ColetaAdmin> {
   Widget _itemMaterial(int index) {
     bool selecionado = indexSelecionado == index;
     return GestureDetector(
-      onTap: () => setState(() => indexSelecionado = index),
+      onTap: () {
+        setState(() => indexSelecionado = index);
+        _escutarHorariosDoMaterial(); 
+      },
       child: Padding(
         padding: const EdgeInsets.only(right: 16),
         child: Column(

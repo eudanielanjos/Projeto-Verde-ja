@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vibration/vibration.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 // Importações das suas views
 import 'perfil_view.dart';
@@ -22,7 +23,6 @@ class ColetaView extends StatefulWidget {
 }
 
 class _ColetaViewState extends State<ColetaView> {
-  // --- ESTADOS DE ACESSIBILIDADE ---
   bool daltonismo = false;
   bool fonteGrande = false;
   bool altoContraste = false;
@@ -56,13 +56,17 @@ class _ColetaViewState extends State<ColetaView> {
 
   List<bool> selecionados = [false, false, false, false, false];
 
+  // Estrutura na memória para guardar o que vem do banco de dados
+  Map<int, List<Map<String, dynamic>>> coletasAgendadas = {};
+  bool carregandoDados = true;
+
   @override
   void initState() {
     super.initState();
     _carregarConfiguracoes();
+    _buscarHorariosDoFirebase();
   }
 
-  // --- LÓGICA DE ACESSIBILIDADE ---
   Future<void> _carregarConfiguracoes() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
@@ -75,6 +79,36 @@ class _ColetaViewState extends State<ColetaView> {
     });
   }
 
+  // 🚀 RECEBIMENTO ULTRA RÁPIDO: Adicionado includeMetadataChanges para ler do cache local na hora
+  void _buscarHorariosDoFirebase() {
+    FirebaseFirestore.instance
+        .collection('cronogramas')
+        .snapshots(includeMetadataChanges: true)
+        .listen((snapshot) {
+      final Map<int, List<Map<String, dynamic>>> mapaTemporario = {};
+
+      for (var doc in snapshot.docs) {
+        final data = doc.data();
+        int matIndex = data['material_index'] ?? 0;
+        List<dynamic> datasLista = data['datas'] ?? [];
+
+        mapaTemporario[matIndex] = datasLista.map((item) {
+          return {
+            'data': DateTime.parse(item['data']),
+            'hora': item['hora'] as String,
+          };
+        }).toList();
+      }
+
+      if (mounted) {
+        setState(() {
+          coletasAgendadas = mapaTemporario;
+          carregandoDados = false; // Desativa o loading direto do cache offline
+        });
+      }
+    });
+  }
+
   void _vibrar() async {
     if (vibracao) {
       if (await Vibration.hasVibrator() ?? false) {
@@ -84,18 +118,29 @@ class _ColetaViewState extends State<ColetaView> {
   }
 
   bool _deveMostrarEvento(DateTime day, int index) {
-    if (!selecionados[index]) return false;
-    int semanaDoMes = ((day.day - 1) / 7).floor() + 1;
-    bool isUltimaSemana = day.day > (DateUtils.getDaysInMonth(day.year, day.month) - 7);
+    if (!selecionados[index] || !coletasAgendadas.containsKey(index)) return false;
 
-    switch (index) {
-      case 0: return day.weekday == DateTime.wednesday && semanaDoMes == 2;
-      case 1: return day.weekday == DateTime.monday && semanaDoMes == 1;
-      case 2: return day.weekday == DateTime.monday && semanaDoMes == 4;
-      case 3: return day.weekday == DateTime.friday && semanaDoMes == 3;
-      case 4: return day.weekday == DateTime.friday && isUltimaSemana;
-      default: return false;
+    return coletasAgendadas[index]!.any((agendamento) {
+      DateTime dataAdmin = agendamento['data'];
+      return dataAdmin.year == day.year &&
+          dataAdmin.month == day.month &&
+          dataAdmin.day == day.day;
+    });
+  }
+
+  String _getHorarioDoEvento(DateTime day, int index) {
+    if (!coletasAgendadas.containsKey(index)) return '';
+    
+    final agendamentosDoDia = coletasAgendadas[index]!.where((a) {
+      DateTime d = a['data'];
+      return d.year == day.year && d.month == day.month && d.day == day.day;
+    });
+
+    if (agendamentosDoDia.isNotEmpty) {
+      return agendamentosDoDia.first['hora'] ?? '';
     }
+    
+    return '';
   }
 
   Color _getCorParaDia(DateTime day) {
@@ -121,78 +166,69 @@ class _ColetaViewState extends State<ColetaView> {
 
   @override
   Widget build(BuildContext context) {
-    Color corTema;
-    if (altoContraste) {
-      corTema = Colors.black;
-    } else if (daltonismo) {
-      corTema = const Color(0xFF455A64);
-    } else {
-      corTema = const Color(0xFF1F5C3A);
-    }
+    Color corTema = altoContraste ? Colors.black : (daltonismo ? const Color(0xFF455A64) : const Color(0xFF1F5C3A));
 
     return MediaQuery(
-      data: MediaQuery.of(context).copyWith(
-        textScaler: TextScaler.linear(escalaFonte),
-      ),
+      data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(escalaFonte)),
       child: Scaffold(
         endDrawer: _buildDrawer(context, corTema),
-        body: Container(
-          width: double.infinity,
-          height: double.infinity,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [corTema.withOpacity(0.6), Colors.white],
-              stops: const [0.0, 0.2],
-            ),
-          ),
-          child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 40),
-                _buildMenuButton(context),
-                Text(
-                  'Cronograma de coleta',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: corTema, letterSpacing: -0.5),
+        body: carregandoDados
+            ? const Center(child: CircularProgressIndicator())
+            : Container(
+                width: double.infinity,
+                height: double.infinity,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [corTema.withOpacity(0.6), Colors.white],
+                    stops: const [0.0, 0.2],
+                  ),
                 ),
-                const SizedBox(height: 15),
-                Row(
-                  children: [
-                    Expanded(child: _buildDataButton(context, true, corTema)),
-                    const SizedBox(width: 10),
-                    Expanded(child: _buildDataButton(context, false, corTema)),
-                  ],
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 40),
+                      _buildMenuButton(context),
+                      Text(
+                        'Cronograma de coleta',
+                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: corTema, letterSpacing: -0.5),
+                      ),
+                      const SizedBox(height: 15),
+                      Row(
+                        children: [
+                          Expanded(child: _buildDataButton(context, true, corTema)),
+                          const SizedBox(width: 10),
+                          Expanded(child: _buildDataButton(context, false, corTema)),
+                        ],
+                      ),
+                      _buildFiltroLimparButtons(),
+                      _buildCalendar(corTema), 
+                      const SizedBox(height: 25),
+                      const Text('Filtrar por tipo:', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black54)),
+                      const SizedBox(height: 15),
+                      _buildImageFilters(corTema), 
+                      const SizedBox(height: 30),
+                      _buildBottomButton('Pontos de coleta', 'assets/images/icon_reciclagem.png', corTema, () {
+                        _vibrar();
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => const MapaView()));
+                      }),
+                      const SizedBox(height: 15),
+                      _buildBottomButton('Caminhões próximos', null, corTema, () {
+                        _vibrar();
+                        _mostrarMensagemEmBreve(context);
+                      }),
+                      const SizedBox(height: 30),
+                    ],
+                  ),
                 ),
-                _buildFiltroLimparButtons(),
-                _buildCalendar(corTema), 
-                const SizedBox(height: 25),
-                const Text('Filtrar por tipo:', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black54)),
-                const SizedBox(height: 15),
-                _buildImageFilters(corTema),
-                const SizedBox(height: 30),
-                _buildBottomButton('Pontos de coleta', 'assets/images/icon_reciclagem.png', corTema, () {
-                  _vibrar();
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => const MapaView()));
-                }),
-                const SizedBox(height: 15),
-                _buildBottomButton('Caminhões próximos', null, corTema, () {
-                  _vibrar();
-                  _mostrarMensagemEmBreve(context);
-                }),
-                const SizedBox(height: 30),
-              ],
-            ),
-          ),
-        ),
+              ),
       ),
     );
   }
-
-  // --- WIDGETS ---
 
   Widget _buildMenuButton(BuildContext context) {
     return Builder(
@@ -209,12 +245,8 @@ class _ColetaViewState extends State<ColetaView> {
     );
   }
 
-  // CORREÇÃO: Adicionado o parâmetro 'corTema' necessário para o cabeçalho do calendário
   Widget _buildCalendar(Color corTema) {
-    final months = [
-      'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-      'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
-    ];
+    final months = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
     return Container(
       decoration: BoxDecoration(
@@ -286,8 +318,17 @@ class _ColetaViewState extends State<ColetaView> {
   }
 
   Widget _buildCustomCell(DateTime day, Color defaultBgColor, {bool isToday = false}) {
-    final Color corEvento = _getCorParaDia(day);
-    final bool temEvento = corEvento != Colors.transparent;
+    int indexMaterialAtivo = -1;
+    for (int i = 0; i < selecionados.length; i++) {
+      if (selecionados[i] && _deveMostrarEvento(day, i)) {
+        indexMaterialAtivo = i;
+        break;
+      }
+    }
+
+    final bool temEvento = indexMaterialAtivo != -1;
+    final Color corEvento = temEvento ? coresMateriais[indexMaterialAtivo]! : Colors.transparent;
+    final String horario = temEvento ? _getHorarioDoEvento(day, indexMaterialAtivo) : '';
 
     return Container(
       margin: const EdgeInsets.all(0.5),
@@ -309,12 +350,12 @@ class _ColetaViewState extends State<ColetaView> {
             ),
           ),
           if (temEvento)
-            const Center(
+            Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.access_time_filled, color: Colors.white, size: 14),
-                  Text('17H', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                  const Icon(Icons.access_time_filled, color: Colors.white, size: 12),
+                  Text(horario, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
                 ],
               ),
             ),
@@ -324,34 +365,49 @@ class _ColetaViewState extends State<ColetaView> {
   }
 
   Widget _buildImageFilters(Color corTema) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      physics: const BouncingScrollPhysics(),
-      child: Row(
-        children: List.generate(caminhosImagens.length, (index) {
+    return SizedBox(
+      height: zoomInterface ? 110 : 95, 
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        itemCount: caminhosImagens.length, 
+        itemBuilder: (context, index) {
           return GestureDetector(
             onTap: () {
               _vibrar();
               setState(() => selecionados[index] = !selecionados[index]);
             },
-            child: Column(
-              children: [
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  margin: const EdgeInsets.only(right: 12),
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: selecionados[index] ? corTema.withOpacity(0.1) : Colors.white,
-                    borderRadius: BorderRadius.circular(50),
-                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 4))],
-                    border: selecionados[index] ? Border.all(color: corTema, width: 2) : (altoContraste ? Border.all(color: Colors.grey) : null),
+            child: Padding(
+              padding: const EdgeInsets.only(right: 14), 
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: selecionados[index] ? corTema.withOpacity(0.1) : Colors.white,
+                      borderRadius: BorderRadius.circular(50),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        )
+                      ],
+                      border: selecionados[index]
+                          ? Border.all(color: corTema, width: 2)
+                          : (altoContraste ? Border.all(color: Colors.grey) : null),
+                    ),
+                    child: Image.asset(
+                      caminhosImagens[index],
+                      width: zoomInterface ? 70 : 60,
+                      height: zoomInterface ? 70 : 60,
+                      fit: BoxFit.contain,
+                    ),
                   ),
-                  child: Image.asset(caminhosImagens[index], width: zoomInterface ? 70 : 60, height: zoomInterface ? 70 : 60, fit: BoxFit.contain),
-                ),
-                const SizedBox(height: 8),
-                Padding(
-                  padding: const EdgeInsets.only(right: 12),
-                  child: Text(
+                  const SizedBox(height: 6),
+                  Text(
                     nomesMateriais[index],
                     style: TextStyle(
                       fontSize: 12,
@@ -359,11 +415,11 @@ class _ColetaViewState extends State<ColetaView> {
                       color: selecionados[index] ? corTema : Colors.black54,
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           );
-        }),
+        },
       ),
     );
   }
@@ -453,7 +509,6 @@ class _ColetaViewState extends State<ColetaView> {
     if (picked != null) setState(() { dataFinal = picked; focusedDay = picked; });
   }
 
-  // --- DRAWER (MENU LATERAL) COMPLETO ---
   Widget _buildDrawer(BuildContext context, Color corTema) {
     return Drawer(
       child: Column(
@@ -473,7 +528,7 @@ class _ColetaViewState extends State<ColetaView> {
                   ),
                 ),
                 const SizedBox(height: 10),
-                const Text("Olá, Usuario", style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+                const Text("Olá, Usuário", style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
               ],
             ),
           ),
@@ -486,10 +541,7 @@ class _ColetaViewState extends State<ColetaView> {
                   Navigator.pop(context);
                   Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const TelaInicialView()));
                 }),
-                _buildMenuCard(icon: Icons.calendar_month, title: "Coleta Regular", cor: corTema, onTap: () {
-                  _vibrar();
-                  Navigator.pop(context);
-                }),
+                _buildMenuCard(icon: Icons.calendar_month, title: "Coleta Regular", cor: corTema, onTap: () => Navigator.pop(context)),
                 _buildMenuCard(icon: Icons.school, title: "Educação", cor: corTema, onTap: () {
                   _vibrar();
                   Navigator.pop(context);

@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart'; 
 import 'package:firebase_auth/firebase_auth.dart'; 
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; // IMPORTADO PARA OTOMIZAÇÃO
 
 // Imports para a inicialização de formatação de data e internacionalização
 import 'package:intl/date_symbol_data_local.dart'; 
@@ -34,6 +35,13 @@ void main() async {
       options: DefaultFirebaseOptions.currentPlatform,
     );
     debugPrint("Firebase inicializado com sucesso!");
+
+    // 🚀 CONFIGURAÇÃO DE ALTA PERFORMANCE PARA O FIRESTORE
+    // Faz a leitura/escrita serem locais e em segundo plano, acelerando o app drasticamente
+    FirebaseFirestore.instance.settings = const Settings(
+      persistenceEnabled: true, // Cache offline para acesso ultra rápido
+    );
+    debugPrint("Configurações de cache do Firestore aplicadas!");
 
     try {
       await FirebaseAuth.instance.signInWithEmailAndPassword(
@@ -160,9 +168,6 @@ class _MyAppState extends State<MyApp> {
 
         initialRoute: '/',
         
-        // 🔹 MODIFICAÇÃO DE ROTAS: Usar rotas nomeadas com builders normais funciona, 
-        // mas certifique-se de que cada uma destas telas tenha o método "didChangeDependencies()" 
-        // implementado se elas precisarem traduzir em tempo real sem fechar e reabrir.
         routes: {
           '/': (context) => const SplashView(),
           '/home': (context) => const HomeView(),

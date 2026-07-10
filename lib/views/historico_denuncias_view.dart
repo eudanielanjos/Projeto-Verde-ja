@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart'; // Importado para manter o logout igual à TelaInicial
+import 'package:google_sign_in/google_sign_in.dart'; 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vibration/vibration.dart';
@@ -320,7 +320,7 @@ class _HistoricoDenunciasViewState extends State<HistoricoDenunciasView> {
                   corIcone: corTema,
                   onTap: () {
                     _vibrar();
-                    Navigator.pop(context); // Apenas fecha pois já está na tela
+                    Navigator.pop(context); 
                   },
                 ),
                 _buildMenuCard(
@@ -539,37 +539,42 @@ class _HistoricoDenunciasViewState extends State<HistoricoDenunciasView> {
                       String status = denuncia['status'] ?? 'Pendente';
                       final statusCor = _getStatusColor(status);
 
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 14),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                          border: altoContraste ? Border.all(color: Colors.black, width: 2) : null,
-                          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 4))],
-                        ),
-                        child: ListTile(
-                          onTap: () => _abrirInspecaoDenuncia(denuncia, dataFormatada, corTema),
-                          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: zoomInterface ? 14 : 6),
-                          leading: Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: statusCor.withOpacity(0.12),
-                              borderRadius: BorderRadius.circular(14),
+                      // O widget AnimatedScale ou Transform.scale aplica o zoom visual de acessibilidade na lista de itens
+                      return AnimatedScale(
+                        scale: zoomInterface ? 1.05 : 1.0,
+                        duration: const Duration(milliseconds: 200),
+                        child: Container(
+                          margin: const EdgeInsets.only(bottom: 14),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            border: altoContraste ? Border.all(color: Colors.black, width: 2) : null,
+                            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 4))],
+                          ),
+                          child: ListTile(
+                            onTap: () => _abrirInspecaoDenuncia(denuncia, dataFormatada, corTema),
+                            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: zoomInterface ? 14 : 6),
+                            leading: Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: statusCor.withOpacity(0.12),
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: Icon(_getStatusIcon(status), color: statusCor, size: 26),
                             ),
-                            child: Icon(_getStatusIcon(status), color: statusCor, size: 26),
-                          ),
-                          title: Text(
-                            denuncia['tipo'] ?? 'Sem Tipo',
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF2D312E)),
-                          ),
-                          subtitle: Padding(
-                            padding: const EdgeInsets.only(top: 4),
-                            child: Text(
-                              "Registrado em: $dataFormatada",
-                              style: const TextStyle(color: Colors.grey, fontSize: 14),
+                            title: Text(
+                              denuncia['tipo'] ?? 'Sem Tipo',
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF2D312E)),
                             ),
+                            subtitle: Padding(
+                              padding: const EdgeInsets.only(top: 4),
+                              child: Text(
+                                "Registrado em: $dataFormatada",
+                                style: const TextStyle(color: Colors.grey, fontSize: 14),
+                              ),
+                            ),
+                            trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: Colors.black26),
                           ),
-                          trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: Colors.black26),
                         ),
                       );
                     },

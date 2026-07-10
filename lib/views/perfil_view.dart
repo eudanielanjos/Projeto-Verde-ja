@@ -190,8 +190,8 @@ class _PerfilPageState extends State<PerfilPage> {
               );
             }
 
-            // Valores padrão de segurança caso o documento não exista no Firestore ainda
-            String nome = "Sem Nome";
+            // ALTERAÇÃO: Puxa o nome/sobrenome da conta Google se o doc não existir no Firestore
+            String nome = _usuarioAtual.displayName ?? "Sem Nome";
             String email = _usuarioAtual.email ?? "Sem Email";
             String telefone = "Não cadastrado";
             String endereco = "Não cadastrado";
@@ -199,7 +199,7 @@ class _PerfilPageState extends State<PerfilPage> {
             // Se o documento existe, extrai as informações atualizadas
             if (snapshot.hasData && snapshot.data != null && snapshot.data!.exists) {
               Map<String, dynamic> dadosDoBanco = snapshot.data!.data() as Map<String, dynamic>;
-              nome = dadosDoBanco['nome'] ?? "Sem Nome";
+              nome = dadosDoBanco['nome'] ?? _usuarioAtual.displayName ?? "Sem Nome";
               email = dadosDoBanco['email'] ?? _usuarioAtual.email ?? "Sem Email";
               telefone = dadosDoBanco['telefone'] ?? "Não cadastrado";
               endereco = dadosDoBanco['endereco'] ?? "Não cadastrado";
@@ -281,7 +281,7 @@ class _PerfilPageState extends State<PerfilPage> {
                         child: ElevatedButton.icon(
                           onPressed: () {
                             _vibrar();
-                            _abrirModalEdicao(context, telefone, endereco, corTema);
+                            _abrirModalEdicao(context, nome, telefone, endereco, corTema);
                           },
                           icon: const Icon(Icons.edit_note_rounded, color: Colors.white),
                           label: const Text("EDITAR PERFIL", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
@@ -304,7 +304,8 @@ class _PerfilPageState extends State<PerfilPage> {
     );
   }
 
-  void _abrirModalEdicao(BuildContext context, String telefoneAtual, String enderecoAtual, Color corTema) {
+  void _abrirModalEdicao(BuildContext context, String nomeAtual, String telefoneAtual, String enderecoAtual, Color corTema) {
+    final nomeController = TextEditingController(text: nomeAtual);
     final telefoneController = TextEditingController(text: telefoneAtual == "Não cadastrado" ? "" : telefoneAtual);
     final enderecoController = TextEditingController(text: enderecoAtual == "Não cadastrado" ? "" : enderecoAtual);
 
@@ -331,6 +332,8 @@ class _PerfilPageState extends State<PerfilPage> {
                   const SizedBox(height: 20),
                   Text("Editar Informações", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: corTema)),
                   const SizedBox(height: 25),
+                  _buildCampoEdicao(label: "Nome Completo", controller: nomeController, icon: Icons.person, corFoco: corTema),
+                  const SizedBox(height: 15),
                   _buildCampoEdicao(label: "Telefone", controller: telefoneController, icon: Icons.phone, corFoco: corTema),
                   const SizedBox(height: 15),
                   _buildCampoEdicao(label: "Endereço", controller: enderecoController, icon: Icons.map, corFoco: corTema),
@@ -343,14 +346,14 @@ class _PerfilPageState extends State<PerfilPage> {
                             setModalState(() => _isSaving = true);
 
                             try {
-                              // MODIFICAÇÃO: Usando set com merge: true para criar o documento caso ele não exista
                               await FirebaseFirestore.instance
                                   .collection('usuarios')
                                   .doc(_usuarioAtual!.uid)
                                   .set({
+                                    'nome': nomeController.text.trim(),
                                     'telefone': telefoneController.text.trim(),
                                     'endereco': enderecoController.text.trim(),
-                                    'email': _usuarioAtual.email, // Salva o e-mail preventivamente se for novo doc
+                                    'email': _usuarioAtual.email,
                                   }, SetOptions(merge: true));
 
                               if (context.mounted) Navigator.pop(context);

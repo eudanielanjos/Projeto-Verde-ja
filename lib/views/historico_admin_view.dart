@@ -56,36 +56,39 @@ class _HistoricoAdminViewState extends State<HistoricoAdminView> {
             body: Center(
               child: Padding(
                 padding: const EdgeInsets.all(25.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.lock_person_outlined, size: 80, color: Colors.red),
-                    const SizedBox(height: 20),
-                    const Text(
-                      "Acesso Restrito",
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      user == null 
-                        ? "Você precisa fazer login no aplicativo com o e-mail verdejaprojeto@gmail.com para acessar este painel."
-                        : "A conta '${user.email}' não tem permissão de administrador.\n\nPor favor, entre com a conta verdejaprojeto@gmail.com.",
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(color: Colors.grey),
-                    ),
-                    const SizedBox(height: 30),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(backgroundColor: greenPrimary),
-                      onPressed: () async {
-                        // Se houver uma conta incorreta salva no cache, limpa ela
-                        if (user != null) {
-                          await FirebaseAuth.instance.signOut();
-                        }
-                        if (context.mounted) Navigator.pop(context);
-                      },
-                      child: const Text("Voltar para o Login", style: TextStyle(color: Colors.white)),
-                    ),
-                  ],
+                // Adicionado SingleChildScrollView para evitar overflow em telas muito pequenas
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.lock_person_outlined, size: 80, color: Colors.red),
+                      const SizedBox(height: 20),
+                      const Text(
+                        "Acesso Restrito",
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87),
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        user == null 
+                          ? "Você precisa fazer login no aplicativo com o e-mail verdejaprojeto@gmail.com para acessar este painel."
+                          : "A conta '${user.email}' não tem permissão de administrador.\n\nPor favor, entre com a conta verdejaprojeto@gmail.com.",
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: Colors.grey),
+                      ),
+                      const SizedBox(height: 30),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(backgroundColor: greenPrimary),
+                        onPressed: () async {
+                          // Se houver uma conta incorreta salva no cache, limpa ela
+                          if (user != null) {
+                            await FirebaseAuth.instance.signOut();
+                          }
+                          if (context.mounted) Navigator.pop(context);
+                        },
+                        child: const Text("Voltar para o Login", style: TextStyle(color: Colors.white)),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -298,7 +301,11 @@ class _HistoricoAdminViewState extends State<HistoricoAdminView> {
           backgroundColor: Colors.grey.shade200,
         ),
         title: Text(tipo, style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text("${item["usuarioEmail"] ?? item["email"] ?? 'Usuário'} • $dataFormatada"),
+        subtitle: Text(
+          "${item["usuarioEmail"] ?? item["email"] ?? 'Usuário'} • $dataFormatada",
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
         trailing: Icon(Icons.circle, color: _getStatusColor(status), size: 12),
         onTap: () => _abrirDetalhesDenuncia(item),
       ),
@@ -372,10 +379,19 @@ class _HistoricoAdminViewState extends State<HistoricoAdminView> {
                     Text(localFormatado, style: const TextStyle(color: Colors.grey, fontWeight: FontWeight.w500)),
                     const Divider(height: 40),
                     
+                    // Ajustado com flex ou espaçamento controlado para evitar overflows com emails longos
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(child: _infoDetail(Icons.person_outline, "Relator", denuncia["usuarioEmail"] ?? denuncia["email"] ?? "Usuário")),
-                        Expanded(child: _infoDetail(Icons.calendar_today_outlined, "Data Registro", dataFormatada)),
+                        Expanded(
+                          flex: 3,
+                          child: _infoDetail(Icons.person_outline, "Relator", denuncia["usuarioEmail"] ?? denuncia["email"] ?? "Usuário"),
+                        ),
+                        const SizedBox(width: 15),
+                        Expanded(
+                          flex: 2,
+                          child: _infoDetail(Icons.calendar_today_outlined, "Data Registro", dataFormatada),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 20),
@@ -495,9 +511,20 @@ class _HistoricoAdminViewState extends State<HistoricoAdminView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(children: [Icon(icon, size: 14, color: greenPrimary), const SizedBox(width: 5), Text(label, style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.bold))]),
+        Row(
+          children: [
+            Icon(icon, size: 14, color: greenPrimary), 
+            const SizedBox(width: 5), 
+            Text(label, style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.bold))
+          ],
+        ),
         const SizedBox(height: 4),
-        Text(value, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: customColor ?? Colors.black87)),
+        Text(
+          value, 
+          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: customColor ?? Colors.black87),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
       ],
     );
   }
